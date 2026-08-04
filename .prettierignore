@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+build
+coverage
+.env*
+!.env.local.example
+public
+package-lock.json
+# Prisma 7 generated client (custom output path, gitignored)
+src/generated
+# local editor/agent tooling config
+.claude
