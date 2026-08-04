@@ -84,9 +84,17 @@ export const BeritaService = {
     }
 
     if (category) {
-      filtered = filtered.filter(
-        (n) => n.categorySlug === category || n.categoryName === category,
+      // `category` may arrive as an id, a slug or a name: the chip filter sends
+      // the slug, while `getRelated` sends `NewsDetailDto.categoryId`. Resolve
+      // it against the category list first — matching only on slug/name meant
+      // related-news lookups silently returned nothing, so the "Berita Terkait"
+      // section never rendered in mock mode.
+      const categoryRow = MOCK_NEWS_CATEGORIES.find(
+        (c) => c.id === category || c.slug === category || c.name === category,
       );
+      filtered = categoryRow
+        ? filtered.filter((n) => n.categorySlug === categoryRow.slug)
+        : [];
     }
 
     if (search) {

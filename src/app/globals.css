@@ -181,4 +181,15 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  /* Horizontally scrollable rows (UMKM category chips) keep the swipe
+     affordance without the scrollbar, as in the prototype — which got this
+     from a Tailwind plugin that is not part of the build here. */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

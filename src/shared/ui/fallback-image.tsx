@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/shared/ui/icon";
 import { cn } from "@/shared/utils/cn";
 import { resolveImageUrl } from "@/shared/utils/resolve-image-url";
@@ -28,6 +28,16 @@ export function FallbackImage({
 }: FallbackImageProps) {
   const resolvedUrl = resolveImageUrl(src);
   const [failed, setFailed] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // The <img> is server-rendered, so a request that already failed before
+  // React hydrated never fires `onError` — the visitor was left with the
+  // browser's broken-image glyph instead of the placeholder. Re-check the
+  // "finished loading but has no pixels" state once on mount.
+  useEffect(() => {
+    const image = imageRef.current;
+    if (image?.complete && image.naturalWidth === 0) setFailed(true);
+  }, [resolvedUrl]);
 
   if (!resolvedUrl || failed) {
     return (
@@ -47,6 +57,7 @@ export function FallbackImage({
   return (
     // eslint-disable-next-line @next/next/no-img-element -- storage domain is dynamic per Supabase project; plain <img> avoids next/image remotePatterns config.
     <img
+      ref={imageRef}
       src={resolvedUrl}
       alt={alt}
       className={className}

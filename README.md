@@ -1,16 +1,40 @@
 # Website Resmi Desa Pringgodani
 
-Status: **Tahap 4 — Halaman Publik**, langkah 1/6 (**Home**) selesai dan sudah
-tervalidasi jalan di mesin lokal (DB + build + browser). Lihat
-`01-architecture-plan.md` (di luar repo ini) untuk dokumen master perencanaan.
+Status: **Tahap 4 — Halaman Publik**. Selesai: langkah 1/6 (**Home**), 2/6
+(**Berita**), 3/6 (**UMKM**). Lihat `01-architecture-plan.md` (di luar repo ini)
+untuk dokumen master perencanaan.
+
+> ## ⚠️ Repo ini sekarang PURE FRONTEND (4 Agustus 2026)
+>
+> Commit `cad74e9` ("feat : migrate to pure frontend", PR #1) **menghapus seluruh
+> backend**: `prisma/` (schema, migrations, seed), `prisma.config.ts`,
+> `docker-compose.yml`, `src/proxy.ts`, `src/shared/config/env.ts`, dan **semua**
+> route `src/app/api/**`. Sumber data sekarang mock statis di
+> `src/shared/data/mock-*.ts`.
+>
+> **Aturan pengerjaan yang berlaku sejak sekarang:** kerjakan **frontend saja** —
+> jangan menghidupkan Prisma/DB, jangan membuat route `app/api/**`. Prioritas
+> diubah karena deadline: **UMKM dituntaskan dulu, lalu Berita**, baru sisanya.
+>
+> Service layer di `src/entities/*/api/*.service.ts` sudah **dual-mode**: kalau
+> `NEXT_PUBLIC_API_URL` diisi → memanggil backend eksternal; kalau kosong (default)
+> → memakai mock data dengan filter/paginate di sisi server component. Jadi alur
+> **Page → Service → (API | mock)** tetap dipatuhi: tidak ada komponen yang
+> menyentuh sumber data langsung.
+>
+> Section Tahap 2/Tahap 3 di bawah **ditinggalkan sebagai catatan historis** —
+> instruksi Docker/Prisma/Supabase di sana **tidak lagi berlaku** untuk repo ini,
+> tapi jangan dihapus karena berisi keputusan skema yang tetap dipakai sebagai
+> bentuk DTO. Sisa artefak lama: folder `src/generated/prisma/` masih ada sebagai
+> untracked leftover dan **tidak diimpor oleh file mana pun** — aman dihapus.
 
 ## Stack
 
 - Next.js (App Router, TypeScript strict, Turbopack)
 - TailwindCSS v4 + shadcn/ui (komponen di-setup manual — lihat catatan di bawah)
-- Prisma 7 + PostgreSQL (schema lengkap, sudah ter-migrasi — butuh driver adapter
-  `@prisma/adapter-pg` dan `prisma.config.ts`)
-- Supabase Auth + Supabase Storage (Tahap 3)
+- ~~Prisma 7 + PostgreSQL~~ — **dihapus** di migrasi pure frontend; bentuk DTO
+  tetap mengikuti skema lama (`prd_2.txt §6.2`)
+- ~~Supabase Auth + Supabase Storage~~ — **dihapus** di migrasi pure frontend
 - TanStack Query, React Hook Form + Zod, Axios
 - React Leaflet, Framer Motion
 - Vitest + Testing Library (unit test service layer & validasi Zod, Tahap 6)
@@ -35,21 +59,18 @@ Alur data wajib: **Page → Service → API → Database** — tidak ada fetch l
 
 ```bash
 npm install
-cp .env.local.example .env.local   # isi DATABASE_URL & Supabase vars
-npm run dev
+npm run dev            # port 3001; tanpa DB/env apa pun — data dari mock
 ```
 
-Perintah lain:
+Perintah lain (script `prisma:*` sudah tidak ada setelah migrasi pure frontend):
 
 ```bash
 npm run lint          # ESLint
 npm run lint:fix
 npm run format         # Prettier write
 npm run format:check
-npm run test            # Vitest (--passWithNoTests; test asli dibuat di Tahap 6)
-npm run prisma:generate
-npm run prisma:migrate  # butuh PostgreSQL lokal jalan (docker-compose, Tahap 2)
-npm run prisma:studio
+npm run test           # Vitest (--passWithNoTests; belum ada file test sama sekali)
+npm run build && npm run start
 ```
 
 ## Catatan setup (penting dibaca)
@@ -83,7 +104,9 @@ npm run prisma:studio
 1. ~~Tahap 1 — Scaffold~~ ✅
 2. ~~Tahap 2 — Database~~ ✅
 3. ~~Tahap 3 — Auth & Storage Setup~~ ✅ (lihat catatan wajib di bawah — perlu project Supabase asli untuk dites penuh)
-4. Tahap 4 — Halaman Publik: 🟡 **Home selesai**, sisanya (Berita → UMKM → Potensi → Peta → Submit flow) belum
+4. Tahap 4 — Halaman Publik: 🟡 **Home ✅, Berita ✅, UMKM ✅** — sisanya belum:
+   Potensi (list + detail) → Peta → Submit flow. **Urutan berikutnya: Potensi**
+   (Berita & UMKM sudah tuntas)
 5. Tahap 5 — Admin Panel
 6. Tahap 6 — 404 final, SEO, testing, deployment
 
@@ -324,3 +347,203 @@ message, data}` dan data seed asli.
 - **Gambar**: semua path gambar seed masih placeholder key (belum ada file asli), jadi
   tampil sebagai empty-state ikon `FallbackImage` — bukan bug. Akan normal setelah ada
   upload sungguhan.
+
+## Tahap 4 — Berita: List + Detail (langkah 2/6) ✅
+
+Dikerjakan 4 Agustus 2026 dini hari, **sebelum** repo dimigrasi ke pure frontend.
+Sesi itu terputus (kredit habis) tepat di langkah screenshot verifikasi visual, dan
+belum sempat menulis catatan ini — karena itu section ini ditulis belakangan.
+
+File yang ada sekarang (semuanya lolos build & sudah ter-commit):
+
+- Route: `src/app/(public)/berita/(list)/page.tsx` + `loading.tsx`,
+  `src/app/(public)/berita/[slug]/page.tsx`
+- View: `src/views/berita-list/` (filter bar, featured hero, grid skeleton,
+  empty/error state) dan `src/views/berita-detail/` (article header/body, share bar,
+  reading progress, related news)
+- Feature: `src/features/filter-berita/`, `src/features/search-berita/`
+- Widget: `src/widgets/pagination/pagination.tsx` (dipakai ulang oleh /umkm)
+
+### ⚠️ Temuan penting: `loading.tsx` bikin 404 jadi HTTP 200
+
+`loading.tsx` membuat Suspense boundary untuk segment-nya **dan semua segment di
+bawahnya**. Diletakkan di `berita/loading.tsx`, ia ikut membungkus `berita/[slug]`,
+sehingga response mulai di-stream sebelum view detail bisa memanggil `notFound()` —
+slug tidak dikenal jadi merender UI 404 dengan status **HTTP 200** (status tidak bisa
+diubah setelah header terkirim). Solusi: taruh `loading.tsx` di dalam route group
+`(list)`. **Pola ini wajib diikuti untuk setiap pasangan list+detail** — sudah
+diterapkan juga di `/umkm`, dan harus dipakai untuk `/potensi` nanti.
+
+## Tahap 4 — UMKM: Direktori + Detail (langkah 3/6) ✅
+
+Dikerjakan 4 Agustus 2026 (sesi lanjutan), **sesudah** migrasi pure frontend, jadi
+100% tanpa backend: data dari `src/shared/data/mock-umkm.ts` lewat `UmkmService`.
+
+### File yang dibuat/diubah
+
+**Entity `umkm`**
+
+- `model/types.ts` — `UmkmListItemDto` ditambah `address` + `ownerName`; DTO baru
+  `UmkmDetailDto`, `UmkmProductDto`, `UmkmPotentialSummaryDto`, `UmkmCategoryDto`
+- `model/category-meta.ts` — label + **slug URL** + badge class per enum
+  `UmkmCategory`, plus `resolveUmkmCategory()` (menerima slug maupun enum)
+- `model/whatsapp-link.ts` — tambah `formatWhatsappNumber()` (`6281…` → `+62 812-…`)
+- `api/umkm.service.ts` — tambah `getPaginated()`, `getBySlug()`, `getSimilar()`,
+  `getCategories()`; filter/sort/paginate mock dilakukan di service, bukan di view
+- `ui/umkm-card.tsx` — **satu** komponen kartu, tiga varian: `compact` (Home),
+  `listing` (direktori), `similar` ("UMKM Serupa"). Tidak ada komponen kartu duplikat.
+
+**Data mock** — `src/shared/data/mock-umkm.ts` diperluas dari 4 → **12 UMKM** yang
+mencakup keenam kategori, dengan alamat, koordinat, galeri, dan produk. Sengaja ada
+kasus tepi: `konveksi-batik-pringgodani` (galeri kosong),
+`servis-elektronik-hendra` (tanpa produk), `gerabah-souvenir-pringgodani`
+(produk dengan `price: null`). 12 item = 2 halaman → pagination benar-benar bisa dites.
+
+**View**
+
+- `src/views/umkm-list/` — `umkm-list-page.tsx`, `sections/umkm-filter-bar.tsx`,
+  `sections/umkm-promo-section.tsx`, `ui/umkm-grid-skeleton.tsx`, `ui/results-state.tsx`
+- `src/views/umkm-detail/` — `umkm-detail-page.tsx` + sections: breadcrumb, hero,
+  products, info sidebar, gallery (bento), related potential, similar UMKM
+
+**Feature / widget baru (reusable untuk langkah berikutnya)**
+
+- `src/widgets/search-box/search-box.tsx` — search box URL-backed generik
+  (debounce 400 ms, reset ke halaman 1). `features/search-berita` **dan**
+  `features/search-umkm` sekarang jadi wrapper tipis di atasnya, jadi perilaku
+  /berita dan /umkm tidak bisa melenceng satu sama lain.
+- `src/features/filter-umkm/ui/umkm-category-filter.tsx` — chip kategori dari enum
+- `src/features/whatsapp-contact/ui/whatsapp-cta.tsx` — satu-satunya tombol WhatsApp
+- `src/features/google-maps-link/` — `model/maps-url.ts` + `ui/location-card.tsx`
+- `src/entities/potensi/model/category-meta.ts` — label + ikon `PotentialCategory`
+  (dipakai kartu "Potensi Terkait", siap dipakai langkah Potensi)
+- `src/shared/utils/format-currency.ts` — `formatRupiah()`, `null` →
+  "Harga menyesuaikan"
+
+**Route**: `src/app/(public)/umkm/(list)/page.tsx` + `loading.tsx`,
+`src/app/(public)/umkm/[slug]/page.tsx`
+
+### Penyimpangan dari prototype (sengaja, karena skema/keamanan)
+
+Prototype `detail_umkm_desa_pringgodani_final_consistency` menampilkan beberapa data
+yang **tidak ada di skema** — semuanya dihilangkan, tidak di-hardcode:
+
+- **"Sejak 2012"** → diganti "Terdaftar sejak `<tahun publishedAt>`" (tidak ada kolom
+  tahun berdiri).
+- **Email bisnis** → dihapus. Yang ada hanya `submitterEmail`, itu milik pengirim
+  pengajuan, **bukan** kontak publik — menampilkannya = kebocoran data.
+- **Jam operasional** → dihapus (kolomnya hanya ada di `PublicFacility`).
+- **Deskripsi per produk** → dihapus (`UmkmProduct` tidak punya kolom deskripsi).
+- **Tombol "Panduan Pendaftaran"** di banner promo → dihapus, tidak ada halamannya di
+  sitemap; hanya "Daftar Sekarang" → `/submit/umkm` yang dipertahankan.
+- **Badge "Verified"** → ditulis "Terverifikasi Pemerintah Desa"; validnya karena UMKM
+  hanya tampil publik setelah admin menyetujui (`ContentStatus.PUBLISHED`).
+
+### ⚠️ Temuan 1: embed peta OpenStreetMap butuh WebGL
+
+Kartu "Lokasi Usaha" awalnya memakai `<iframe>` ke
+`openstreetmap.org/export/embed.html` (keyless). Hasilnya: embed-nya merender pesan
+_"Maaf, tampaknya peramban Anda tidak cocok dengan WebGL"_ — terbukti di browser
+headless di mesin ini, dan itu risiko nyata di HP kelas bawah yang jadi target situs
+ini. Sekarang kartunya jadi panel statis (ikon pin + koordinat) dengan dua tautan
+Google Maps: "Lihat di Google Maps" dan "Petunjuk Arah" — tanpa API key, jalan di
+semua perangkat. **Saat Leaflet dipasang di `/peta` (langkah 5/6), panel ini boleh
+diganti mini-map raster tile** (raster tidak butuh WebGL).
+
+### ⚠️ Temuan 2: ukuran ikon Material Symbols diabaikan di SELURUH situs
+
+Stylesheet `fonts.googleapis.com` untuk Material Symbols memasang
+`.material-symbols-outlined { font-size: 24px }` **di luar CSS cascade layer**.
+Style tanpa layer selalu mengalahkan style di dalam layer, dan semua utility Tailwind
+v4 ada di `@layer utilities` — jadi **setiap** `text-5xl` / `text-[120px]` /
+`text-[200px]` pada `<Icon>` tidak berefek: semua ikon terkunci 24px. Ini bug lama
+yang juga mengenai Home (`text-[200px]` di `community-cta-section.tsx`) dan Berita.
+
+Di halaman UMKM sudah ditangani per call-site dengan modifier penting Tailwind
+(`text-[120px]!`, `text-[64px]!`, `text-5xl!`). **Belum diperbaiki global** — opsi
+untuk sesi berikutnya: (a) tambahkan `!` di semua call-site `<Icon>` yang butuh
+ukuran, (b) `@import "tailwindcss" important;` (efek luas, harus dites ulang), atau
+(c) hentikan pemakaian CSS helper Google dan deklarasikan `@font-face` sendiri.
+
+### ⚠️ Temuan 3: `FallbackImage` tidak jatuh ke placeholder (sudah diperbaiki)
+
+`<img>` dirender di server. Kalau request gambar sudah gagal **sebelum** React
+hydrate, `onError` tidak pernah jalan, jadi pengunjung melihat ikon broken-image +
+alt text, bukan placeholder — persis kondisi sekarang karena semua path gambar mock
+belum ada file aslinya. Diperbaiki di `src/shared/ui/fallback-image.tsx`: cek sekali
+saat mount (`img.complete && img.naturalWidth === 0`). Perbaikan ini otomatis
+menyembuhkan Home dan Berita juga.
+
+### ⚠️ Temuan 4: `min-w-0` di baris chip filter
+
+Tanpa `min-w-0`, baris chip (flex item ber-`overflow-x-auto`) menolak menyusut di
+bawah lebar kontennya dan menggencet kotak pencarian di sebelahnya sampai nyaris
+hilang pada layar ~1100 px. Sudah dipasang `min-w-0` + `lg:min-w-[260px]` pada
+search box. Pola ini perlu diingat untuk filter bar Potensi nanti.
+
+## Hasil validasi UMKM di mesin lokal (4 Agustus 2026)
+
+Semua gate hijau setelah `rm -rf .next` (dir `.next` lama masih mereferensikan route
+`app/api/**` yang sudah dihapus migrasi, sehingga `tsc` sempat error palsu):
+
+- `npm run lint` ✅ · `npx tsc --noEmit` ✅ · `npm run format:check` ✅
+- `npm run build` ✅ — route terdaftar: `/`, `/berita`, `/berita/[slug]`, `/umkm`,
+  `/umkm/[slug]`
+- `npm run test` — **tidak ada file test sama sekali** (`--passWithNoTests`). Klaim
+  "test ✅" di catatan Tahap 2 sudah tidak akurat setelah migrasi.
+
+Diverifikasi sungguhan lewat `npm run start` (port 3100) + curl + screenshot browser
+headless:
+
+| URL                               | Hasil                                                      |
+| --------------------------------- | ---------------------------------------------------------- |
+| `/umkm`                           | 200, 8 kartu, chip 6 kategori, pagination "1 2"            |
+| `/umkm?halaman=2`                 | 200, 4 kartu sisanya (total 12)                            |
+| `/umkm?kategori=kuliner`          | 200, 2 kartu kuliner saja                                  |
+| `/umkm?kategori=tidak-ada`        | 200 + empty state "Belum ada UMKM yang cocok…"             |
+| `/umkm?cari=madu`                 | 200, 1 hasil                                               |
+| `/umkm?cari=zzzz`                 | 200 + empty state + tombol "Tampilkan Semua UMKM"          |
+| `/umkm/keripik-singkong-bu-marni` | 200; produk + harga, galeri bento, Potensi Terkait, Serupa |
+| `/umkm/servis-elektronik-hendra`  | 200; "belum menambahkan daftar produk", galeri tersembunyi |
+| `/umkm/slug-tidak-ada`            | **404** (bukan 200/500)                                    |
+| `/` dan `/berita`                 | 200 — tidak ada regresi dari refactor search box & card    |
+
+Terverifikasi juga di HTML/screenshot: `wa.me/6281234500001` dengan pesan prefilled,
+nomor tampil `+62 812-3450-0001`, tautan "Petunjuk Arah" ke Google Maps, breadcrumb,
+badge kategori berwarna per enum, dan bento galeri 4 gambar.
+
+### Yang belum divalidasi untuk UMKM
+
+- **Tampilan mobile sungguhan.** Screenshot headless pada 430 px terlihat terpotong
+  horizontal, tapi **Home juga sama** pada pengukuran yang sama — indikasi artefak
+  headless Chrome, bukan regresi UMKM. Perlu dicek sekali di HP/DevTools asli.
+- **Gambar**: semua path masih key mock tanpa file, jadi tampil placeholder ikon
+  (bukan bug — lihat Temuan 3).
+
+## Hasil validasi Berita di mesin lokal (4 Agustus 2026)
+
+Verifikasi yang tertinggal dari sesi 4 Agustus dini hari akhirnya diselesaikan di sesi
+UMKM ini.
+
+### ⚠️ Bug yang ditemukan & diperbaiki: "Berita Terkait" selalu kosong
+
+`BeritaService.getRelated()` mengirim `NewsDetailDto.categoryId` (mis. `cat-1`) ke
+`getPaginated({ category })`, tapi filter mock-nya hanya membandingkan `categorySlug`
+dan `categoryName` — id tidak pernah cocok, jadi hasilnya selalu kosong dan section
+"Berita Terkait" **tidak pernah dirender** sejak migrasi pure frontend. Diperbaiki di
+`src/entities/berita/api/berita.service.ts`: nilai `category` sekarang di-resolve dulu
+ke baris `MOCK_NEWS_CATEGORIES` (menerima id, slug, atau nama), dan kategori yang tidak
+dikenal menghasilkan daftar kosong (bukan seluruh daftar).
+
+| URL                             | Hasil                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `/berita`                       | 200; featured hero, filter bar, grid 3 kolom                                                     |
+| `/berita?halaman=2`             | 200                                                                                              |
+| `/berita?kategori=pemerintahan` | 200, terfilter                                                                                   |
+| `/berita?kategori=tidak-ada`    | 200 + empty state                                                                                |
+| `/berita?cari=zzzz`             | 200 + empty state                                                                                |
+| `/berita/<slug asli>`           | 200; "Menit Baca", penulis "Admin Desa Pringgodani", share bar, **"Berita Terkait" kini tampil** |
+| `/berita/tidak-ada`             | **404**                                                                                          |
+
+Screenshot 1440 px diverifikasi untuk `/berita` dan `/umkm` (+ detail keduanya):
+layout, badge kategori berwarna, chip filter, dan pagination sesuai prototype.

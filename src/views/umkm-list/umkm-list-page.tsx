@@ -1,0 +1,155 @@
+import { Suspense } from "react";
+
+import { UmkmService } from "@/entities/umkm/api/umkm.service";
+import { UmkmCard } from "@/entities/umkm/ui/umkm-card";
+import { resolveUmkmCategory } from "@/entities/umkm/model/category-meta";
+import { Pagination } from "@/widgets/pagination/pagination";
+import { buildQueryString } from "@/shared/utils/search-params";
+import { UmkmFilterBar } from "./sections/umkm-filter-bar";
+import { UmkmPromoSection } from "./sections/umkm-promo-section";
+import { UmkmGridSkeleton } from "./ui/umkm-grid-skeleton";
+import { UmkmEmptyState, UmkmErrorState } from "./ui/results-state";
+
+/** The directory prototype shows a 4-column grid with 8 cards per page. */
+const PAGE_SIZE = 8;
+
+type SearchParamsRecord = Record<string, string | string[] | undefined>;
+
+interface UmkmListPageProps {
+  searchParams: Promise<SearchParamsRecord>;
+}
+
+function firstValue(value: string | string[] | undefined): string {
+  return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+/**
+ * `views/umkm-list` — the /umkm directory view, rendered thinly from
+ * `app/(public)/umkm/(list)/page.tsx`.
+ *
+ * Search, category and page all live in the URL query string
+ * (`?cari=&kategori=&halaman=`) rather than in client state: the filter
+ * controls push a new URL, Next.js re-renders this Server Component in place
+ * (client-side navigation, no full reload), and every result set stays
+ * shareable and back-button friendly. Data still flows strictly
+ * Page → Service → (API or mock data source).
+ */
+export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
+  const params = await searchParams;
+  const search = firstValue(params.cari).trim();
+  const categorySlug = firstValue(params.kategori).trim();
+  const pageNumber = Number.parseInt(firstValue(params.halaman), 10);
+  const page = Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+  const hasFilters = Boolean(search || categorySlug);
+
+  const categories = await UmkmService.getCategories()
+    .then((result) => result.items)
+    .catch((err) => {
+      // Losing the chips must not take the whole directory down — the grid
+      // below still renders.
+      console.error("Gagal memuat kategori UMKM:", err);
+      return [];
+    });
+
+  // A hand-typed/stale `?kategori=` that matches no enum value is an empty
+  // result, not an error.
+  const unknownCategory =
+    Boolean(categorySlug) && resolveUmkmCategory(categorySlug) === null;
+
+  return (
+    <div className="pb-section-padding pt-24">
+      <header className="max-w-container-max px-gutter mb-stack-lg mx-auto">
+        <div className="gap-gutter flex flex-col justify-between md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <h1 className="font-headline-lg text-headline-lg text-primary mb-4">
+              Direktori UMKM Pringgodani
+            </h1>
+            <p className="font-body-lg text-body-lg text-on-surface-variant">
+              Temukan berbagai produk lokal unggulan mulai dari kuliner
+              tradisional hingga kerajinan tangan khas Desa Pringgodani.
+            </p>
+          </div>
+        </div>
+
+        <UmkmFilterBar categories={categories} />
+      </header>
+
+      <section className="max-w-container-max px-gutter mx-auto">
+        {unknownCategory ? (
+          <UmkmEmptyState hasFilters />
+        ) : (
+          <Suspense
+            key={`${search}|${categorySlug}|${page}`}
+            fallback={<UmkmGridSkeleton count={PAGE_SIZE} />}
+          >
+            <UmkmResults
+              search={search}
+              categorySlug={categorySlug}
+              page={page}
+              hasFilters={hasFilters}
+            />
+          </Suspense>
+        )}
+      </section>
+
+      <UmkmPromoSection />
+    </div>
+  );
+}
+
+interface UmkmResultsProps {
+  search: string;
+  categorySlug: string;
+  page: number;
+  hasFilters: boolean;
+}
+
+async function UmkmResults({
+  search,
+  categorySlug,
+  page,
+  hasFilters,
+}: UmkmResultsProps) {
+  let result;
+  try {
+    result = await UmkmService.getPaginated({
+      page,
+      limit: PAGE_SIZE,
+      category: categorySlug || undefined,
+      search: search || undefined,
+    });
+  } catch (err) {
+    console.error("Gagal memuat daftar UMKM:", err);
+    return <UmkmErrorState />;
+  }
+
+  if (result.items.length === 0) {
+    return <UmkmEmptyState hasFilters={hasFilters} />;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(result.total / PAGE_SIZE));
+
+  return (
+    <>
+      <div className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {result.items.map((umkm) => (
+          <UmkmCard key={umkm.id} umkm={umkm} variant="listing" />
+        ))}
+      </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={(targetPage) =>
+          `/umkm${buildQueryString(
+            {
+              ...(search ? { cari: search } : {}),
+              ...(categorySlug ? { kategori: categorySlug } : {}),
+            },
+            { halaman: targetPage === 1 ? null : targetPage },
+          )}`
+        }
+      />
+    </>
+  );
+}
