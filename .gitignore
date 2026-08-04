@@ -41,8 +41,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma generated client (Prisma 7 custom output path)
-/src/generated/prisma
-
-# local dev storage fallback (uploadImage() writes here when Supabase isn't configured yet)
-/public/uploads

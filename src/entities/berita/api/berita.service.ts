@@ -1,12 +1,17 @@
 import axios from "axios";
 
-import { apiClient } from "@/shared/api/axios-instance";
+import { apiClient, IS_API_CONNECTED } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import type {
   NewsCategoryListResponse,
   NewsDetailDto,
   NewsListResponse,
 } from "../model/types";
+import {
+  MOCK_NEWS,
+  MOCK_NEWS_CATEGORIES,
+  getMockNewsDetail,
+} from "@/shared/data/mock-berita";
 
 export interface GetLatestNewsParams {
   limit?: number;
@@ -30,23 +35,24 @@ export interface GetRelatedNewsParams {
 }
 
 /**
- * BeritaService — the only thing view components (`views/*`, `app/**\/page.tsx`)
- * are allowed to call for News data. Never import Prisma directly into a
- * page/component; this Service calls the Route Handlers under
- * `app/api/berita/`, which are the only layer allowed to touch the database.
+ * BeritaService — dual-mode data source.
+ * When NEXT_PUBLIC_API_URL is set → fetches from backend API.
+ * When empty → returns static mock data with client-side filtering.
  */
 export const BeritaService = {
   async getLatestPublished({
     limit = 3,
   }: GetLatestNewsParams = {}): Promise<NewsListResponse> {
-    const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
-      "/berita",
-      { params: { limit, sort: "publishedAt_desc" } },
-    );
-    return data.data;
+    if (IS_API_CONNECTED) {
+      const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
+        "/berita",
+        { params: { limit, sort: "publishedAt_desc" } },
+      );
+      return data.data;
+    }
+    return { items: MOCK_NEWS.slice(0, limit), total: MOCK_NEWS.length };
   },
 
-  /** Listing page: paginated + filtered by category and/or free-text search. */
   async getPaginated({
     page = 1,
     limit = 6,
@@ -54,39 +60,67 @@ export const BeritaService = {
     search,
     exclude,
   }: GetPaginatedNewsParams = {}): Promise<NewsListResponse> {
-    const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
-      "/berita",
-      {
-        params: {
-          page,
-          limit,
-          ...(category ? { category } : {}),
-          ...(search ? { search } : {}),
-          ...(exclude ? { exclude } : {}),
+    if (IS_API_CONNECTED) {
+      const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
+        "/berita",
+        {
+          params: {
+            page,
+            limit,
+            ...(category ? { category } : {}),
+            ...(search ? { search } : {}),
+            ...(exclude ? { exclude } : {}),
+          },
         },
-      },
-    );
-    return data.data;
-  },
-
-  /**
-   * Detail page. Returns `null` when the slug does not resolve to a PUBLISHED
-   * article, so the view can call Next's `notFound()` instead of surfacing an
-   * HTTP error — any other failure still throws and hits the error state.
-   */
-  async getBySlug(slug: string): Promise<NewsDetailDto | null> {
-    try {
-      const { data } = await apiClient.get<ApiSuccessBody<NewsDetailDto>>(
-        `/berita/${encodeURIComponent(slug)}`,
       );
       return data.data;
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) return null;
-      throw err;
     }
+
+    // Client-side filtering for mock data
+    let filtered = [...MOCK_NEWS];
+
+    if (exclude) {
+      filtered = filtered.filter((n) => n.id !== exclude);
+    }
+
+    if (category) {
+      filtered = filtered.filter(
+        (n) => n.categorySlug === category || n.categoryName === category,
+      );
+    }
+
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          n.summary.toLowerCase().includes(q),
+      );
+    }
+
+    const total = filtered.length;
+    const start = (page - 1) * limit;
+    const items = filtered.slice(start, start + limit);
+
+    return { items, total };
   },
 
-  /** "Berita Terkait": same category, newest first, current article excluded. */
+  async getBySlug(slug: string): Promise<NewsDetailDto | null> {
+    if (IS_API_CONNECTED) {
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<NewsDetailDto>>(
+          `/berita/${encodeURIComponent(slug)}`,
+        );
+        return data.data;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404)
+          return null;
+        throw err;
+      }
+    }
+    return getMockNewsDetail(slug);
+  },
+
   async getRelated({
     categoryId,
     excludeId,
@@ -99,12 +133,14 @@ export const BeritaService = {
     });
   },
 
-  /** Category chips on /berita — always the real `NewsCategory` rows. */
   async getCategories(): Promise<NewsCategoryListResponse> {
-    const { data } =
-      await apiClient.get<ApiSuccessBody<NewsCategoryListResponse>>(
-        "/berita/categories",
-      );
-    return data.data;
+    if (IS_API_CONNECTED) {
+      const { data } =
+        await apiClient.get<ApiSuccessBody<NewsCategoryListResponse>>(
+          "/berita/categories",
+        );
+      return data.data;
+    }
+    return { items: MOCK_NEWS_CATEGORIES };
   },
 };
