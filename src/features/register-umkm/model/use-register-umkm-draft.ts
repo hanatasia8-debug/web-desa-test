@@ -62,9 +62,7 @@ export function useRegisterUmkmDraft() {
           ),
           products: formData.products?.map((p) => ({
             ...p,
-            productPhoto: p.productPhoto?.startsWith("data:")
-              ? ""
-              : p.productPhoto,
+            imageUrl: p.imageUrl?.startsWith("data:") ? "" : p.imageUrl,
           })),
         };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(safeData));
