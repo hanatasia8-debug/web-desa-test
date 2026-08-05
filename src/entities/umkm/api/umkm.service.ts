@@ -8,6 +8,7 @@ import type {
   UmkmListItemDto,
   UmkmListResponse,
 } from "../model/types";
+import type { RegisterUmkmDTO } from "../model/register-umkm.schema";
 import { resolveUmkmCategory } from "../model/category-meta";
 import {
   MOCK_UMKM,
@@ -157,5 +158,30 @@ export const UmkmService = {
       return data.data;
     }
     return { items: MOCK_UMKM_CATEGORIES };
+  },
+
+  async register(
+    payload: Partial<RegisterUmkmDTO>,
+  ): Promise<{ id: string; slug: string; name: string }> {
+    if (IS_API_CONNECTED) {
+      const { data } = await apiClient.post<
+        ApiSuccessBody<{ id: string; slug: string; name: string }>
+      >("/umkm/register", payload);
+      return data.data;
+    }
+
+    // Mock submission simulation
+    const slug = (payload.name || "umkm-baru")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const newId = `umkm-${Date.now()}`;
+
+    return {
+      id: newId,
+      slug,
+      name: payload.name || "UMKM Baru",
+    };
   },
 };

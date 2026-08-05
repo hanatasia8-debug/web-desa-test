@@ -18,7 +18,7 @@ export function CommunityCtaSection() {
               portal resmi desa.
             </p>
             <Link
-              href="/submit/umkm"
+              href="/umkm/daftar"
               className="bg-on-secondary text-secondary font-label-sm inline-block rounded-full px-6 py-3 font-bold transition-shadow hover:shadow-lg"
             >
               Daftarkan UMKM

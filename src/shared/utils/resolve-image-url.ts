@@ -13,6 +13,8 @@ export function resolveImageUrl(
   if (
     storagePathOrUrl.startsWith("http://") ||
     storagePathOrUrl.startsWith("https://") ||
+    storagePathOrUrl.startsWith("data:") ||
+    storagePathOrUrl.startsWith("blob:") ||
     storagePathOrUrl.startsWith("/")
   ) {
     return storagePathOrUrl;

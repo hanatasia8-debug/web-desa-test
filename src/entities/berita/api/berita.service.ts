@@ -7,6 +7,7 @@ import type {
   NewsDetailDto,
   NewsListResponse,
 } from "../model/types";
+import type { RegisterNewsDTO } from "../model/register-news.schema";
 import {
   MOCK_NEWS,
   MOCK_NEWS_CATEGORIES,
@@ -150,5 +151,27 @@ export const BeritaService = {
       return data.data;
     }
     return { items: MOCK_NEWS_CATEGORIES };
+  },
+
+  async submit(
+    payload: Partial<RegisterNewsDTO>,
+  ): Promise<{ id: string; slug: string; title: string }> {
+    if (IS_API_CONNECTED) {
+      const { data } = await apiClient.post<
+        ApiSuccessBody<{ id: string; slug: string; title: string }>
+      >("/berita/register", payload);
+      return data.data;
+    }
+
+    const slug = (payload.title || "berita-baru")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    return {
+      id: `news-${Date.now()}`,
+      slug,
+      title: payload.title || "Berita Baru",
+    };
   },
 };

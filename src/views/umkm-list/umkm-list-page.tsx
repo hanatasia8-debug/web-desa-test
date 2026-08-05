@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+import Link from "next/link";
 
 import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { UmkmCard } from "@/entities/umkm/ui/umkm-card";
 import { resolveUmkmCategory } from "@/entities/umkm/model/category-meta";
 import { Pagination } from "@/widgets/pagination/pagination";
 import { buildQueryString } from "@/shared/utils/search-params";
+import { Icon } from "@/shared/ui/icon";
 import { UmkmFilterBar } from "./sections/umkm-filter-bar";
 import { UmkmPromoSection } from "./sections/umkm-promo-section";
 import { UmkmGridSkeleton } from "./ui/umkm-grid-skeleton";
@@ -59,7 +61,7 @@ export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
   return (
     <div className="pb-section-padding pt-24">
       <header className="max-w-container-max px-gutter mb-stack-lg mx-auto">
-        <div className="gap-gutter flex flex-col justify-between md:flex-row md:items-end">
+        <div className="gap-gutter flex flex-col justify-between md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="font-headline-lg text-headline-lg text-primary mb-4">
               Direktori UMKM Pringgodani
@@ -68,6 +70,15 @@ export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
               Temukan berbagai produk lokal unggulan mulai dari kuliner
               tradisional hingga kerajinan tangan khas Desa Pringgodani.
             </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <Link
+              href="/umkm/daftar"
+              className="bg-primary text-on-primary font-label-sm inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold shadow-md transition-all hover:opacity-90 active:scale-95"
+            >
+              <Icon name="storefront" className="text-lg" />
+              <span>Daftarkan UMKM Anda</span>
+            </Link>
           </div>
         </div>
 

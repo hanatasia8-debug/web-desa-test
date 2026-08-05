@@ -17,7 +17,7 @@ const NAV_LINKS = [
 
 const AJUKAN_OPTIONS = [
   { href: "/submit/berita", label: "Ajukan Berita", icon: "edit_square" },
-  { href: "/submit/umkm", label: "Daftarkan UMKM", icon: "storefront" },
+  { href: "/umkm/daftar", label: "Daftarkan UMKM", icon: "storefront" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -32,13 +32,14 @@ export function Navbar() {
 
   return (
     <>
-      <header className="border-outline-variant/30 glass-effect bg-surface/80 fixed top-0 z-50 w-full border-b shadow-sm">
-        <nav className="max-w-container-max px-gutter mx-auto flex items-center justify-between py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
-              <Icon name="eco" className="text-2xl" />
+      <header className="border-outline-variant/30 glass-effect bg-surface/90 fixed top-0 z-50 w-full border-b shadow-sm">
+        <nav className="max-w-container-max px-gutter mx-auto flex items-center justify-between py-3 md:py-4">
+          {/* Brand Logo & Name */}
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full md:h-10 md:w-10">
+              <Icon name="eco" className="text-xl md:text-2xl" />
             </div>
-            <span className="font-headline-md text-headline-md text-primary font-bold">
+            <span className="font-headline-md md:text-headline-md text-primary text-lg font-bold tracking-tight">
               Desa Pringgodani
             </span>
           </Link>
@@ -61,14 +62,14 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {/* Ajukan Konten dropdown (desktop) */}
             <div className="relative hidden md:block">
               <button
                 onClick={() => setAjukanOpen((v) => !v)}
-                className="bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-1 rounded-full px-6 py-2.5 shadow-md transition-all hover:opacity-90 active:scale-95"
+                className="bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-1 rounded-full px-5 py-2 shadow-sm transition-all hover:opacity-90 active:scale-95"
               >
-                Ajukan Konten
+                <span>Ajukan Konten</span>
                 <Icon
                   name="expand_more"
                   className={cn(
@@ -97,7 +98,7 @@ export function Navbar() {
                           name={opt.icon}
                           className="text-primary text-lg"
                         />
-                        {opt.label}
+                        <span>{opt.label}</span>
                       </Link>
                     ))}
                   </div>
@@ -105,66 +106,83 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Mobile menu trigger */}
+            {/* Mobile menu trigger button */}
             <button
-              className="text-primary flex h-10 w-10 items-center justify-center md:hidden"
+              className="text-primary hover:bg-primary/10 flex h-9 w-9 items-center justify-center rounded-lg transition-all active:scale-95 md:hidden"
               aria-label="Buka menu navigasi"
               onClick={() => setMobileOpen(true)}
             >
-              <Icon name="menu" className="text-3xl" />
+              <Icon name="menu" className="text-2xl" />
             </button>
           </div>
         </nav>
       </header>
 
-      {/* Mobile slide-over menu — DESIGN.md "Level 3 (Overlays)": dark 40%
-          backdrop, high elevation, used for mobile nav + submission forms. */}
+      {/* Mobile slide-over drawer menu */}
       {mobileOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">
           <button
             aria-label="Tutup menu"
-            className="bg-inverse-surface/40 absolute inset-0"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="bg-surface absolute top-0 right-0 h-full w-72 max-w-[85vw] shadow-2xl">
-            <div className="border-outline-variant/30 p-gutter flex items-center justify-between border-b">
-              <span className="font-headline-md text-headline-md text-primary font-bold">
-                Menu
-              </span>
+          <div className="bg-surface animate-in slide-in-from-right absolute top-0 right-0 flex h-full w-72 max-w-[85vw] flex-col overflow-hidden shadow-2xl duration-250">
+            {/* Drawer Header */}
+            <div className="border-outline-variant/30 bg-surface-container-low/50 flex shrink-0 items-center justify-between border-b px-5 py-4">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 text-primary flex h-7 w-7 items-center justify-center rounded-full">
+                  <Icon name="eco" className="text-base" />
+                </div>
+                <span className="font-headline-md text-primary text-base font-bold">
+                  Navigasi Desa
+                </span>
+              </div>
               <button
                 aria-label="Tutup menu"
                 onClick={() => setMobileOpen(false)}
-                className="text-on-surface-variant"
+                className="text-on-surface-variant hover:bg-surface-container rounded-full p-1 transition-colors"
               >
-                <Icon name="close" className="text-2xl" />
+                <Icon name="close" className="text-xl" />
               </button>
             </div>
-            <div className="p-gutter flex flex-col">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "font-label-sm text-label-sm border-outline-variant/10 border-b py-4",
-                    isActive(pathname, link.href)
-                      ? "text-primary font-bold"
-                      : "text-on-surface-variant",
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="mt-stack-md flex flex-col gap-3">
+
+            {/* Drawer Content */}
+            <div className="flex flex-1 flex-col space-y-4 overflow-y-auto p-4">
+              <div className="flex flex-col space-y-1">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "font-label-sm flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm transition-colors",
+                      isActive(pathname, link.href)
+                        ? "text-primary bg-primary/10 font-bold"
+                        : "text-on-surface-variant hover:bg-surface-container-low",
+                    )}
+                  >
+                    <span>{link.label}</span>
+                    {isActive(pathname, link.href) && (
+                      <span className="bg-primary h-2 w-2 rounded-full" />
+                    )}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Mobile CTA Options */}
+              <div className="border-outline-variant/20 space-y-2 border-t pt-3">
+                <span className="text-on-surface-variant/70 block px-2 text-[11px] font-bold tracking-wider uppercase">
+                  Aksi & Pengajuan
+                </span>
                 {AJUKAN_OPTIONS.map((opt) => (
                   <Link
                     key={opt.href}
                     href={opt.href}
                     onClick={() => setMobileOpen(false)}
-                    className="bg-primary text-on-primary font-label-sm flex items-center justify-center gap-2 rounded-full py-3 font-bold"
+                    className="bg-primary text-on-primary font-label-sm flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition-all hover:opacity-90"
                   >
-                    <Icon name={opt.icon} />
-                    {opt.label}
+                    <Icon name={opt.icon} className="text-base" />
+                    <span>{opt.label}</span>
                   </Link>
                 ))}
               </div>

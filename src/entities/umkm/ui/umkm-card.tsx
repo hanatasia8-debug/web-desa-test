@@ -19,19 +19,25 @@ export type UmkmCardVariant = "compact" | "listing" | "similar";
 interface UmkmCardProps {
   umkm: UmkmListItemDto;
   variant?: UmkmCardVariant;
+  className?: string;
 }
 
-export function UmkmCard({ umkm, variant = "compact" }: UmkmCardProps) {
+export function UmkmCard({
+  umkm,
+  variant = "compact",
+  className,
+}: UmkmCardProps) {
   const categoryMeta = getUmkmCategoryMeta(umkm.category);
   const isCompact = variant === "compact";
 
   return (
     <article
       className={cn(
-        "scroll-reveal group flex flex-col overflow-hidden border transition-all duration-300",
+        "scroll-reveal group visible flex flex-col overflow-hidden border transition-all duration-300",
         isCompact
           ? "bg-surface-container-lowest border-outline-variant/30 rounded-2xl hover:shadow-xl"
           : "bg-surface-container-lowest border-outline-variant/30 rounded-xl hover:shadow-lg",
+        className,
       )}
     >
       <div

@@ -18,18 +18,24 @@ export type NewsCardVariant = "compact" | "listing" | "related";
 interface NewsCardProps {
   news: NewsListItemDto;
   variant?: NewsCardVariant;
+  className?: string;
 }
 
-export function NewsCard({ news, variant = "compact" }: NewsCardProps) {
+export function NewsCard({
+  news,
+  variant = "compact",
+  className,
+}: NewsCardProps) {
   const isCompact = variant === "compact";
 
   return (
     <article
       className={cn(
-        "scroll-reveal group flex flex-col overflow-hidden rounded-2xl border transition-all",
+        "scroll-reveal group visible flex flex-col overflow-hidden rounded-2xl border transition-all",
         isCompact
           ? "bg-surface border-outline-variant/20 shadow-sm hover:shadow-md"
           : "bg-surface-container-lowest border-outline-variant/30 shadow-sm hover:shadow-xl",
+        className,
       )}
     >
       <div className="relative overflow-hidden">

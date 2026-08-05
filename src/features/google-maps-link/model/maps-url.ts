@@ -9,7 +9,11 @@
 export function buildDirectionsUrl(
   latitude: number,
   longitude: number,
+  googleMapsUrl?: string | null,
 ): string {
+  if (googleMapsUrl && googleMapsUrl.trim().length > 0) {
+    return googleMapsUrl;
+  }
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 }
 

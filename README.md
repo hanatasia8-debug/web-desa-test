@@ -547,3 +547,32 @@ dikenal menghasilkan daftar kosong (bukan seluruh daftar).
 
 Screenshot 1440 px diverifikasi untuk `/berita` dan `/umkm` (+ detail keduanya):
 layout, badge kategori berwarna, chip filter, dan pagination sesuai prototype.
+
+## Pembaruan Fitur Terbaru & Perbaikan Sistem (5 Agustus 2026) ✅
+
+### 1. Fitur Pengajuan UMKM Warga (`/umkm/daftar`)
+
+- **Zero Trust Validation**: Validasi Zod 1-to-1 dengan skema backend `web-desa` (`registerUmkmSchema`).
+- **Alur 2-Langkah Stepper & Live Preview**: Step 1 Formulir ➔ Step 2 Pratinjau Tampilan Presisi Halaman UMKM (`UmkmHero`, `UmkmInfoSidebar`, `UmkmProductsSection`, `UmkmGallerySection`, dan `UmkmCard`).
+- **Draf Persistent (`localStorage`)**: Auto-save & restore draf isian form ke `localStorage` (`register_umkm_draft_v1`).
+- **File Upload Interaktif**: Pengunggahan foto cover, foto produk, dan foto galeri dinamis secara interaktif (_Data URL_).
+- **Auto-Scroll UX Error**: Menampilkan banner ringkasan kesalahan validasi dan otomatis melakukan _smooth scroll_ serta _focus_ ke kolom input pertama yang belum diisi.
+
+### 2. Fitur Pengajuan Berita & Kegiatan Warga (`/submit/berita`)
+
+- **Zero Trust Validation**: Validasi Zod 1-to-1 dengan skema backend `web-desa` (`registerNewsSchema`).
+- **Acuan Desain `code.html`**: Layout 12-Kolom (`lg:col-span-7` Form Editor & `lg:col-span-5` Sidebar _Panduan Penulisan Berita_ & _Status Pengajuan Terakhir_).
+- **Template Berita Dual-Mode**:
+  - **Standard (`STANDARD`)**: Terdiri dari Cover Utama, Judul, Penulis, WhatsApp, Ringkasan, serta Sub-bab Paragraf & Foto Pendukung Dinamis.
+  - **Gallery (`GALLERY`)**: Terdiri dari Cover Utama, Judul, Penulis, WhatsApp, Ringkasan, serta Koleksi Foto Galeri Dinamis + Deskripsi.
+- **Supabase Storage Ready Submit Model**: Foto disimpan sementara di memori (_Data URL_) saat pengisian & pratinjau. Pengunggahan berkas sesungguhnya ke server Supabase Storage HANYA dieksekusi saat tombol **"Konfirmasi & Ajukan"** diklik.
+- **Pratinjau Presisi Halaman Berita Asli**: Merender tampilan presisi dengan komponen detail berita asli (`ArticleHeader`, `ArticleBody`, `ReadingProgressBar`, `ShareBar`, dan `NewsCard`).
+- **Draf Persistent (`localStorage`)**: Auto-save & restore draf berita (`register_news_draft_v1`).
+
+### 3. Pembenahan Navigasi & Tampilan Kartu Pratinjau
+
+- **Layout Route `(submit)/layout.tsx`**: Menambahkan layout pembungkus untuk seluruh rute pengajuan (`/submit/*`) yang menyertakan `<Navbar />`, `<Footer />`, dan `<ScrollRevealProvider />` agar navigasi header/footer selalu tampil utuh.
+- **Optimisasi Navbar Mobile**:
+  - Mempersingkat tinggi header (`py-3 md:py-4`) dan membuat ukuran font logo "Desa Pringgodani" responsif (`text-lg md:text-headline-md`).
+  - Menu slide-over mobile dibuat _scrollable_ (`overflow-y-auto`) dengan tombol aksi padat.
+- **Visibilitas Kartu Pratinjau (`NewsCard` & `UmkmCard`)**: Menambahkan kelas `visible` pada komponen kartu agar kartu pratinjau instan pada Step 2 selalu terlihat jelas tanpa tertahan animasi scroll-reveal.

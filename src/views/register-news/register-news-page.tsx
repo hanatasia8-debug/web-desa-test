@@ -1,0 +1,349 @@
+"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Icon } from "@/shared/ui/icon";
+import { BeritaService } from "@/entities/berita/api/berita.service";
+import type {
+  NewsCategoryDto,
+  NewsDetailDto,
+} from "@/entities/berita/model/types";
+import {
+  registerNewsSchema,
+  type RegisterNewsDTO,
+} from "@/entities/berita/model/register-news.schema";
+import { useRegisterNewsDraft } from "@/features/register-news/model/use-register-news-draft";
+import { SubmitBeritaForm } from "@/views/submit-berita/submit-berita-form";
+import { SubmitBeritaPreview } from "@/views/submit-berita-preview/submit-berita-preview";
+
+interface RegisterNewsPageProps {
+  categories: NewsCategoryDto[];
+}
+
+export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
+  const router = useRouter();
+  const { formData, setFormData, clearDraft } = useRegisterNewsDraft();
+
+  const [activeStep, setActiveStep] = useState<1 | 2>(1); // 1: Formulir, 2: Pratinjau
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Field change handler
+  const handleChange = (field: keyof RegisterNewsDTO, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  // Article Block dynamic array handlers
+  const handleAddBlock = () => {
+    const currentBlocks = formData.blocks || [];
+    handleChange("blocks", [
+      ...currentBlocks,
+      {
+        subHeading: "",
+        content: "",
+        imageUrl: "",
+        sortOrder: currentBlocks.length,
+      },
+    ]);
+  };
+
+  const handleRemoveBlock = (index: number) => {
+    const currentBlocks = formData.blocks || [];
+    handleChange(
+      "blocks",
+      currentBlocks.filter((_, i) => i !== index),
+    );
+  };
+
+  const handleBlockChange = (index: number, field: string, value: any) => {
+    const currentBlocks = [...(formData.blocks || [])];
+    currentBlocks[index] = {
+      ...currentBlocks[index],
+      [field]: value,
+    };
+    handleChange("blocks", currentBlocks);
+  };
+
+  // Gallery Images dynamic array handlers
+  const handleAddGalleryImage = () => {
+    const currentGallery = formData.galleryImages || [];
+    handleChange("galleryImages", [
+      ...currentGallery,
+      { imageUrl: "", imageDescription: "", sortOrder: currentGallery.length },
+    ]);
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    const currentGallery = formData.galleryImages || [];
+    handleChange(
+      "galleryImages",
+      currentGallery.filter((_, i) => i !== index),
+    );
+  };
+
+  const handleGalleryImageChange = (
+    index: number,
+    field: string,
+    value: any,
+  ) => {
+    const currentGallery = [...(formData.galleryImages || [])];
+    currentGallery[index] = {
+      ...currentGallery[index],
+      [field]: value,
+    };
+    handleChange("galleryImages", currentGallery);
+  };
+
+  // Zero Trust Validation
+  const validateForm = (): boolean => {
+    setErrors({});
+    const result = registerNewsSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      let firstErrorPath = "";
+
+      result.error.issues.forEach((issue, idx) => {
+        const pathStr = issue.path.join(".");
+        fieldErrors[pathStr] = issue.message;
+        if (idx === 0) firstErrorPath = pathStr;
+      });
+
+      setErrors(fieldErrors);
+
+      // Scroll smoothly to the first missing field and focus it
+      if (firstErrorPath) {
+        setTimeout(() => {
+          const targetEl = document.getElementById(`field-${firstErrorPath}`);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (typeof targetEl.focus === "function") {
+              targetEl.focus();
+            }
+          } else {
+            window.scrollTo({ top: 120, behavior: "smooth" });
+          }
+        }, 80);
+      }
+
+      return false;
+    }
+
+    return true;
+  };
+
+  // Switch to Preview Step
+  const handleGoToPreview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setActiveStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Final Submit (Only here the actual upload/service call runs)
+  const handleFinalSubmit = async () => {
+    if (!validateForm()) {
+      setActiveStep(1);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await BeritaService.submit(formData);
+      clearDraft();
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      console.error("Pengajuan berita gagal:", err);
+      alert(
+        err.message || "Terjadi kesalahan saat memproses pengajuan berita.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Map preview data to NewsDetailDto
+  const previewCategoryObj = categories.find(
+    (c) =>
+      c.id === formData.newsCategoryId || c.slug === formData.newsCategoryId,
+  );
+  const previewCategoryName =
+    formData.newsCategoryId === "other"
+      ? formData.newCategoryName || "Kategori Baru"
+      : previewCategoryObj?.name || "Pengumuman";
+  const previewCategorySlug = previewCategoryObj?.slug || "pengumuman";
+
+  const isStandard = formData.newsTypeId === "STANDARD" || !formData.newsTypeId;
+
+  const previewNewsDto: NewsDetailDto = {
+    id: "preview-news-id",
+    title: formData.title || "Judul Berita Akan Muncul Di Sini",
+    slug: "preview-slug",
+    categoryId: formData.newsCategoryId || "cat-1",
+    categoryName: previewCategoryName,
+    categorySlug: previewCategorySlug,
+    summary: formData.excerpt || "Ringkasan berita akan tampil di sini.",
+    publishedAt: new Date().toISOString(),
+    coverImage:
+      formData.coverUrl ||
+      "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80",
+    coverCaption: formData.coverCaption || "",
+    authorName: formData.authorName || "Nama Penulis",
+    authorRole: "Warga Desa Pringgodani",
+    contentSections: isStandard
+      ? (formData.blocks || []).map((b) => ({
+          sectionTitle: b.subHeading || null,
+          paragraph: b.content || "",
+          sectionImage: b.imageUrl || null,
+        }))
+      : (formData.galleryImages || []).map((g) => ({
+          sectionTitle: g.imageDescription || "Foto Galeri Komunitas",
+          paragraph: "",
+          sectionImage: g.imageUrl || null,
+        })),
+    readingTimeMinutes: 2,
+  };
+
+  return (
+    <main className="max-w-container-max px-gutter mx-auto pt-24 pb-20">
+      {/* Header Section (code.html Design) */}
+      <header className="mb-8 max-w-3xl">
+        <span className="bg-secondary/10 text-secondary font-badge-xs text-badge-xs mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 font-bold tracking-wider uppercase">
+          <Icon name="edit_note" className="text-base" />
+          Layanan Masyarakat
+        </span>
+        <h1 className="font-headline-lg text-headline-lg text-primary mb-3">
+          Ajukan Berita & Kegiatan
+        </h1>
+        <p className="text-body-lg text-on-surface-variant leading-relaxed">
+          Sampaikan berita terbaru, pengumuman penting, atau dokumentasi
+          kegiatan di lingkungan Desa Pringgodani untuk dipublikasikan di portal
+          resmi.
+        </p>
+      </header>
+
+      {/* Stepper Indicator */}
+      <div className="mb-8 flex items-center justify-center space-x-6">
+        <button
+          onClick={() => setActiveStep(1)}
+          className={`flex items-center gap-2 font-bold transition-all ${
+            activeStep === 1
+              ? "text-primary scale-105 opacity-100"
+              : "text-on-surface-variant opacity-60"
+          }`}
+        >
+          <span
+            className={`font-label-sm flex h-9 w-9 items-center justify-center rounded-full shadow-sm ${
+              activeStep === 1
+                ? "bg-primary ring-primary/20 text-white ring-4"
+                : "bg-surface-container-highest text-on-surface"
+            }`}
+          >
+            1
+          </span>
+          <span className="font-label-sm">Formulir Editor Berita</span>
+        </button>
+
+        <div className="bg-outline-variant/40 h-0.5 w-16" />
+
+        <button
+          onClick={() => {
+            if (validateForm()) setActiveStep(2);
+          }}
+          className={`flex items-center gap-2 font-bold transition-all ${
+            activeStep === 2
+              ? "text-primary scale-105 opacity-100"
+              : "text-on-surface-variant opacity-60"
+          }`}
+        >
+          <span
+            className={`font-label-sm flex h-9 w-9 items-center justify-center rounded-full shadow-sm ${
+              activeStep === 2
+                ? "bg-primary ring-primary/20 text-white ring-4"
+                : "bg-surface-container-highest text-on-surface"
+            }`}
+          >
+            2
+          </span>
+          <span className="font-label-sm">Pratinjau Live Berita</span>
+        </button>
+      </div>
+
+      {/* STEP 1: FORMULIR */}
+      {activeStep === 1 && (
+        <SubmitBeritaForm
+          formData={formData}
+          categories={categories}
+          errors={errors}
+          onChange={handleChange}
+          onAddBlock={handleAddBlock}
+          onRemoveBlock={handleRemoveBlock}
+          onBlockChange={handleBlockChange}
+          onAddGalleryImage={handleAddGalleryImage}
+          onRemoveGalleryImage={handleRemoveGalleryImage}
+          onGalleryImageChange={handleGalleryImageChange}
+          onClearDraft={clearDraft}
+          onSubmitStep={handleGoToPreview}
+        />
+      )}
+
+      {/* STEP 2: PRATINJAU LIVE */}
+      {activeStep === 2 && (
+        <SubmitBeritaPreview
+          previewNewsDto={previewNewsDto}
+          isSubmitting={isSubmitting}
+          onBackToEdit={() => {
+            setActiveStep(1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          onFinalSubmit={handleFinalSubmit}
+        />
+      )}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest border-outline-variant/30 w-full max-w-md space-y-4 rounded-2xl border p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600">
+              <Icon name="check_circle" className="text-4xl" />
+            </div>
+            <h3 className="font-headline-md text-headline-md text-primary font-bold">
+              Pengajuan Berita Berhasil!
+            </h3>
+            <p className="text-on-surface-variant text-sm leading-relaxed">
+              Terima kasih! Berita <strong>{formData.title}</strong> telah
+              dikirim dan sedang dalam proses peninjauan oleh perangkat Desa
+              Pringgodani.
+            </p>
+            <div className="bg-surface-container-low text-on-surface-variant rounded-lg p-3 text-left text-xs">
+              📍 Tim kami akan meninjau pengajuan ini (Maks. 24 Jam) sebelum
+              dipublikasikan ke portal resmi.
+            </div>
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => router.push("/berita")}
+                className="bg-primary text-on-primary w-full rounded-full py-3 font-bold shadow-md transition-all hover:opacity-90"
+              >
+                Lihat Portal Berita Desa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}

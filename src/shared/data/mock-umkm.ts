@@ -462,3 +462,8 @@ export const MOCK_UMKM_CATEGORIES: UmkmCategoryDto[] = UMKM_CATEGORY_VALUES.map(
     };
   },
 ).filter((category) => category.umkmCount > 0);
+
+export function addMockUmkmRecord(record: MockUmkmRecord): void {
+  MOCK_UMKM_RECORDS.unshift(record);
+  MOCK_UMKM.unshift(toListItem(record));
+}

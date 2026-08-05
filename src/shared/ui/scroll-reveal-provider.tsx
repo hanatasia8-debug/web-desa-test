@@ -17,6 +17,19 @@ import { useEffect } from "react";
  */
 export function ScrollRevealProvider() {
   useEffect(() => {
+    // 1. Instant fallback for elements already in or near viewport
+    const revealAllFallback = () => {
+      document
+        .querySelectorAll(".scroll-reveal:not(.visible)")
+        .forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight + 100) {
+            el.classList.add("visible");
+          }
+        });
+    };
+    revealAllFallback();
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -25,13 +38,18 @@ export function ScrollRevealProvider() {
           observer.unobserve(entry.target);
         });
       },
-      { threshold: 0.1 },
+      { threshold: 0.01, rootMargin: "0px 0px 80px 0px" },
     );
 
     const observeWithin = (root: ParentNode) => {
-      root
-        .querySelectorAll(".scroll-reveal:not(.visible)")
-        .forEach((el) => observer.observe(el));
+      root.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 50) {
+          el.classList.add("visible");
+        } else {
+          observer.observe(el);
+        }
+      });
     };
 
     observeWithin(document);
@@ -40,7 +58,9 @@ export function ScrollRevealProvider() {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof HTMLElement)) return;
-          if (node.classList.contains("scroll-reveal")) observer.observe(node);
+          if (node.classList.contains("scroll-reveal")) {
+            observer.observe(node);
+          }
           observeWithin(node);
         });
       });
@@ -48,7 +68,17 @@ export function ScrollRevealProvider() {
 
     mutationObserver.observe(document.body, { childList: true, subtree: true });
 
+    // Safety fallback timer so cards never get stuck at opacity: 0
+    const timer = setTimeout(() => {
+      document
+        .querySelectorAll(".scroll-reveal:not(.visible)")
+        .forEach((el) => {
+          el.classList.add("visible");
+        });
+    }, 600);
+
     return () => {
+      clearTimeout(timer);
       observer.disconnect();
       mutationObserver.disconnect();
     };
