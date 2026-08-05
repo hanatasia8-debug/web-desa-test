@@ -104,10 +104,13 @@ npm run build && npm run start
 1. ~~Tahap 1 — Scaffold~~ ✅
 2. ~~Tahap 2 — Database~~ ✅
 3. ~~Tahap 3 — Auth & Storage Setup~~ ✅ (lihat catatan wajib di bawah — perlu project Supabase asli untuk dites penuh)
-4. Tahap 4 — Halaman Publik: 🟡 **Home ✅, Berita ✅, UMKM ✅** — sisanya belum:
-   Potensi (list + detail) → Peta → Submit flow. **Urutan berikutnya: Potensi**
-   (Berita & UMKM sudah tuntas)
-5. Tahap 5 — Admin Panel
+4. Tahap 4 — Halaman Publik: 🟡 **Home ✅, Berita ✅, UMKM ✅, Profil ✅, Potensi ✅, Peta 🟡, Submit Flow ✅**
+   (Berita, UMKM, Profil, dan Submit Flow sudah tuntas; Potensi sudah diimplementasikan; Peta sudah tersedia sebagai halaman tetapi perlu verifikasi runtime Google Maps.)
+   - Progress terbaru Profil: `src/app/(public)/profil/page.tsx` dan `src/views/profil/profil-page.tsx` telah diperbarui dengan desain hero, statistik desa, kegiatan terbaru, timeline, sejarah, visi/misi, dan direktori perangkat.
+   - Progress terbaru Potensi: `src/app/(public)/potensi/page.tsx`, `src/views/potensi/potensi-page.tsx`, `src/entities/potensi/ui/potensi-card.tsx`, dan `src/entities/potensi/api/potensi.service.ts` telah ditambahkan; desain Potensi mencakup hero section, sticky filter kategori, daftar kartu potensi, dan CTA akhir.
+   - Peta: `src/app/(public)/peta/page.tsx`, `src/views/peta/peta-page.tsx`, dan komponen map terkait sudah dibangun, namun fungsionalitas penuh menunggu `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` serta verifikasi runtime.
+   - Submit flow: `/submit/berita` dan `/submit/umkm` kini tersedia. `/submit/umkm` menampilkan halaman pendaftaran UMKM di submit layout, sedangkan `/umkm/daftar` tetap tersedia sebagai direktori pendaftaran alternatif.
+5. Tahap 5 — Admin Panel: ✅ dasar login/dashboard sudah dibuat di `src/app/admin` dengan layout dan halaman navigasi awal.
 6. Tahap 6 — 404 final, SEO, testing, deployment
 
 ## Tahap 2 — Database: langkah wajib di mesin Anda ✅ SUDAH DIJALANKAN
