@@ -8,17 +8,11 @@ import type {
 // ---------- Categories ----------
 export const MOCK_NEWS_CATEGORIES: NewsCategoryDto[] = [
   { id: "cat-1", name: "Pemerintahan", slug: "pemerintahan", newsCount: 4 },
-  {
-    id: "cat-2",
-    name: "Kegiatan Warga",
-    slug: "kegiatan-warga",
-    newsCount: 4,
-  },
+  { id: "cat-2", name: "Kegiatan Warga", slug: "kegiatan-warga", newsCount: 4 },
   { id: "cat-3", name: "Pembangunan", slug: "pembangunan", newsCount: 4 },
   { id: "cat-4", name: "Pengumuman", slug: "pengumuman", newsCount: 3 },
 ];
 
-// Helper: date relative to now
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
@@ -36,7 +30,8 @@ const MOCK_NEWS_DETAILS: Record<
         sectionTitle: "Prioritas Usulan Warga",
         paragraph:
           "Musyawarah desa yang digelar di aula kantor desa dihadiri perwakilan delapan dusun, pengurus RT dan RW, kelompok tani, serta pengurus PKK. Setiap perwakilan menyampaikan usulan prioritas pembangunan untuk tahun anggaran berikutnya.",
-        sectionImage: null,
+        sectionImage:
+          "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1000&q=80",
       },
       {
         sectionTitle: "Kesepakatan Anggaran",
@@ -54,7 +49,8 @@ const MOCK_NEWS_DETAILS: Record<
         sectionTitle: "Hasil Panen Meningkat",
         paragraph:
           "Kelompok Tani Makmur Dusun Krajan menggelar panen raya di lahan seluas dua belas hektare. Rata-rata hasil ubinan tahun ini tercatat lebih tinggi dibanding musim tanam sebelumnya.",
-        sectionImage: null,
+        sectionImage:
+          "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1000&q=80",
       },
       {
         sectionTitle: "Dukungan Penyuluh",
@@ -75,10 +71,10 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     summary:
       "Pemerintah Desa Pringgodani menggelar musyawarah membahas prioritas pembangunan tahun depan.",
     coverImage:
-      "news/covers/news_seed_musyawarah-desa-rencana-pembangunan-2027.webp",
+      "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pemerintahan",
     categorySlug: "pemerintahan",
-    authorName: null,
+    authorName: "Admin Desa Pringgodani",
     publishedAt: daysAgo(2),
   },
   {
@@ -87,10 +83,11 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     slug: "panen-raya-padi-dusun-krajan",
     summary:
       "Musim panen kali ini menghasilkan hasil yang melimpah berkat sistem irigasi baru.",
-    coverImage: "news/covers/news_seed_panen-raya-padi-dusun-krajan.webp",
+    coverImage:
+      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Kegiatan Warga",
     categorySlug: "kegiatan-warga",
-    authorName: null,
+    authorName: "Kelompok Tani Krajan",
     publishedAt: daysAgo(5),
   },
   {
@@ -99,10 +96,11 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     slug: "perbaikan-jalan-poros-desa-rampung",
     summary:
       "Proyek perbaikan jalan poros desa selesai dua minggu lebih cepat dari jadwal.",
-    coverImage: "news/covers/news_seed_perbaikan-jalan-poros-desa-rampung.webp",
+    coverImage:
+      "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pembangunan",
     categorySlug: "pembangunan",
-    authorName: null,
+    authorName: "Tim Pembangunan Desa",
     publishedAt: daysAgo(9),
   },
   {
@@ -111,10 +109,11 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     slug: "pendaftaran-bansos-tahap-2",
     summary:
       "Warga yang memenuhi syarat dapat mendaftar bantuan sosial tahap kedua mulai minggu ini.",
-    coverImage: "news/covers/news_seed_pendaftaran-bansos-tahap-2.webp",
+    coverImage:
+      "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pengumuman",
     categorySlug: "pengumuman",
-    authorName: null,
+    authorName: "Sekretariat Desa",
     publishedAt: daysAgo(12),
   },
   {
@@ -124,10 +123,10 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     summary:
       "Pengajuan surat keterangan kini bisa dilakukan tanpa harus antre di kantor desa.",
     coverImage:
-      "news/covers/news_seed_layanan-administrasi-digital-diluncurkan.webp",
+      "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pemerintahan",
     categorySlug: "pemerintahan",
-    authorName: null,
+    authorName: "Kasi Pemerintahan",
     publishedAt: daysAgo(15),
   },
   {
@@ -136,10 +135,11 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     slug: "pembangunan-jembatan-dusun-ngasem",
     summary:
       "Jembatan baru akan memangkas jarak tempuh warga Dusun Ngasem menuju pusat desa.",
-    coverImage: "news/covers/news_seed_pembangunan-jembatan-dusun-ngasem.webp",
+    coverImage:
+      "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pembangunan",
     categorySlug: "pembangunan",
-    authorName: null,
+    authorName: "Tim Pembangunan Desa",
     publishedAt: daysAgo(17),
   },
   {
@@ -148,10 +148,11 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     slug: "festival-budaya-pringgodani",
     summary:
       "Festival tahunan menampilkan kesenian tradisional dan kuliner khas desa.",
-    coverImage: "news/covers/news_seed_festival-budaya-pringgodani.webp",
+    coverImage:
+      "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Kegiatan Warga",
     categorySlug: "kegiatan-warga",
-    authorName: null,
+    authorName: "Karang Taruna",
     publishedAt: daysAgo(20),
   },
   {
@@ -161,125 +162,41 @@ export const MOCK_NEWS: NewsListItemDto[] = [
     summary:
       "Pelayanan administrasi menyesuaikan jadwal libur nasional, layanan darurat tetap tersedia.",
     coverImage:
-      "news/covers/news_seed_jadwal-pelayanan-kantor-desa-libur-nasional.webp",
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
     categoryName: "Pengumuman",
     categorySlug: "pengumuman",
-    authorName: null,
+    authorName: "Perangkat Desa",
     publishedAt: daysAgo(24),
-  },
-  {
-    id: "news-9",
-    title: "Laporan Realisasi APBDes Semester Pertama Dipublikasikan",
-    slug: "realisasi-apbdes-semester-pertama",
-    summary:
-      "Rincian penggunaan anggaran desa dapat diakses seluruh warga sebagai bentuk transparansi.",
-    coverImage: "news/covers/news_seed_realisasi-apbdes-semester-pertama.webp",
-    categoryName: "Pemerintahan",
-    categorySlug: "pemerintahan",
-    authorName: null,
-    publishedAt: daysAgo(27),
-  },
-  {
-    id: "news-10",
-    title: "Kerja Bakti Bersih Sungai Serentak di Delapan Dusun",
-    slug: "kerja-bakti-bersih-sungai-delapan-dusun",
-    summary:
-      "Ratusan warga bergotong royong membersihkan aliran sungai menjelang musim hujan.",
-    coverImage:
-      "news/covers/news_seed_kerja-bakti-bersih-sungai-delapan-dusun.webp",
-    categoryName: "Kegiatan Warga",
-    categorySlug: "kegiatan-warga",
-    authorName: null,
-    publishedAt: daysAgo(30),
-  },
-  {
-    id: "news-11",
-    title: "Irigasi Tersier Sawah Blok Selatan Diperbaiki",
-    slug: "irigasi-tersier-sawah-blok-selatan",
-    summary:
-      "Saluran yang selama ini bocor diperbaiki agar pembagian air antarpetak lebih adil.",
-    coverImage: "news/covers/news_seed_irigasi-tersier-sawah-blok-selatan.webp",
-    categoryName: "Pembangunan",
-    categorySlug: "pembangunan",
-    authorName: null,
-    publishedAt: daysAgo(33),
-  },
-  {
-    id: "news-12",
-    title: "Pemadaman Listrik Terjadwal di Wilayah Pringgodani",
-    slug: "pemadaman-listrik-terjadwal-pringgodani",
-    summary:
-      "Pemeliharaan jaringan menyebabkan pemadaman sementara di beberapa dusun.",
-    coverImage:
-      "news/covers/news_seed_pemadaman-listrik-terjadwal-pringgodani.webp",
-    categoryName: "Pengumuman",
-    categorySlug: "pengumuman",
-    authorName: null,
-    publishedAt: daysAgo(38),
-  },
-  {
-    id: "news-13",
-    title: "Rapat Koordinasi Perangkat Desa dan BPD Awal Tahun",
-    slug: "rapat-koordinasi-perangkat-desa-bpd",
-    summary:
-      "Evaluasi kinerja tahun lalu dan penyusunan agenda kerja tahun berjalan dibahas bersama BPD.",
-    coverImage:
-      "news/covers/news_seed_rapat-koordinasi-perangkat-desa-bpd.webp",
-    categoryName: "Pemerintahan",
-    categorySlug: "pemerintahan",
-    authorName: null,
-    publishedAt: daysAgo(40),
-  },
-  {
-    id: "news-14",
-    title: "Posyandu Lansia Dusun Sidomulyo Layani 120 Warga",
-    slug: "posyandu-lansia-dusun-sidomulyo",
-    summary:
-      "Pemeriksaan kesehatan rutin bulanan menyasar deteksi dini penyakit pada warga usia lanjut.",
-    coverImage: "news/covers/news_seed_posyandu-lansia-dusun-sidomulyo.webp",
-    categoryName: "Kegiatan Warga",
-    categorySlug: "kegiatan-warga",
-    authorName: null,
-    publishedAt: daysAgo(44),
-  },
-  {
-    id: "news-15",
-    title: "Penerangan Jalan Bertenaga Surya Dipasang di Jalur Utama",
-    slug: "penerangan-jalan-tenaga-surya-jalur-utama",
-    summary:
-      "Dua puluh titik lampu jalan bertenaga surya mulai menyala di sepanjang jalur utama desa.",
-    coverImage:
-      "news/covers/news_seed_penerangan-jalan-tenaga-surya-jalur-utama.webp",
-    categoryName: "Pembangunan",
-    categorySlug: "pembangunan",
-    authorName: null,
-    publishedAt: daysAgo(47),
   },
 ];
 
-/**
- * Retrieve the detail for a given slug. Returns null when the slug is not
- * found — callers should handle this the same way they would handle a 404
- * from the backend API.
- */
 export function getMockNewsDetail(slug: string): NewsDetailDto | null {
   const item = MOCK_NEWS.find((n) => n.slug === slug);
   if (!item) return null;
 
-  const detail = MOCK_NEWS_DETAILS[slug];
-  const contentSections: NewsContentSectionDto[] = detail?.contentSections ?? [
-    {
-      sectionTitle: null,
-      paragraph: item.summary,
-      sectionImage: null,
-    },
-  ];
+  const detailExtra = MOCK_NEWS_DETAILS[slug] ?? {
+    coverCaption: `${item.title} — dokumentasi Desa Pringgodani.`,
+    contentSections: [
+      {
+        sectionTitle: "Informasi Utama",
+        paragraph: item.summary,
+        sectionImage: null,
+      },
+      {
+        sectionTitle: "Pelaksanaan & Tindak Lanjut",
+        paragraph:
+          "Kegiatan dilaksanakan dengan tertib dan lancar berkat partisipasi aktif seluruh elemen masyarakat Desa Pringgodani.",
+        sectionImage:
+          "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1000&q=80",
+      },
+    ],
+  };
 
-  // Estimate reading time from total paragraph length.
-  const totalWords = contentSections.reduce(
-    (acc, s) => acc + s.paragraph.split(/\s+/).length,
+  const wordCount = detailExtra.contentSections.reduce(
+    (acc, s) => acc + (s.paragraph ? s.paragraph.split(/\s+/).length : 0),
     0,
   );
+  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
   return {
     id: item.id,
@@ -287,15 +204,16 @@ export function getMockNewsDetail(slug: string): NewsDetailDto | null {
     slug: item.slug,
     summary: item.summary,
     coverImage: item.coverImage,
-    coverCaption: detail?.coverCaption ?? `${item.title} — Desa Pringgodani.`,
-    categoryId:
-      MOCK_NEWS_CATEGORIES.find((c) => c.slug === item.categorySlug)?.id ?? "",
+    coverCaption: detailExtra.coverCaption,
+    categoryId: `cat-${item.categorySlug}`,
     categoryName: item.categoryName,
     categorySlug: item.categorySlug,
-    authorName: item.authorName,
-    authorRole: null,
-    contentSections,
+    authorName: item.authorName ?? "Admin Desa Pringgodani",
+    authorRole: item.authorName
+      ? "Kontributor Warga"
+      : "Pemerintah Desa Pringgodani",
+    contentSections: detailExtra.contentSections,
     publishedAt: item.publishedAt,
-    readingTimeMinutes: Math.max(1, Math.ceil(totalWords / 200)),
+    readingTimeMinutes,
   };
 }

@@ -7,6 +7,8 @@ declare global {
       var Map: any;
       type Map = any;
 
+      type MapOptions = any;
+
       var InfoWindow: any;
       type InfoWindow = any;
 

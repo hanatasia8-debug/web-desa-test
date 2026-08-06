@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { MapLocationDto } from "@/entities/fasilitas/model/types";
 import { buildDirectionsUrl } from "@/features/google-maps-link/model/maps-url";
+import { loadGoogleMapsSDK } from "@/features/google-maps-link/model/google-maps-loader";
 import { Icon } from "@/shared/ui/icon";
 
 interface GoogleMapCanvasProps {
@@ -149,50 +150,59 @@ export function GoogleMapCanvas({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
-  // Store markers (AdvancedMarkerElement or google.maps.Marker fallback)
   const markersRef = useRef<Map<string, any>>(new Map());
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
+  const [isVisible, setIsVisible] = useState(
+    () => typeof window !== "undefined" && Boolean(window.google?.maps),
+  );
   const [isLoaded, setIsLoaded] = useState(
     () => typeof window !== "undefined" && Boolean(window.google?.maps),
   );
-  const [loadError, setLoadError] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    if (window.google?.maps) return null;
-    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-      return "API Key Google Maps tidak ditemukan di .env.local";
-    }
-    return null;
-  });
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // 1. Load Google Maps Script dynamically with loading=async & marker library
+  // 1. Intersection Observer: Only activate map loading when container enters viewport
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !mapRef.current) return;
 
+    // If Google Maps is already initialized globally, do not set up observer
     if (window.google?.maps) {
       return;
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      return;
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "150px" },
+    );
 
-    const existingScript = document.getElementById("google-maps-script");
-    if (existingScript) {
-      existingScript.addEventListener("load", () => setIsLoaded(true));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = "google-maps-script";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&v=weekly&loading=async`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setIsLoaded(true);
-    script.onerror = () => setLoadError("Gagal memuat Google Maps SDK");
-    document.head.appendChild(script);
+    observer.observe(mapRef.current);
+    return () => observer.disconnect();
   }, []);
+
+  // 2. Load Google Maps Script asynchronously via Singleton Loader when visible
+  useEffect(() => {
+    if (!isVisible || isLoaded) return;
+
+    let isMounted = true;
+
+    loadGoogleMapsSDK()
+      .then(() => {
+        if (isMounted) setIsLoaded(true);
+      })
+      .catch((err) => {
+        if (isMounted)
+          setLoadError(err.message || "Gagal memuat SDK Google Maps.");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isVisible, isLoaded]);
 
   // Helper to create HTML string for InfoWindow popup
   const createInfoWindowContent = useCallback((loc: MapLocationDto) => {
@@ -238,57 +248,23 @@ export function GoogleMapCanvas({
     `;
   }, []);
 
-  // 2. Initialize Google Map asynchronously when script is loaded
+  // 3. Initialize Google Map with lightweight settings
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
     let isMounted = true;
 
     async function initMap() {
-      if (!window.google?.maps?.importLibrary) {
-        // Fallback if importLibrary is not present but google.maps.Map is
-        if (
-          window.google?.maps?.Map &&
-          mapRef.current &&
-          !mapInstanceRef.current
-        ) {
-          const map = new google.maps.Map(mapRef.current, {
-            center: DEFAULT_CENTER,
-            zoom: DEFAULT_ZOOM,
-            mapId: "DEMO_MAP_ID",
-            mapTypeId: "hybrid",
-            fullscreenControl: false,
-            zoomControl: false,
-            mapTypeControl: true,
-            mapTypeControlOptions: {
-              position: google.maps?.ControlPosition?.TOP_RIGHT ?? 3,
-            },
-            streetViewControl: true,
-            streetViewControlOptions: {
-              position: google.maps?.ControlPosition?.RIGHT_BOTTOM ?? 9,
-            },
-          });
-          mapInstanceRef.current = map;
-          setMapInstance(map);
-          infoWindowRef.current = new google.maps.InfoWindow();
-          if (onMapLoaded) onMapLoaded(map);
-        }
-        return;
-      }
+      if (!window.google?.maps) return;
 
-      // Modern Google Maps API importLibrary pattern
-      const { Map, InfoWindow } = (await google.maps.importLibrary(
-        "maps",
-      )) as any;
-      await google.maps.importLibrary("marker");
-
-      if (!isMounted || !mapRef.current || mapInstanceRef.current) return;
-
-      const map = new Map(mapRef.current, {
+      const mapOptions: google.maps.MapOptions = {
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
         mapId: "DEMO_MAP_ID",
         mapTypeId: "hybrid",
+        gestureHandling: "cooperative",
+        clickableIcons: false,
+        disableDefaultUI: false,
         fullscreenControl: false,
         zoomControl: false,
         mapTypeControl: true,
@@ -299,11 +275,29 @@ export function GoogleMapCanvas({
         streetViewControlOptions: {
           position: google.maps?.ControlPosition?.RIGHT_BOTTOM ?? 9,
         },
-      });
+      };
+
+      let MapConstructor: any = window.google.maps.Map;
+
+      if (window.google.maps.importLibrary) {
+        try {
+          const { Map } = (await window.google.maps.importLibrary(
+            "maps",
+          )) as any;
+          await window.google.maps.importLibrary("marker");
+          MapConstructor = Map;
+        } catch {
+          // fallback to google.maps.Map
+        }
+      }
+
+      if (!isMounted || !mapRef.current || mapInstanceRef.current) return;
+
+      const map = new MapConstructor(mapRef.current, mapOptions);
 
       mapInstanceRef.current = map;
       setMapInstance(map);
-      infoWindowRef.current = new InfoWindow();
+      infoWindowRef.current = new window.google.maps.InfoWindow();
 
       if (onMapLoaded) {
         onMapLoaded(map);
@@ -320,7 +314,7 @@ export function GoogleMapCanvas({
     };
   }, [isLoaded, onMapLoaded]);
 
-  // 3. Sync Markers with `locations` prop using AdvancedMarkerElement (or fallback)
+  // 4. Sync Markers with locations prop
   useEffect(() => {
     if (!isLoaded || !mapInstance) return;
 
@@ -342,7 +336,6 @@ export function GoogleMapCanvas({
         }
       });
 
-      // Fetch AdvancedMarkerElement safely
       let AdvancedMarker: any = (google.maps as any)?.marker
         ?.AdvancedMarkerElement;
       if (!AdvancedMarker && window.google?.maps?.importLibrary) {
@@ -408,7 +401,6 @@ export function GoogleMapCanvas({
         } else {
           try {
             if (AdvancedMarker) {
-              // Use modern AdvancedMarkerElement
               const marker = new AdvancedMarker({
                 position: { lat: loc.latitude, lng: loc.longitude },
                 map,
@@ -427,7 +419,6 @@ export function GoogleMapCanvas({
             );
           }
 
-          // Fallback to legacy Marker
           if (google.maps.Marker) {
             const marker = new google.maps.Marker({
               position: { lat: loc.latitude, lng: loc.longitude },
@@ -463,7 +454,7 @@ export function GoogleMapCanvas({
     onSelectLocation,
   ]);
 
-  // 4. Pan to selectedLocation change
+  // 5. Pan to selectedLocation change
   useEffect(() => {
     if (!isLoaded || !mapInstance || !selectedLocation) return;
 
@@ -502,10 +493,14 @@ export function GoogleMapCanvas({
   return (
     <div className="relative h-full w-full">
       {!isLoaded && (
-        <div className="bg-surface-container/80 absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
-          <div className="border-primary h-10 w-10 animate-spin rounded-full border-4 border-t-transparent" />
-          <span className="font-label-sm text-label-sm text-primary font-bold">
-            Memuat Peta Interaktif...
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-slate-900/90 backdrop-blur-md">
+          {/* Skeleton Animated Pulse Grid Background */}
+          <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
+          <div className="bg-primary/20 text-primary relative z-10 flex h-14 w-14 animate-pulse items-center justify-center rounded-full shadow-xl">
+            <Icon name="map" className="animate-bounce text-3xl" />
+          </div>
+          <span className="font-label-sm text-label-sm relative z-10 font-bold tracking-wide text-slate-200">
+            Memuat Peta Desa Pringgodani...
           </span>
         </div>
       )}

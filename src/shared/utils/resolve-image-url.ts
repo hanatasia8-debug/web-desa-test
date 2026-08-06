@@ -1,10 +1,7 @@
 /**
- * Converts a stored `coverImage`/`logo`/etc. value (a bucket-relative key
- * like `news/covers/foo.webp`) into a full public URL. Passes through
- * unchanged if it's already absolute (e.g. a full `https://` URL).
- *
- * When no storage backend is configured, returns a placeholder image path
- * so the UI doesn't break with null/empty src attributes.
+ * Converts a stored `coverImage`/`logo`/etc. value into a full public URL.
+ * Passes through unchanged if it's already absolute (e.g. `https://` or `data:` URL).
+ * If a relative path or key is provided, returns a high-quality Unsplash image URL fallback.
  */
 export function resolveImageUrl(
   storagePathOrUrl: string | null | undefined,
@@ -14,13 +11,15 @@ export function resolveImageUrl(
     storagePathOrUrl.startsWith("http://") ||
     storagePathOrUrl.startsWith("https://") ||
     storagePathOrUrl.startsWith("data:") ||
-    storagePathOrUrl.startsWith("blob:") ||
-    storagePathOrUrl.startsWith("/")
+    storagePathOrUrl.startsWith("blob:")
   ) {
     return storagePathOrUrl;
   }
 
-  // When NEXT_PUBLIC_API_URL is configured, assume the backend provides
-  // absolute URLs. In mock mode, return a placeholder.
-  return `/placeholder/${storagePathOrUrl}`;
+  if (storagePathOrUrl.startsWith("/")) {
+    return storagePathOrUrl;
+  }
+
+  // Fallback high-quality Unsplash image for relative keys
+  return "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80";
 }

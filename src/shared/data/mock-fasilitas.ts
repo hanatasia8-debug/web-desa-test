@@ -47,7 +47,8 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     mapCategoryId: "cat-1",
     name: "Kantor Desa Pringgodani",
     shortDescription: "Pusat pelayanan administrasi warga desa Pringgodani",
-    imageUrl: "facilities/facility_seed_kantor-desa-pringgodani.webp",
+    imageUrl:
+      "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1000&q=80",
     address: "Jl. Raya Pringgodani No. 01, Dusun Krajan",
     latitude: -8.2811,
     longitude: 112.5664,
@@ -60,7 +61,8 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     name: "SD Negeri Pringgodani 1",
     shortDescription:
       "Sekolah Dasar Negeri dengan fasilitas pendidikan terpadu",
-    imageUrl: "facilities/facility_seed_sd-negeri-pringgodani-1.webp",
+    imageUrl:
+      "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1000&q=80",
     address: "Dusun Krajan, Desa Pringgodani",
     latitude: -8.2785,
     longitude: 112.5642,
@@ -72,7 +74,8 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     mapCategoryId: "cat-3",
     name: "Masjid Al-Ikhlas Pringgodani",
     shortDescription: "Masjid utama desa untuk ibadah dan kegiatan keagamaan",
-    imageUrl: "facilities/facility_seed_masjid-al-ikhlas-pringgodani.webp",
+    imageUrl:
+      "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=1000&q=80",
     address: "Dusun Sumber Bendo, Desa Pringgodani",
     latitude: -8.2835,
     longitude: 112.568,
@@ -84,7 +87,8 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     mapCategoryId: "cat-4",
     name: "Puskesmas Pembantu Pringgodani",
     shortDescription: "Layanan kesehatan masyarakat, UGD & posyandu",
-    imageUrl: "facilities/facility_seed_puskesmas-pembantu-pringgodani.webp",
+    imageUrl:
+      "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80",
     address: "Jl. Kesehatan No. 05, Dusun Sengon",
     latitude: -8.2802,
     longitude: 112.571,
@@ -97,7 +101,8 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     name: "Bukit Pringgo View Point",
     shortDescription:
       "Destinasi wisata alam puncak bukit dengan pemandangan sunset",
-    imageUrl: "facilities/facility_seed_bukit-pringgo-view-point.webp",
+    imageUrl:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
     address: "Dusun Sumber Waluh, Desa Pringgodani",
     latitude: -8.274,
     longitude: 112.5735,
