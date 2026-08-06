@@ -29,7 +29,7 @@ export function MapPreviewSection({ kantorDesa }: MapPreviewSectionProps) {
         <div className="border-outline-variant/30 scroll-reveal h-[500px] w-full overflow-hidden rounded-3xl border shadow-xl">
           <div className="bg-surface-container relative flex h-full w-full items-center justify-center">
             <FallbackImage
-              src={kantorDesa?.image}
+              src={kantorDesa?.imageUrl}
               alt="Peta Desa Pringgodani"
               className="h-full w-full object-cover opacity-80"
               fallbackIcon="map"

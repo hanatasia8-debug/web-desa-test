@@ -20,7 +20,7 @@ function daysAgo(days: number): string {
  * `getMockUmkmDetail` composes the full detail DTO — the same split the real
  * API had between `UmkmListItemDto` and `UmkmDetailDto`.
  */
-interface MockUmkmRecord extends UmkmListItemDto {
+export interface MockUmkmRecord extends UmkmListItemDto {
   latitude: number;
   longitude: number;
   gallery: string[];
@@ -466,4 +466,17 @@ export const MOCK_UMKM_CATEGORIES: UmkmCategoryDto[] = UMKM_CATEGORY_VALUES.map(
 export function addMockUmkmRecord(record: MockUmkmRecord): void {
   MOCK_UMKM_RECORDS.unshift(record);
   MOCK_UMKM.unshift(toListItem(record));
+}
+
+/**
+ * UMKM linked to a given potensi (`Umkm.potentialId`), newest first — used
+ * by the Potensi detail page's "UMKM Terkait" section. Also the source for
+ * that page's "Produk Unggulan" (aggregated from these UMKM's products).
+ */
+export function getMockUmkmByPotentialId(
+  potentialId: string,
+): MockUmkmRecord[] {
+  return MOCK_UMKM_RECORDS.filter(
+    (record) => record.potentialId === potentialId,
+  ).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }

@@ -1,60 +1,18 @@
+import Link from "next/link";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import type {
   VillageProfileDto,
   VillageStatsDto,
 } from "@/entities/desa/model/types";
-
-const LATEST_EVENTS = [
-  {
-    title: "Musyawarah Rencana Pembangunan",
-    date: "12 Agustus 2026",
-    summary:
-      "Warga dan perangkat desa menyusun prioritas pembangunan dan agenda pemberdayaan.",
-    icon: "groups",
-  },
-  {
-    title: "Festival Produk Lokal",
-    date: "19 Agustus 2026",
-    summary:
-      "UMKM menampilkan kerajinan tangan, makanan khas, dan produk olahan desa.",
-    icon: "local_mall",
-  },
-  {
-    title: "Pelatihan Literasi Digital",
-    date: "26 Agustus 2026",
-    summary:
-      "Edukasi publik untuk akses layanan digital desa dan keamanan informasi.",
-    icon: "desktop_windows",
-  },
-];
-
-const TIMELINE_ITEMS = [
-  {
-    label: "Apr",
-    title: "Pembukaan Posyandu",
-    note: "Layanan kesehatan ibu dan balita resmi dibuka di Balai Desa.",
-  },
-  {
-    label: "Mei",
-    title: "Panen Bersama",
-    note: "Panen hasil tani organik oleh kelompok tani Desa Pringgodani.",
-  },
-  {
-    label: "Jun",
-    title: "Tour Wisata Edukatif",
-    note: "Siswa sekolah berkunjung ke potensi wisata dan sentra UMKM desa.",
-  },
-  {
-    label: "Jul",
-    title: "Workshop Ekonomi Kreatif",
-    note: "Pelatihan pemasaran digital dan kemasan produk untuk pelaku UMKM.",
-  },
-];
+import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 
 interface ProfilPageProps {
   profile: VillageProfileDto | null;
   stats: VillageStatsDto;
+  /** Top 3 UMKM categories by count, for "Sektor Ekonomi Dominan" — real
+   * data, not the hardcoded list this section used to show. */
+  topUmkmCategories: UmkmCategoryDto[];
 }
 
 function StatCard({
@@ -109,7 +67,11 @@ function OfficialCard({
   );
 }
 
-export function ProfilPage({ profile, stats }: ProfilPageProps) {
+export function ProfilPage({
+  profile,
+  stats,
+  topUmkmCategories,
+}: ProfilPageProps) {
   const heroPhoto = profile?.headPhoto ?? null;
   const officials = profile?.officials ?? [];
   const missions = profile?.missions ?? [];
@@ -153,25 +115,33 @@ export function ProfilPage({ profile, stats }: ProfilPageProps) {
                     ekonomi lokal, pelayanan publik, dan kehidupan warga.
                   </p>
                 </div>
-                <div className="bg-primary-container text-on-primary-container rounded-3xl p-6 shadow-sm">
-                  <p className="font-label-sm text-on-primary-container/80 tracking-[0.18em] uppercase">
-                    Sektor Ekonomi Dominan
-                  </p>
-                  <ul className="font-body-base text-on-primary-container mt-6 space-y-4">
-                    <li className="flex items-center gap-3">
-                      <span className="h-2 w-2 rounded-full bg-white/90" />{" "}
-                      Pertanian Holtikultura
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <span className="h-2 w-2 rounded-full bg-white/90" /> UMKM
-                      Kerajinan & Olahan
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <span className="h-2 w-2 rounded-full bg-white/90" />{" "}
-                      Wisata dan Budaya Lokal
-                    </li>
-                  </ul>
-                </div>
+
+                {/* "Sektor Ekonomi Dominan" — real top-3 UMKM categories by
+                    count, not a hardcoded list. Hidden entirely if there's no
+                    UMKM data yet, rather than showing a fabricated list. */}
+                {topUmkmCategories.length > 0 && (
+                  <div className="bg-primary-container text-on-primary-container rounded-3xl p-6 shadow-sm">
+                    <p className="font-label-sm text-on-primary-container/80 tracking-[0.18em] uppercase">
+                      Sektor Ekonomi Dominan
+                    </p>
+                    <ul className="font-body-base text-on-primary-container mt-6 space-y-4">
+                      {topUmkmCategories.map((category) => (
+                        <li
+                          key={category.value}
+                          className="flex items-center justify-between gap-3"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="h-2 w-2 rounded-full bg-white/90" />
+                            {category.label}
+                          </span>
+                          <span className="text-on-primary-container/70 text-sm">
+                            {category.umkmCount} UMKM
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -220,16 +190,13 @@ export function ProfilPage({ profile, stats }: ProfilPageProps) {
                   {profile?.historyText ??
                     "Desa Pringgodani berdiri sejak masa kolonial dan berkembang menjadi desa agraris yang dikenal dengan hasil pertanian dan kerajinan warganya."}
                 </p>
-                <div className="border-outline-variant/20 mt-8 border-t pt-6">
-                  <p className="text-on-surface font-semibold">
-                    Jejak Budaya dan Ekonomi
-                  </p>
-                  <p className="text-on-surface-variant mt-3 text-sm">
-                    Dari tradisi tani hingga digitalisasi layanan publik, desa
-                    ini terus menjaga keseimbangan antara pelestarian lokal dan
-                    inovasi.
-                  </p>
-                </div>
+                <Link
+                  href="/profil/sejarah"
+                  className="text-primary font-label-sm mt-6 inline-flex items-center gap-2 font-bold hover:underline"
+                >
+                  Baca Sejarah Lengkap
+                  <Icon name="arrow_forward" className="text-lg" />
+                </Link>
               </div>
             </div>
 
@@ -252,49 +219,70 @@ export function ProfilPage({ profile, stats }: ProfilPageProps) {
                   Misi Desa
                 </p>
                 <div className="text-body-base text-on-surface-variant mt-6 space-y-4">
-                  {profile?.missions.map((mission) => (
-                    <div key={mission} className="bg-surface rounded-3xl p-5">
-                      <p>{mission}</p>
-                    </div>
-                  ))}
+                  {missions.length === 0 ? (
+                    <p className="text-on-surface-variant/70 text-sm italic">
+                      Misi desa belum tersedia.
+                    </p>
+                  ) : (
+                    missions.map((mission) => (
+                      <div key={mission} className="bg-surface rounded-3xl p-5">
+                        <p>{mission}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           <aside className="space-y-6">
+            {/* Real CTA linking to Potensi, replacing a fabricated
+                "Sektor Utama" description box. */}
             <div className="bg-primary-container text-on-primary-container rounded-[2rem] p-8 shadow-sm">
               <p className="font-label-sm text-on-primary-container/80 tracking-[0.18em] uppercase">
-                Sektor Utama
+                Jelajahi Lebih Lanjut
               </p>
               <h2 className="font-headline-md text-headline-md mt-4">
-                Ekonomi, Pariwisata, dan Budaya
+                Potensi Unggulan Desa
               </h2>
               <p className="font-body-base text-body-base text-on-primary-container/80 mt-4 leading-relaxed">
-                Desa Pringgodani menggabungkan potensi agraris, UMKM kreatif,
-                dan destinasi wisata alam untuk membangun ekonomi yang inklusif.
+                Lihat pertanian, pariwisata, kerajinan, dan sektor lain yang
+                menjadi kekuatan ekonomi Desa Pringgodani.
               </p>
+              <Link
+                href="/potensi"
+                className="bg-on-primary-container text-primary-container font-label-sm mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-bold"
+              >
+                Lihat Potensi Desa
+                <Icon name="arrow_forward" className="text-base" />
+              </Link>
             </div>
 
             <div className="border-outline-variant/20 bg-surface-container-lowest rounded-[2rem] border p-8 shadow-sm">
               <p className="font-label-sm text-on-surface-variant tracking-[0.18em] uppercase">
-                Wawasan Desa
+                Statistik Desa
               </p>
               <ul className="text-body-base text-on-surface-variant mt-6 space-y-4">
-                <li className="flex items-start gap-3">
-                  <Icon name="check_circle" className="text-primary mt-1" />
-                  Infrastruktur desa terus ditingkatkan untuk layanan publik dan
-                  akses digital.
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="storefront" className="text-primary" />
+                    UMKM Terdaftar
+                  </span>
+                  <span className="font-bold">{stats.umkmCount}</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <Icon name="check_circle" className="text-primary mt-1" />
-                  Kegiatan komunitas intensif mendukung gotong royong dan
-                  produktivitas.
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="newspaper" className="text-primary" />
+                    Berita Desa
+                  </span>
+                  <span className="font-bold">{stats.newsCount}</span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <Icon name="check_circle" className="text-primary mt-1" />
-                  Pelestarian budaya berjalan paralel dengan pengembangan
-                  ekonomi lokal.
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="location_city" className="text-primary" />
+                    Dusun
+                  </span>
+                  <span className="font-bold">{stats.dusunCount}</span>
                 </li>
               </ul>
             </div>
@@ -320,7 +308,7 @@ export function ProfilPage({ profile, stats }: ProfilPageProps) {
                   Kepala Desa
                 </p>
                 <h3 className="font-headline-md">
-                  {profile?.headName ?? "Ki Suryo Pringgo"}
+                  {profile?.headName ?? "Belum diisi"}
                 </h3>
                 <div className="bg-outline-variant absolute -bottom-12 left-1/2 h-12 w-px -translate-x-1/2" />
               </div>
@@ -361,16 +349,22 @@ export function ProfilPage({ profile, stats }: ProfilPageProps) {
               warga.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {officials.map((official) => (
-              <OfficialCard
-                key={official.name}
-                name={official.name}
-                position={official.position}
-                photo={official.photo}
-              />
-            ))}
-          </div>
+          {officials.length === 0 ? (
+            <p className="text-on-surface-variant font-body-base py-12 text-center">
+              Data perangkat desa belum tersedia.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {officials.map((official) => (
+                <OfficialCard
+                  key={official.name}
+                  name={official.name}
+                  position={official.position}
+                  photo={official.photo}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

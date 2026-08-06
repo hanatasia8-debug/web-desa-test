@@ -4,16 +4,15 @@ import type { Metadata } from "next";
 import { PotensiService } from "@/entities/potensi/api/potensi.service";
 import { PotensiDetailPage } from "@/views/potensi/potensi-detail-page";
 
-interface PotensiDetailRouteParams {
-  slug: string;
+interface PotensiDetailRouteProps {
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({
   params,
-}: {
-  params: PotensiDetailRouteParams;
-}): Promise<Metadata> {
-  const item = await PotensiService.getBySlug(params.slug);
+}: PotensiDetailRouteProps): Promise<Metadata> {
+  const { slug } = await params;
+  const item = await PotensiService.getBySlug(slug);
   if (!item) return { title: "Potensi tidak ditemukan" };
 
   return {
@@ -22,12 +21,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({
-  params,
-}: {
-  params: PotensiDetailRouteParams;
-}) {
-  const item = await PotensiService.getBySlug(params.slug);
+export default async function Page({ params }: PotensiDetailRouteProps) {
+  const { slug } = await params;
+  const item = await PotensiService.getBySlug(slug);
   if (!item) notFound();
 
   return <PotensiDetailPage item={item} />;
