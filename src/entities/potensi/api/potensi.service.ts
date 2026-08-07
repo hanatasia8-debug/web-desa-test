@@ -22,8 +22,6 @@ function sortedMockPotensi(): PotensiListItemDto[] {
   return [...MOCK_POTENSI].sort((a, b) => a.title.localeCompare(b.title));
 }
 
-/** Indonesian stopwords + generic filler words, excluded from the "Berita
- * Terkait" keyword heuristic so a search doesn't match on noise. */
 const STOPWORDS = new Set([
   "yang",
   "dari",
@@ -56,15 +54,6 @@ function extractKeywords(...phrases: string[]): string[] {
   return Array.from(new Set(words));
 }
 
-/**
- * Best-effort "Berita Terkait" — the schema has NO relation between `News`
- * and `VillagePotential` (unlike `Umkm.potentialId`), so this reuses the
- * existing `BeritaService` search (title/summary substring match) against
- * keywords extracted from the potensi's title + category label. This is a
- * heuristic, not a guaranteed relation — a potensi with no textual overlap
- * in any published news legitimately gets zero results, which is the
- * correct behavior, not a bug.
- */
 async function findRelatedNews(
   title: string,
   categoryLabel: string,
@@ -93,7 +82,6 @@ async function findRelatedNews(
         }
       }
     } catch (err) {
-      // "Berita Terkait" must never take the whole potensi page down.
       console.error(`Gagal mencari berita terkait untuk "${keyword}":`, err);
     }
   }
@@ -142,9 +130,15 @@ function toFeaturedProducts(
 export const PotensiService = {
   async getList(): Promise<PotensiListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } =
-        await apiClient.get<ApiSuccessBody<PotensiListResponse>>("/potensi");
-      return data.data;
+      try {
+        const { data } =
+          await apiClient.get<ApiSuccessBody<PotensiListResponse>>(
+            "/public/potentials",
+          );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat potensi desa dari API:", err);
+      }
     }
 
     const items = sortedMockPotensi();
@@ -156,14 +150,14 @@ export const PotensiService = {
     if (IS_API_CONNECTED) {
       try {
         const { data } = await apiClient.get<ApiSuccessBody<PotensiDetailDto>>(
-          `/potensi/${encodeURIComponent(slug)}`,
+          `/public/potentials/${encodeURIComponent(slug)}`,
         );
-        return data.data;
+        if (data?.data) return data.data;
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
           return null;
         }
-        throw err;
+        console.error(`Gagal memuat detail potensi '${slug}' dari API:`, err);
       }
     }
 
@@ -173,8 +167,6 @@ export const PotensiService = {
 
     const relatedUmkmRecords = getMockUmkmByPotentialId(listItem.id);
 
-    // "Berita Terkait" must never block the whole detail page from
-    // rendering if it fails — same reasoning as `HomePage`'s Promise.allSettled.
     const relatedNews = await findRelatedNews(
       listItem.title,
       getPotensiCategoryMeta(listItem.category).label,

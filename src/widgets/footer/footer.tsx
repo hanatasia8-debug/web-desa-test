@@ -31,8 +31,8 @@ export async function Footer() {
 
   return (
     <footer className="bg-surface-container-highest border-outline-variant mt-stack-lg border-t">
-      <div className="max-w-container-max gap-gutter px-gutter py-section-padding mx-auto grid grid-cols-1 md:grid-cols-4">
-        <div className="col-span-1 md:col-span-1">
+      <div className="max-w-container-max gap-gutter px-gutter py-section-padding mx-auto grid grid-cols-1 md:grid-cols-3">
+        <div className="col-span-1">
           <div className="mb-6 flex items-center gap-3">
             <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
               <Icon name="eco" className="text-2xl" />
@@ -83,21 +83,6 @@ export async function Footer() {
               {contactEmail}
             </li>
           </ul>
-        </div>
-
-        <div>
-          <h4 className="font-headline-md text-headline-md text-primary mb-6">
-            Admin Panel
-          </h4>
-          <p className="font-label-sm text-on-surface-variant mb-4">
-            Hanya untuk akses petugas desa yang berwenang.
-          </p>
-          <Link
-            className="bg-primary/10 text-primary font-label-sm hover:bg-primary hover:text-on-primary inline-flex items-center gap-2 rounded-xl px-6 py-3 font-bold transition-all"
-            href="/admin/login"
-          >
-            <Icon name="login" className="text-lg" /> Admin Login
-          </Link>
         </div>
       </div>
       <div className="border-outline-variant/30 border-t py-8">

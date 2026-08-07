@@ -277,7 +277,11 @@ export function GoogleMapCanvas({
         },
       };
 
-      let MapConstructor: any = window.google.maps.Map;
+      if (!window.google?.maps?.Map) {
+        throw new Error("Pustaka google.maps.Map belum siap.");
+      }
+
+      let MapConstructor = window.google.maps.Map;
 
       if (window.google.maps.importLibrary) {
         try {
@@ -288,8 +292,8 @@ export function GoogleMapCanvas({
           if (mapsLibrary?.Map && typeof mapsLibrary.Map === "function") {
             MapConstructor = mapsLibrary.Map;
           }
-        } catch {
-          // fallback to google.maps.Map
+        } catch (error) {
+          console.warn("importLibrary warning:", error);
         }
       }
 
@@ -357,6 +361,10 @@ export function GoogleMapCanvas({
 
       // Add or update markers
       locations.forEach((loc) => {
+        const lat = Number(loc.latitude);
+        const lng = Number(loc.longitude);
+        if (isNaN(lat) || isNaN(lng)) return;
+
         const isSelected = selectedLocation?.id === loc.id;
         const handleSelect = () => {
           onSelectLocation(loc);
@@ -387,7 +395,7 @@ export function GoogleMapCanvas({
           const marker = currentMarkers.get(loc.id);
 
           if (AdvancedMarker && marker instanceof AdvancedMarker) {
-            marker.position = { lat: loc.latitude, lng: loc.longitude };
+            marker.position = { lat, lng };
             marker.content = createCustomMarkerDOM(
               loc,
               isSelected,
@@ -395,7 +403,7 @@ export function GoogleMapCanvas({
             );
             marker.zIndex = isSelected ? 1000 : 1;
           } else if (marker.setPosition) {
-            marker.setPosition({ lat: loc.latitude, lng: loc.longitude });
+            marker.setPosition({ lat, lng });
             if (marker.setIcon) {
               marker.setIcon({
                 url: iconSvgUrl,
@@ -405,10 +413,11 @@ export function GoogleMapCanvas({
             }
           }
         } else {
-          try {
-            if (AdvancedMarker) {
+          let markerCreated = false;
+          if (AdvancedMarker) {
+            try {
               const marker = new AdvancedMarker({
-                position: { lat: loc.latitude, lng: loc.longitude },
+                position: { lat, lng },
                 map,
                 title: loc.name,
                 content: createCustomMarkerDOM(loc, isSelected, handleSelect),
@@ -416,18 +425,15 @@ export function GoogleMapCanvas({
               });
 
               currentMarkers.set(loc.id, marker);
-              return;
+              markerCreated = true;
+            } catch {
+              // Fallback to legacy marker if AdvancedMarker fails
             }
-          } catch (e) {
-            console.warn(
-              "AdvancedMarkerElement init failed, using google.maps.Marker fallback",
-              e,
-            );
           }
 
-          if (google.maps.Marker) {
+          if (!markerCreated && typeof google?.maps?.Marker === "function") {
             const marker = new google.maps.Marker({
-              position: { lat: loc.latitude, lng: loc.longitude },
+              position: { lat, lng },
               map,
               title: loc.name,
               icon: {

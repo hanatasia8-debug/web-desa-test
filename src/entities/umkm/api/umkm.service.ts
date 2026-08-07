@@ -53,8 +53,6 @@ function filterMockUmkm({
   const keyword = search?.trim().toLowerCase() ?? "";
 
   return sortedMockUmkm().filter((item) => {
-    // An unknown `?kategori=` matches nothing rather than everything, so a
-    // stale link shows an empty state instead of the full directory.
     if (category && item.category !== categoryValue) return false;
     if (exclude && item.id === exclude) return false;
     if (
@@ -67,24 +65,20 @@ function filterMockUmkm({
   });
 }
 
-/**
- * UmkmService — dual-mode data source.
- * When NEXT_PUBLIC_API_URL is set → fetches from backend API.
- * When empty → returns static mock data with client-side filtering.
- *
- * GUARDRAIL: UMKM is never sorted by rating anywhere (there is no rating in
- * the schema) — every listing orders by `publishedAt DESC`.
- */
 export const UmkmService = {
   async getLatestPublished({
     limit = 3,
   }: GetLatestUmkmParams = {}): Promise<UmkmListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } = await apiClient.get<ApiSuccessBody<UmkmListResponse>>(
-        "/umkm",
-        { params: { limit, sort: "publishedAt_desc" } },
-      );
-      return data.data;
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<UmkmListResponse>>(
+          "/public/umkm",
+          { params: { limit, sort: "publishedAt_desc" } },
+        );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat UMKM terbaru dari API:", err);
+      }
     }
     return { items: sortedMockUmkm().slice(0, limit), total: MOCK_UMKM.length };
   },
@@ -98,20 +92,24 @@ export const UmkmService = {
     exclude,
   }: GetPaginatedUmkmParams = {}): Promise<UmkmListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } = await apiClient.get<ApiSuccessBody<UmkmListResponse>>(
-        "/umkm",
-        {
-          params: {
-            page,
-            limit,
-            category,
-            search,
-            exclude,
-            sort: "publishedAt_desc",
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<UmkmListResponse>>(
+          "/public/umkm",
+          {
+            params: {
+              page,
+              limit,
+              category,
+              search,
+              exclude,
+              sort: "publishedAt_desc",
+            },
           },
-        },
-      );
-      return data.data;
+        );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat daftar UMKM dari API:", err);
+      }
     }
 
     const filtered = filterMockUmkm({ category, search, exclude });
@@ -127,14 +125,14 @@ export const UmkmService = {
     if (IS_API_CONNECTED) {
       try {
         const { data } = await apiClient.get<ApiSuccessBody<UmkmDetailDto>>(
-          `/umkm/${slug}`,
+          `/public/umkm/${slug}`,
         );
-        return data.data;
+        if (data?.data) return data.data;
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
           return null;
         }
-        throw err;
+        console.error(`Gagal memuat detail UMKM '${slug}' dari API:`, err);
       }
     }
     return getMockUmkmDetail(slug);
@@ -151,11 +149,14 @@ export const UmkmService = {
 
   async getCategories(): Promise<UmkmCategoryListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } =
-        await apiClient.get<ApiSuccessBody<UmkmCategoryListResponse>>(
-          "/umkm/categories",
-        );
-      return data.data;
+      try {
+        const { data } = await apiClient.get<
+          ApiSuccessBody<UmkmCategoryListResponse>
+        >("/public/umkm/categories");
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat kategori UMKM dari API:", err);
+      }
     }
     return { items: MOCK_UMKM_CATEGORIES };
   },
@@ -166,11 +167,10 @@ export const UmkmService = {
     if (IS_API_CONNECTED) {
       const { data } = await apiClient.post<
         ApiSuccessBody<{ id: string; slug: string; name: string }>
-      >("/umkm/register", payload);
+      >("/public/umkm/register", payload);
       return data.data;
     }
 
-    // Mock submission simulation
     const slug = (payload.name || "umkm-baru")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")

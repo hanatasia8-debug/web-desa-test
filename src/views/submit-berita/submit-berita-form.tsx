@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Icon } from "@/shared/ui/icon";
 import type { NewsCategoryDto } from "@/entities/berita/model/types";
 import type { RegisterNewsDTO } from "@/entities/berita/model/register-news.schema";
@@ -19,6 +19,7 @@ interface SubmitBeritaFormProps {
   onGalleryImageChange: (index: number, field: string, value: any) => void;
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
+  hideSidebar?: boolean;
 }
 
 export function SubmitBeritaForm({
@@ -34,8 +35,15 @@ export function SubmitBeritaForm({
   onGalleryImageChange,
   onClearDraft,
   onSubmitStep,
+  hideSidebar = false,
 }: SubmitBeritaFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Helper to scroll and focus field
   const scrollToField = (fieldId: string) => {
@@ -65,9 +73,17 @@ export function SubmitBeritaForm({
   const isStandard = formData.newsTypeId === "STANDARD" || !formData.newsTypeId;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+    <div
+      className={
+        hideSidebar
+          ? "w-full"
+          : "grid grid-cols-1 items-start gap-8 lg:grid-cols-12"
+      }
+    >
       {/* LEFT COLUMN: FORM EDITOR */}
-      <div className="bg-surface-container-lowest border-outline-variant/20 rounded-xl border p-6 shadow-sm md:p-8 lg:col-span-7">
+      <div
+        className={`bg-surface-container-lowest border-outline-variant/20 rounded-xl border p-6 shadow-sm md:p-8 ${hideSidebar ? "w-full" : "lg:col-span-7"}`}
+      >
         {/* ERROR SUMMARY BANNER */}
         {hasErrors && (
           <div className="animate-in fade-in slide-in-from-top-2 mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-900 shadow-sm">
@@ -319,7 +335,7 @@ export function SubmitBeritaForm({
               }
             />
 
-            {formData.coverUrl ? (
+            {isMounted && formData.coverUrl ? (
               <div className="border-outline-variant/30 bg-surface-container-low group relative h-56 max-w-full overflow-hidden rounded-xl border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -426,17 +442,18 @@ export function SubmitBeritaForm({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {formData.blocks.map((block, idx) => (
-                    <ArticleBlockItemUpload
-                      key={idx}
-                      index={idx}
-                      block={block}
-                      onChange={(field, value) =>
-                        onBlockChange(idx, field, value)
-                      }
-                      onRemove={() => onRemoveBlock(idx)}
-                    />
-                  ))}
+                  {isMounted &&
+                    formData.blocks?.map((block, idx) => (
+                      <ArticleBlockItemUpload
+                        key={idx}
+                        index={idx}
+                        block={block}
+                        onChange={(field, value) =>
+                          onBlockChange(idx, field, value)
+                        }
+                        onRemove={() => onRemoveBlock(idx)}
+                      />
+                    ))}
                 </div>
               )}
             </div>
@@ -446,24 +463,26 @@ export function SubmitBeritaForm({
               className="border-outline-variant/20 space-y-4 border-t pt-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-headline-md text-label-sm text-primary font-bold tracking-wider uppercase">
-                  Koleksi Foto Galeri <span className="text-error">*</span>
-                </h3>
-                <button
-                  type="button"
-                  onClick={onAddGalleryImage}
-                  className="text-secondary font-label-sm bg-secondary/10 flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold hover:underline"
-                >
-                  <Icon name="add_photo_alternate" className="text-base" />{" "}
-                  Tambah Foto Galeri
-                </button>
+                <span className="font-title-sm text-on-surface text-sm font-bold">
+                  Galeri Foto Berita
+                </span>
+                {formData.galleryImages &&
+                  formData.galleryImages.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={onAddGalleryImage}
+                      className="text-primary hover:bg-primary/10 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors"
+                    >
+                      <Icon name="add" className="text-sm" /> Tambah Foto
+                    </button>
+                  )}
               </div>
 
               {!formData.galleryImages ||
               formData.galleryImages.length === 0 ? (
-                <div className="bg-surface-container-low border-outline-variant/40 rounded-lg border border-dashed p-6 text-center">
-                  <p className="text-on-surface-variant text-sm">
-                    Belum ada foto galeri yang diunggah.
+                <div className="border-outline-variant/20 bg-surface-container-lowest rounded-xl border p-4 text-center">
+                  <p className="text-on-surface-variant text-xs">
+                    Belum ada foto galeri.
                   </p>
                   <button
                     type="button"
@@ -475,17 +494,18 @@ export function SubmitBeritaForm({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {formData.galleryImages.map((img, idx) => (
-                    <GalleryImageItemUpload
-                      key={idx}
-                      index={idx}
-                      item={img}
-                      onChange={(field, value) =>
-                        onGalleryImageChange(idx, field, value)
-                      }
-                      onRemove={() => onRemoveGalleryImage(idx)}
-                    />
-                  ))}
+                  {isMounted &&
+                    formData.galleryImages?.map((img, idx) => (
+                      <GalleryImageItemUpload
+                        key={idx}
+                        index={idx}
+                        item={img}
+                        onChange={(field, value) =>
+                          onGalleryImageChange(idx, field, value)
+                        }
+                        onRemove={() => onRemoveGalleryImage(idx)}
+                      />
+                    ))}
                 </div>
               )}
             </div>
@@ -505,76 +525,79 @@ export function SubmitBeritaForm({
       </div>
 
       {/* RIGHT COLUMN: SIDEBAR GUIDELINES & STATUS */}
-      <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-5">
-        {/* Panduan Penulisan */}
-        <div className="bg-primary-container text-on-primary-container rounded-xl p-6 shadow-sm">
-          <h4 className="font-headline-md text-label-sm mb-4 flex items-center gap-2 font-bold tracking-wider uppercase">
-            <Icon name="gavel" className="text-lg" /> Panduan Penulisan Berita
-          </h4>
-          <ul className="font-body-base space-y-3 text-xs leading-relaxed">
-            <li className="flex gap-2.5">
-              <Icon
-                name="check_circle"
-                className="text-on-primary-container/80 shrink-0 text-base"
-              />
-              <span>
-                Gunakan Bahasa Indonesia yang santun, jelas, dan sesuai fakta.
-              </span>
-            </li>
-            <li className="flex gap-2.5">
-              <Icon
-                name="check_circle"
-                className="text-on-primary-container/80 shrink-0 text-base"
-              />
-              <span>
-                Pastikan kebenaran lokasi, tanggal, dan nama warga yang diliput.
-              </span>
-            </li>
-            <li className="flex gap-2.5">
-              <Icon
-                name="check_circle"
-                className="text-on-primary-container/80 shrink-0 text-base"
-              />
-              <span>
-                Unggah foto dengan pencahayaan terang dan sudut gambar yang
-                sopan.
-              </span>
-            </li>
-            <li className="flex gap-2.5">
-              <Icon
-                name="check_circle"
-                className="text-on-primary-container/80 shrink-0 text-base"
-              />
-              <span>
-                Admin desa akan meninjau setiap pengajuan sebelum dipublikasikan
-                (Maks 24 Jam).
-              </span>
-            </li>
-          </ul>
-        </div>
+      {!hideSidebar && (
+        <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-5">
+          {/* Panduan Penulisan */}
+          <div className="bg-primary-container text-on-primary-container rounded-xl p-6 shadow-sm">
+            <h4 className="font-headline-md text-label-sm mb-4 flex items-center gap-2 font-bold tracking-wider uppercase">
+              <Icon name="gavel" className="text-lg" /> Panduan Penulisan Berita
+            </h4>
+            <ul className="font-body-base space-y-3 text-xs leading-relaxed">
+              <li className="flex gap-2.5">
+                <Icon
+                  name="check_circle"
+                  className="text-on-primary-container/80 shrink-0 text-base"
+                />
+                <span>
+                  Gunakan Bahasa Indonesia yang santun, jelas, dan sesuai fakta.
+                </span>
+              </li>
+              <li className="flex gap-2.5">
+                <Icon
+                  name="check_circle"
+                  className="text-on-primary-container/80 shrink-0 text-base"
+                />
+                <span>
+                  Pastikan kebenaran lokasi, tanggal, dan nama warga yang
+                  diliput.
+                </span>
+              </li>
+              <li className="flex gap-2.5">
+                <Icon
+                  name="check_circle"
+                  className="text-on-primary-container/80 shrink-0 text-base"
+                />
+                <span>
+                  Unggah foto dengan pencahayaan terang dan sudut gambar yang
+                  sopan.
+                </span>
+              </li>
+              <li className="flex gap-2.5">
+                <Icon
+                  name="check_circle"
+                  className="text-on-primary-container/80 shrink-0 text-base"
+                />
+                <span>
+                  Admin desa akan meninjau setiap pengajuan sebelum
+                  dipublikasikan (Maks 24 Jam).
+                </span>
+              </li>
+            </ul>
+          </div>
 
-        {/* Status Pengajuan Terakhir */}
-        <div className="bg-surface-container-high border-outline-variant/20 rounded-xl border p-6 shadow-sm">
-          <h4 className="font-headline-md text-on-surface mb-3 text-xs font-bold tracking-wider uppercase">
-            Status Pengajuan Terakhir Anda
-          </h4>
-          <div className="space-y-3">
-            <div className="bg-surface-container-lowest border-outline-variant/10 flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-on-surface text-xs font-bold">
-                  Kerja Bakti Dusun Krajan
-                </p>
-                <p className="text-on-surface-variant text-[11px]">
-                  Diajukan kemarin
-                </p>
+          {/* Status Pengajuan Terakhir */}
+          <div className="bg-surface-container-high border-outline-variant/20 rounded-xl border p-6 shadow-sm">
+            <h4 className="font-headline-md text-on-surface mb-3 text-xs font-bold tracking-wider uppercase">
+              Status Pengajuan Terakhir Anda
+            </h4>
+            <div className="space-y-3">
+              <div className="bg-surface-container-lowest border-outline-variant/10 flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="text-on-surface text-xs font-bold">
+                    Kerja Bakti Dusun Krajan
+                  </p>
+                  <p className="text-on-surface-variant text-[11px]">
+                    Diajukan kemarin
+                  </p>
+                </div>
+                <span className="font-badge-xs rounded bg-[#F59E0B]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#F59E0B] uppercase">
+                  Pending
+                </span>
               </div>
-              <span className="font-badge-xs rounded bg-[#F59E0B]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#F59E0B] uppercase">
-                Pending
-              </span>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

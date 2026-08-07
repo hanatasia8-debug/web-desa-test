@@ -20,7 +20,7 @@ export interface GetFacilitiesParams {
 
 /**
  * FasilitasService — for public facility & landmark pins on the interactive map `/peta`.
- * Connects to `web-desa` backend `/maps/locations` and `/maps/categories`.
+ * Connects to `web-desa` backend `/public/maps/locations` and `/public/maps/categories`.
  */
 export const FasilitasService = {
   async getFacilities({
@@ -32,21 +32,25 @@ export const FasilitasService = {
     const slugFilter = categorySlug || category;
 
     if (IS_API_CONNECTED) {
-      const { data } = await apiClient.get<ApiSuccessBody<MapLocationDto[]>>(
-        "/maps/locations",
-        {
-          params: {
-            categorySlug: slugFilter,
-            q: search,
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<MapLocationDto[]>>(
+          "/public/maps/locations",
+          {
+            params: {
+              categorySlug: slugFilter,
+              q: search,
+            },
           },
-        },
-      );
+        );
 
-      let items = data.data || [];
-      if (limit) {
-        items = items.slice(0, limit);
+        let items = data?.data || [];
+        if (limit) {
+          items = items.slice(0, limit);
+        }
+        return { items };
+      } catch (err) {
+        console.error("Gagal memuat titik peta dari API:", err);
       }
-      return { items };
     }
 
     let items = [...MOCK_FACILITIES];
@@ -79,11 +83,14 @@ export const FasilitasService = {
 
   async getCategories(): Promise<MapCategoryListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } =
-        await apiClient.get<ApiSuccessBody<MapCategoryDto[]>>(
-          "/maps/categories",
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<MapCategoryDto[]>>(
+          "/public/maps/categories",
         );
-      return { items: data.data || [] };
+        return { items: data?.data || [] };
+      } catch (err) {
+        console.error("Gagal memuat kategori peta dari API:", err);
+      }
     }
 
     return { items: MOCK_MAP_CATEGORIES };

@@ -37,10 +37,14 @@ export const UMKM_CATEGORY_META: Record<
 export const UMKM_CATEGORY_VALUES = Object.keys(UMKM_CATEGORY_META);
 
 export function getUmkmCategoryMeta(category: string) {
+  const normalized = (category || "").trim();
+  const key = normalized.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+
   return (
-    UMKM_CATEGORY_META[category] ?? {
-      label: category,
-      slug: category.toLowerCase().replace(/_/g, "-"),
+    UMKM_CATEGORY_META[key] ??
+    UMKM_CATEGORY_META[normalized] ?? {
+      label: category || "UMKM",
+      slug: (category || "umkm").toLowerCase().replace(/_/g, "-"),
       badgeClass: "bg-primary",
     }
   );

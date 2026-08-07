@@ -6,9 +6,15 @@ import { MOCK_BANNERS } from "@/shared/data/mock-banner";
 export const BannerService = {
   async getActive(): Promise<BannerListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } =
-        await apiClient.get<ApiSuccessBody<BannerListResponse>>("/banner");
-      return data.data;
+      try {
+        const { data } =
+          await apiClient.get<ApiSuccessBody<BannerListResponse>>(
+            "/public/banner",
+          );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat banner dari API:", err);
+      }
     }
     return MOCK_BANNERS;
   },

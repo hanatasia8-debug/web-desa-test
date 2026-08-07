@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
-import { HistoryAdminPanel } from "@/views/admin-profil/history-panel";
+import { AdminProfilPage } from "@/views/admin-profil";
 
 export const metadata: Metadata = {
   title: "Profil Desa — Admin Panel",
-  description: "Kelola sejarah dan informasi profil desa melalui panel admin.",
+  description:
+    "Kelola sejarah, profil desa, dan informasi perangkat desa melalui panel admin.",
 };
 
-export default function AdminProfilPage() {
-  return <HistoryAdminPanel />;
+export default function Page() {
+  return <AdminProfilPage />;
 }
