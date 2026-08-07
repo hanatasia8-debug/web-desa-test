@@ -281,17 +281,23 @@ export function GoogleMapCanvas({
 
       if (window.google.maps.importLibrary) {
         try {
-          const { Map } = (await window.google.maps.importLibrary(
+          const mapsLibrary = (await window.google.maps.importLibrary(
             "maps",
           )) as any;
           await window.google.maps.importLibrary("marker");
-          MapConstructor = Map;
+          if (mapsLibrary?.Map && typeof mapsLibrary.Map === "function") {
+            MapConstructor = mapsLibrary.Map;
+          }
         } catch {
           // fallback to google.maps.Map
         }
       }
 
       if (!isMounted || !mapRef.current || mapInstanceRef.current) return;
+
+      if (!MapConstructor || typeof MapConstructor !== "function") {
+        throw new Error("Google Maps Map constructor is unavailable.");
+      }
 
       const map = new MapConstructor(mapRef.current, mapOptions);
 
