@@ -3,20 +3,34 @@ import axios from "axios";
 /**
  * Base HTTP client for calling the backend API.
  *
- * - Client-side (Browser): NEXT_PUBLIC_API_URL -> http://localhost:3000/api
- * - Server-side (SSR in Docker): INTERNAL_API_URL -> http://backend:3000/api
+ * - Client-side (Browser): Dynamically uses window.location.hostname
+ *   so it works from localhost AND from other devices on the same network.
+ * - Server-side (SSR / Docker): Uses INTERNAL_API_URL env var.
  */
-const defaultApiUrl = "http://localhost:3000/api";
 
-const isServer = typeof window === "undefined";
-const baseURL = isServer
-  ? process.env.INTERNAL_API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    defaultApiUrl
-  : process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
+const BACKEND_PORT = 3000;
+
+function getBaseURL(): string {
+  const isServer = typeof window === "undefined";
+
+  if (isServer) {
+    // SSR: use internal Docker hostname or env var
+    return (
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      `http://localhost:${BACKEND_PORT}/api`
+    );
+  }
+
+  // Client-side: dynamically resolve from current browser hostname
+  // e.g. if opened via 192.168.1.12:3001, API calls go to 192.168.1.12:3000
+  const protocol = window.location.protocol; // http: or https:
+  const hostname = window.location.hostname; // localhost or 192.168.x.x
+  return `${protocol}//${hostname}:${BACKEND_PORT}/api`;
+}
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },

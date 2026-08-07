@@ -333,13 +333,17 @@ export function SubmissionReviewModal({
 
             {isNews ? (
               <SubmitBeritaPreview
-                formData={previewNewsDto}
-                categories={NEWS_CATEGORIES}
+                previewNewsDto={previewNewsDto}
+                isSubmitting={false}
+                onBackToEdit={() => {}}
+                onFinalSubmit={() => {}}
               />
             ) : (
               <SubmitUmkmPreview
-                formData={previewUmkmDto}
-                categories={UMKM_CATEGORIES}
+                previewDetailDto={previewUmkmDto}
+                isSubmitting={false}
+                onBackToEdit={() => {}}
+                onFinalSubmit={() => {}}
               />
             )}
           </div>

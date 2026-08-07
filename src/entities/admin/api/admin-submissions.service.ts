@@ -58,26 +58,34 @@ export const AdminSubmissionsService = {
 
           const pendingUmkm: PendingUmkmSubmission[] = umkmList.map((u) => ({
             id: String(u.id),
-            name: u.name || "Pengajuan UMKM",
-            slug: u.slug || "pengajuan-umkm",
-            ownerName: u.ownerName || "Pemilik UMKM",
-            categoryName: u.categoryName || "Kuliner",
-            description: u.description || u.summary || "",
-            phone: u.phone || u.whatsappNumber || "081234567890",
-            address: u.address || "Desa Pringgodani",
-            submittedAt: u.submittedAt || new Date().toISOString(),
-            coverUrl:
+            name: String(u.name || "Pengajuan UMKM"),
+            slug: String(u.slug || "pengajuan-umkm"),
+            ownerName: String(u.ownerName || "Pemilik UMKM"),
+            categoryName: String(u.categoryName || "Kuliner"),
+            description: String(u.description || u.summary || ""),
+            phone: String(u.phone || u.whatsappNumber || "081234567890"),
+            address: String(u.address || "Desa Pringgodani"),
+            submittedAt: String(u.submittedAt || new Date().toISOString()),
+            coverUrl: String(
               u.coverUrl ||
-              u.coverImage ||
-              "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
-            products: u.products || [],
+                u.coverImage ||
+                "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
+            ),
+            products:
+              (u.products as Array<{
+                name: string;
+                price: number;
+                description?: string;
+                imageUrl?: string;
+              }>) || [],
           }));
 
           return {
             pendingNews,
             pendingUmkm,
             totalPending:
-              raw.totalPending || pendingNews.length + pendingUmkm.length,
+              Number(raw.totalPending) ||
+              pendingNews.length + pendingUmkm.length,
           };
         }
       } catch (err) {

@@ -18,129 +18,6 @@ interface GoogleMapCanvasProps {
 const DEFAULT_CENTER = { lat: -8.2811, lng: 112.5664 };
 const DEFAULT_ZOOM = 15;
 
-/** Map category slug to Material Symbols icon ligature name */
-function getCategoryIcon(slug?: string, fallbackIcon?: string | null): string {
-  if (!slug) return fallbackIcon || "location_on";
-  const iconMap: Record<string, string> = {
-    "kantor-desa": "account_balance",
-    pendidikan: "school",
-    ibadah: "mosque",
-    kesehatan: "medical_services",
-    "wisata-alam": "park",
-  };
-  return iconMap[slug] || fallbackIcon || "location_on";
-}
-
-/** Create dynamic custom DOM element for AdvancedMarkerElement */
-function createCustomMarkerDOM(
-  loc: MapLocationDto,
-  isSelected: boolean,
-  onClick: () => void,
-): HTMLElement {
-  const container = document.createElement("div");
-  container.className = "custom-map-marker-wrapper";
-  container.style.cursor = "pointer";
-  container.style.userSelect = "none";
-
-  const color = loc.category?.color || "#006399";
-  const iconName = getCategoryIcon(loc.category?.slug, loc.category?.icon);
-
-  container.innerHTML = `
-    <div style="
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
-      transform: ${isSelected ? "scale(1.25) translateY(-6px)" : "scale(1)"};
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      z-index: ${isSelected ? "100" : "1"};
-    ">
-      <!-- Title Label Badge -->
-      <div style="
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(8px);
-        color: #ffffff;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 700;
-        font-family: Inter, system-ui, -apple-system, sans-serif;
-        white-space: nowrap;
-        margin-bottom: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        max-width: 160px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        letter-spacing: 0.01em;
-      ">
-        <span style="
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: ${color};
-          display: inline-block;
-          flex-shrink: 0;
-          box-shadow: 0 0 8px ${color};
-        "></span>
-        <span style="overflow: hidden; text-overflow: ellipsis;">${loc.name}</span>
-      </div>
-
-      <!-- Main Marker Badge -->
-      <div style="
-        position: relative;
-        width: 48px;
-        height: 48px;
-        background: radial-gradient(circle at 30% 30%, #ffffff 0%, ${color} 75%);
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid #ffffff;
-        box-shadow: 0 6px 20px ${color}99;
-        ${isSelected ? `outline: 3px solid ${color}; outline-offset: 3px; ring: 4px white;` : ""}
-      ">
-        <!-- Inner White Circle Icon Emblem -->
-        <div style="
-          width: 32px;
-          height: 32px;
-          background: #ffffff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transform: rotate(45deg);
-          color: ${color};
-          box-shadow: inset 0 2px 4px rgba(0,0,0,0.18);
-        ">
-          <span class="material-symbols-outlined" style="font-size: 20px; font-weight: 700; line-height: 1;">${iconName}</span>
-        </div>
-      </div>
-
-      <!-- Base Shadow Dot -->
-      <div style="
-        width: 14px;
-        height: 5px;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 50%;
-        margin-top: 3px;
-        filter: blur(1px);
-      "></div>
-    </div>
-  `;
-
-  container.addEventListener("click", (e) => {
-    e.stopPropagation();
-    onClick();
-  });
-
-  return container;
-}
-
 export function GoogleMapCanvas({
   locations,
   selectedLocation,
@@ -248,7 +125,7 @@ export function GoogleMapCanvas({
     `;
   }, []);
 
-  // 3. Initialize Google Map with lightweight settings
+  // 3. Initialize Google Map — loader guarantees Map constructor is ready
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
@@ -328,135 +205,89 @@ export function GoogleMapCanvas({
   useEffect(() => {
     if (!isLoaded || !mapInstance) return;
 
-    let isMounted = true;
+    const map = mapInstance;
+    const currentMarkers = markersRef.current;
+    const activeLocationIds = new Set(locations.map((l) => l.id));
 
-    async function syncMarkers() {
-      if (!mapInstance) return;
-
-      const map = mapInstance;
-      const currentMarkers = markersRef.current;
-      const activeLocationIds = new Set(locations.map((l) => l.id));
-
-      // Remove markers that are no longer in locations
-      currentMarkers.forEach((marker, id) => {
-        if (!activeLocationIds.has(id)) {
-          if (marker.map) marker.map = null;
-          else if (marker.setMap) marker.setMap(null);
-          currentMarkers.delete(id);
-        }
-      });
-
-      let AdvancedMarker: any = (google.maps as any)?.marker
-        ?.AdvancedMarkerElement;
-      if (!AdvancedMarker && window.google?.maps?.importLibrary) {
-        try {
-          const markerLib = (await google.maps.importLibrary("marker")) as any;
-          AdvancedMarker = markerLib?.AdvancedMarkerElement;
-        } catch {
-          // ignore
-        }
+    // Remove markers that are no longer in locations
+    currentMarkers.forEach((marker, id) => {
+      if (!activeLocationIds.has(id)) {
+        if (marker.setMap) marker.setMap(null);
+        else if (marker.map !== undefined) marker.map = null;
+        currentMarkers.delete(id);
       }
+    });
 
-      if (!isMounted) return;
+    // Add or update markers
+    locations.forEach((loc) => {
+      const lat = Number(loc.latitude);
+      const lng = Number(loc.longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
 
-      // Add or update markers
+      const handleClick = () => {
+        onSelectLocation(loc);
+        if (infoWindowRef.current) {
+          infoWindowRef.current.setContent(createInfoWindowContent(loc));
+          const existingMarker = currentMarkers.get(loc.id);
+          if (existingMarker) {
+            infoWindowRef.current.open({ map, anchor: existingMarker });
+          }
+        }
+      };
+
+      const color = loc.category?.color || "#006399";
+      const iconSvgUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="54" viewBox="0 0 48 54">
+          <g filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.4))">
+            <path d="M24 2 C13.5 2 5 10.5 5 21 C5 33 24 50 24 50 C24 50 43 33 43 21 C43 10.5 34.5 2 24 2 Z" fill="${color}" stroke="#FFFFFF" stroke-width="2.5"/>
+            <circle cx="24" cy="21" r="11" fill="#FFFFFF"/>
+            <circle cx="24" cy="21" r="6" fill="${color}"/>
+          </g>
+        </svg>
+      `)}`;
+
+      if (currentMarkers.has(loc.id)) {
+        // Update existing marker position
+        const marker = currentMarkers.get(loc.id);
+        if (marker.setPosition) {
+          marker.setPosition({ lat, lng });
+        } else if (marker.position !== undefined) {
+          marker.position = { lat, lng };
+        }
+      } else {
+        // Create new marker
+        const marker = new window.google.maps.Marker({
+          position: { lat, lng },
+          map,
+          title: loc.name,
+          icon: {
+            url: iconSvgUrl,
+            scaledSize: new window.google.maps.Size(48, 54),
+            anchor: new window.google.maps.Point(24, 54),
+          },
+        });
+
+        marker.addListener("click", handleClick);
+        currentMarkers.set(loc.id, marker);
+      }
+    });
+
+    // Auto-fit bounds to show all markers
+    if (locations.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      let count = 0;
       locations.forEach((loc) => {
         const lat = Number(loc.latitude);
         const lng = Number(loc.longitude);
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        const isSelected = selectedLocation?.id === loc.id;
-        const handleSelect = () => {
-          onSelectLocation(loc);
-          if (infoWindowRef.current) {
-            infoWindowRef.current.setContent(createInfoWindowContent(loc));
-            const existingMarker = currentMarkers.get(loc.id);
-            if (existingMarker) {
-              infoWindowRef.current.open({
-                map,
-                anchor: existingMarker,
-              });
-            }
-          }
-        };
-
-        const color = loc.category?.color || "#006399";
-        const iconSvgUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="54" viewBox="0 0 48 54">
-            <g filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.4))">
-              <path d="M24 2 C13.5 2 5 10.5 5 21 C5 33 24 50 24 50 C24 50 43 33 43 21 C43 10.5 34.5 2 24 2 Z" fill="${color}" stroke="#FFFFFF" stroke-width="2.5"/>
-              <circle cx="24" cy="21" r="11" fill="#FFFFFF"/>
-              <circle cx="24" cy="21" r="6" fill="${color}"/>
-            </g>
-          </svg>
-        `)}`;
-
-        if (currentMarkers.has(loc.id)) {
-          const marker = currentMarkers.get(loc.id);
-
-          if (AdvancedMarker && marker instanceof AdvancedMarker) {
-            marker.position = { lat, lng };
-            marker.content = createCustomMarkerDOM(
-              loc,
-              isSelected,
-              handleSelect,
-            );
-            marker.zIndex = isSelected ? 1000 : 1;
-          } else if (marker.setPosition) {
-            marker.setPosition({ lat, lng });
-            if (marker.setIcon) {
-              marker.setIcon({
-                url: iconSvgUrl,
-                scaledSize: new google.maps.Size(48, 54),
-                anchor: new google.maps.Point(24, 54),
-              });
-            }
-          }
-        } else {
-          let markerCreated = false;
-          if (AdvancedMarker) {
-            try {
-              const marker = new AdvancedMarker({
-                position: { lat, lng },
-                map,
-                title: loc.name,
-                content: createCustomMarkerDOM(loc, isSelected, handleSelect),
-                zIndex: isSelected ? 1000 : 1,
-              });
-
-              currentMarkers.set(loc.id, marker);
-              markerCreated = true;
-            } catch {
-              // Fallback to legacy marker if AdvancedMarker fails
-            }
-          }
-
-          if (!markerCreated && typeof google?.maps?.Marker === "function") {
-            const marker = new google.maps.Marker({
-              position: { lat, lng },
-              map,
-              title: loc.name,
-              icon: {
-                url: iconSvgUrl,
-                scaledSize: new google.maps.Size(48, 54),
-                anchor: new google.maps.Point(24, 54),
-              },
-            });
-
-            marker.addListener("click", handleSelect);
-            currentMarkers.set(loc.id, marker);
-          }
+        if (!isNaN(lat) && !isNaN(lng)) {
+          bounds.extend({ lat, lng });
+          count++;
         }
       });
+      if (count > 0) {
+        map.fitBounds(bounds, 50);
+      }
     }
-
-    syncMarkers().catch((err) =>
-      console.error("Gagal sinkronisasi marker:", err),
-    );
-
-    return () => {
-      isMounted = false;
-    };
   }, [
     isLoaded,
     mapInstance,
@@ -466,16 +297,18 @@ export function GoogleMapCanvas({
     onSelectLocation,
   ]);
 
-  // 5. Pan to selectedLocation change
+  // 5. Pan to selectedLocation change and show InfoWindow
   useEffect(() => {
     if (!isLoaded || !mapInstance || !selectedLocation) return;
 
+    const lat = Number(selectedLocation.latitude);
+    const lng = Number(selectedLocation.longitude);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    mapInstance.panTo({ lat, lng });
+
     const marker = markersRef.current.get(selectedLocation.id);
     if (marker && infoWindowRef.current) {
-      mapInstance.panTo({
-        lat: selectedLocation.latitude,
-        lng: selectedLocation.longitude,
-      });
       infoWindowRef.current.setContent(
         createInfoWindowContent(selectedLocation),
       );
