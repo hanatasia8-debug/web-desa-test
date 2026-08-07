@@ -1,147 +1,253 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Dashboard Admin — Desa Pringgodani",
-  description: "Ringkasan dashboard admin Desa Pringgodani.",
-};
-
-const sections = [
-  {
-    title: "Banner",
-    description: "Kelola banner halaman depan.",
-    href: "/admin/banner",
-  },
-  {
-    title: "Berita",
-    description: "Kelola publikasi berita desa.",
-    href: "/admin/berita",
-  },
-  {
-    title: "Pengajuan",
-    description: "Tinjau pengajuan konten dan UMKM.",
-    href: "/admin/pengajuan",
-  },
-  {
-    title: "Peta",
-    description: "Kelola daftar peta dan koordinat.",
-    href: "/admin/peta",
-  },
-  {
-    title: "Potensi",
-    description: "Kelola informasi potensi desa.",
-    href: "/admin/potensi",
-  },
-  {
-    title: "UMKM",
-    description: "Kelola data UMKM Desa Pringgodani.",
-    href: "/admin/umkm",
-  },
-  {
-    title: "Profil",
-    description: "Kelola profil desa dan informasi utama.",
-    href: "/admin/profil",
-  },
-  {
-    title: "Settings",
-    description: "Konfigurasi pengaturan aplikasi.",
-    href: "/admin/settings",
-  },
-  {
-    title: "Pengguna",
-    description: "Kelola akun admin dan hak akses.",
-    href: "/admin/users",
-  },
-];
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Icon } from "@/shared/ui/icon";
+import { AdminSubmissionsService } from "@/entities/admin/api/admin-submissions.service";
+import { AdminNewsService } from "@/entities/admin/api/admin-news.service";
+import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
+import { AdminMapsService } from "@/entities/admin/api/admin-maps.service";
 
 export default function AdminDashboardPage() {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [newsCount, setNewsCount] = useState(0);
+  const [umkmCount, setUmkmCount] = useState(0);
+  const [mapsCount, setMapsCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      AdminSubmissionsService.getPendingSubmissions(),
+      AdminNewsService.getAllNews(),
+      AdminUmkmService.getAllUmkm(),
+      AdminMapsService.getLocations(),
+    ])
+      .then(([subData, newsData, umkmData, mapsData]) => {
+        setPendingCount(subData.totalPending);
+        setNewsCount(newsData.total);
+        setUmkmCount(umkmData.total);
+        setMapsCount(mapsData.length);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
   return (
-    <div className="space-y-10">
-      <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-8 shadow-2xl shadow-slate-950/40">
-        <div className="space-y-3">
-          <p className="text-sm tracking-[0.24em] text-slate-400 uppercase">
-            Dashboard Admin
-          </p>
-          <h2 className="text-3xl font-semibold text-white">Ringkasan Panel</h2>
-          <p className="max-w-2xl text-slate-300">
-            Halaman dashboard admin dasar telah dibangun. Selanjutnya, tambahkan
-            modul manajemen konten untuk setiap area (Berita, UMKM, Potensi, dan
-            lain-lain).
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6">
-            <p className="text-sm font-medium tracking-[0.24em] text-slate-400 uppercase">
-              Status Admin
-            </p>
-            <p className="mt-4 text-2xl font-semibold text-white">Login Demo</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              Autentikasi penuh belum diintegrasikan; klik salah satu area untuk
-              menyiapkan halaman admin.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6">
-            <p className="text-sm font-medium tracking-[0.24em] text-slate-400 uppercase">
-              Konten Publik
-            </p>
-            <p className="mt-4 text-2xl font-semibold text-white">
-              Tahap 4 selesai
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              Home, Berita, UMKM, Profil, Potensi, dan Submit Flow sudah
-              tersedia.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-slate-950/90 p-6">
-            <p className="text-sm font-medium tracking-[0.24em] text-slate-400 uppercase">
-              Langkah selanjutnya
-            </p>
-            <p className="mt-4 text-2xl font-semibold text-white">Tahap 5</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              Lengkapi otentikasi admin, lalu bangun modul CRUD untuk setiap
-              sub-halaman.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="mb-6 flex items-center justify-between gap-4 rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+    <div className="space-y-8">
+      {/* Banner Ringkasan */}
+      <div className="bg-primary text-on-primary relative overflow-hidden rounded-[2.5rem] p-8 shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.15),transparent_40%)]" />
+        <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <p className="text-sm tracking-[0.24em] text-slate-400 uppercase">
-              Area admin
+            <span className="text-on-primary inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold tracking-wider uppercase">
+              <Icon name="verified" className="text-sm" /> Panel Resmi
+              Pemerintah Desa
+            </span>
+            <h2 className="font-headline-lg mt-4 text-3xl font-bold">
+              Selamat Datang, Admin Desa Pringgodani!
+            </h2>
+            <p className="text-on-primary/80 mt-2 max-w-2xl text-sm leading-relaxed">
+              Kelola seluruh informasi desa, tinjau pengajuan berita dan UMKM
+              warga, persiapkan peta titik lokasi, serta perbarui pengaturan
+              website secara langsung dan mudah.
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
-              Modul yang bisa dibuat
-            </h3>
           </div>
-          <p className="text-sm text-slate-300">
-            Folder sudah ada; halaman CRUD tinggal ditambahkan.
+
+          <Link
+            href="/admin/pengajuan"
+            className="bg-secondary-container text-on-secondary-container hover:bg-secondary-container/90 inline-flex items-center gap-2 self-start rounded-2xl px-6 py-4 text-sm font-bold whitespace-nowrap shadow-md transition md:self-auto"
+          >
+            <Icon name="assignment_turned_in" className="text-xl" />
+            Tinjau Pengajuan Warga
+            {pendingCount > 0 && (
+              <span className="bg-error text-on-error rounded-full px-2.5 py-0.5 text-xs font-extrabold">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+        </div>
+      </div>
+
+      {/* Grid Metrik Utama */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-on-surface-variant font-label-sm text-xs font-bold tracking-wider uppercase">
+              Pengajuan PENDING
+            </span>
+            <div className="bg-warning-container text-on-warning-container flex h-12 w-12 items-center justify-center rounded-2xl">
+              <Icon name="pending_actions" className="text-2xl" />
+            </div>
+          </div>
+          <div className="font-display-hero text-on-surface mt-4 text-4xl font-extrabold">
+            {isLoading ? "..." : pendingCount}
+          </div>
+          <p className="text-on-surface-variant mt-2 text-xs">
+            Pengajuan berita & UMKM menunggu persetujuan
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {sections.map((section) => (
-            <a
-              key={section.title}
-              href={section.href}
-              className="group rounded-3xl border border-white/10 bg-slate-950/90 p-6 transition hover:-translate-y-1 hover:bg-slate-900/90"
-            >
-              <h4 className="text-lg font-semibold text-white">
-                {section.title}
-              </h4>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                {section.description}
-              </p>
-              <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 transition group-hover:text-emerald-300">
-                Buka modul →
-              </span>
-            </a>
-          ))}
+        <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-on-surface-variant font-label-sm text-xs font-bold tracking-wider uppercase">
+              Berita Desa
+            </span>
+            <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-2xl">
+              <Icon name="newspaper" className="text-2xl" />
+            </div>
+          </div>
+          <div className="font-display-hero text-on-surface mt-4 text-4xl font-extrabold">
+            {isLoading ? "..." : newsCount}
+          </div>
+          <p className="text-on-surface-variant mt-2 text-xs">
+            Artikel & kabar kegiatan terdaftar
+          </p>
         </div>
-      </section>
+
+        <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-on-surface-variant font-label-sm text-xs font-bold tracking-wider uppercase">
+              UMKM Desa
+            </span>
+            <div className="bg-secondary/10 text-secondary flex h-12 w-12 items-center justify-center rounded-2xl">
+              <Icon name="storefront" className="text-2xl" />
+            </div>
+          </div>
+          <div className="font-display-hero text-on-surface mt-4 text-4xl font-extrabold">
+            {isLoading ? "..." : umkmCount}
+          </div>
+          <p className="text-on-surface-variant mt-2 text-xs">
+            Usaha warga yang telah terverifikasi
+          </p>
+        </div>
+
+        <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-on-surface-variant font-label-sm text-xs font-bold tracking-wider uppercase">
+              Titik Peta Geospasial
+            </span>
+            <div className="bg-tertiary/10 text-tertiary flex h-12 w-12 items-center justify-center rounded-2xl">
+              <Icon name="map" className="text-2xl" />
+            </div>
+          </div>
+          <div className="font-display-hero text-on-surface mt-4 text-4xl font-extrabold">
+            {isLoading ? "..." : mapsCount}
+          </div>
+          <p className="text-on-surface-variant mt-2 text-xs">
+            Fasilitas umum & landmark di peta desa
+          </p>
+        </div>
+      </div>
+
+      {/* Akses Cepat Modul Admin */}
+      <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-8 shadow-sm">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h3 className="font-headline-md text-primary text-xl font-bold">
+              Modul Manajemen Desa
+            </h3>
+            <p className="text-on-surface-variant mt-1 text-sm">
+              Pilih area kerja yang ingin Anda kelola.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/admin/pengajuan"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="assignment_turned_in" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Antrean Persetujuan Warga
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Tinjau pengajuan berita dan pendaftaran UMKM dari masyarakat desa
+              secara langsung.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Buka Antrean →
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/berita"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="edit_note" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Kelola & Tulis Berita
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Buat berita baru dengan editor Live Split-View dan kelola
+              publikasi berita desa.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Kelola Berita →
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/umkm"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-secondary/10 text-secondary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="storefront" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Kelola Data UMKM
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Daftarkan produk unggulan desa, sunting profil UMKM, dan atur
+              katalog usaha.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Kelola UMKM →
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/peta"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-tertiary/10 text-tertiary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="pin_drop" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Peta Geospasial & Fasilitas
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Atur koordinat lokasi fasilitas umum, kantor balai desa, dan
+              landmark pada peta interaktif.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Kelola Peta →
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/settings"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="tune" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Pengaturan Utama Website
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Perbarui nama situs, alamat balai desa, email kontak, dan tautan
+              sosial media resmi.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Atur Pengaturan →
+            </span>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

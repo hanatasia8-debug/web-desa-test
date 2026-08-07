@@ -38,18 +38,22 @@ export interface GetRelatedNewsParams {
 /**
  * BeritaService — dual-mode data source.
  * When NEXT_PUBLIC_API_URL is set → fetches from backend API.
- * When empty → returns static mock data with client-side filtering.
+ * When empty or error → returns static mock data with client-side filtering.
  */
 export const BeritaService = {
   async getLatestPublished({
     limit = 3,
   }: GetLatestNewsParams = {}): Promise<NewsListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
-        "/berita",
-        { params: { limit, sort: "publishedAt_desc" } },
-      );
-      return data.data;
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
+          "/public/news",
+          { params: { limit, sort: "publishedAt_desc" } },
+        );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat berita terbaru dari API:", err);
+      }
     }
     return { items: MOCK_NEWS.slice(0, limit), total: MOCK_NEWS.length };
   },
@@ -62,19 +66,23 @@ export const BeritaService = {
     exclude,
   }: GetPaginatedNewsParams = {}): Promise<NewsListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
-        "/berita",
-        {
-          params: {
-            page,
-            limit,
-            ...(category ? { category } : {}),
-            ...(search ? { search } : {}),
-            ...(exclude ? { exclude } : {}),
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<NewsListResponse>>(
+          "/public/news",
+          {
+            params: {
+              page,
+              limit,
+              ...(category ? { category } : {}),
+              ...(search ? { search } : {}),
+              ...(exclude ? { exclude } : {}),
+            },
           },
-        },
-      );
-      return data.data;
+        );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat daftar berita dari API:", err);
+      }
     }
 
     // Client-side filtering for mock data
@@ -85,11 +93,6 @@ export const BeritaService = {
     }
 
     if (category) {
-      // `category` may arrive as an id, a slug or a name: the chip filter sends
-      // the slug, while `getRelated` sends `NewsDetailDto.categoryId`. Resolve
-      // it against the category list first — matching only on slug/name meant
-      // related-news lookups silently returned nothing, so the "Berita Terkait"
-      // section never rendered in mock mode.
       const categoryRow = MOCK_NEWS_CATEGORIES.find(
         (c) => c.id === category || c.slug === category || c.name === category,
       );
@@ -118,13 +121,13 @@ export const BeritaService = {
     if (IS_API_CONNECTED) {
       try {
         const { data } = await apiClient.get<ApiSuccessBody<NewsDetailDto>>(
-          `/berita/${encodeURIComponent(slug)}`,
+          `/public/news/${encodeURIComponent(slug)}`,
         );
-        return data.data;
+        if (data?.data) return data.data;
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404)
           return null;
-        throw err;
+        console.error(`Gagal memuat detail berita '${slug}' dari API:`, err);
       }
     }
     return getMockNewsDetail(slug);
@@ -144,11 +147,14 @@ export const BeritaService = {
 
   async getCategories(): Promise<NewsCategoryListResponse> {
     if (IS_API_CONNECTED) {
-      const { data } =
-        await apiClient.get<ApiSuccessBody<NewsCategoryListResponse>>(
-          "/berita/categories",
-        );
-      return data.data;
+      try {
+        const { data } = await apiClient.get<
+          ApiSuccessBody<NewsCategoryListResponse>
+        >("/public/news/categories");
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error("Gagal memuat kategori berita dari API:", err);
+      }
     }
     return { items: MOCK_NEWS_CATEGORIES };
   },
@@ -159,7 +165,7 @@ export const BeritaService = {
     if (IS_API_CONNECTED) {
       const { data } = await apiClient.post<
         ApiSuccessBody<{ id: string; slug: string; title: string }>
-      >("/berita/register", payload);
+      >("/public/news/register", payload);
       return data.data;
     }
 

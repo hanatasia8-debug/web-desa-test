@@ -3,18 +3,24 @@ import axios from "axios";
 /**
  * Base HTTP client for calling the backend API.
  *
- * When `NEXT_PUBLIC_API_URL` is set, requests go to the external backend.
- * When empty, services fall back to mock data (see each service file).
- *
- * Usage: check `API_URL` in each service — if truthy, use `apiClient`;
- * otherwise return static mock data directly.
+ * - Client-side (Browser): NEXT_PUBLIC_API_URL -> http://localhost:3000/api
+ * - Server-side (SSR in Docker): INTERNAL_API_URL -> http://backend:3000/api
  */
+const defaultApiUrl = "http://localhost:3000/api";
+
+const isServer = typeof window === "undefined";
+const baseURL = isServer
+  ? process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    defaultApiUrl
+  : process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
+
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/** True when a backend API URL is configured. */
-export const IS_API_CONNECTED = !!process.env.NEXT_PUBLIC_API_URL;
+/** Zero Trust Architecture: Frontend strictly connects to backend REST API. */
+export const IS_API_CONNECTED = true;
