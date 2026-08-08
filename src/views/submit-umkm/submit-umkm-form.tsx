@@ -6,6 +6,7 @@ import { Icon } from "@/shared/ui/icon";
 import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 import type { RegisterUmkmDTO } from "@/entities/umkm/model/register-umkm.schema";
 import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
+import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
 
 interface SubmitUmkmFormProps {
   formData: Partial<RegisterUmkmDTO>;
@@ -443,34 +444,11 @@ export function SubmitUmkmForm({
               )}
             </div>
 
-            {/* Google Maps Pinpoint Preview / Coordinates Picker */}
+            {/* Google Maps Pinpoint Preview / Coordinates Tracker */}
             <div className="space-y-2">
               <label className="font-label-sm text-on-surface-variant">
-                Titik Koordinat Lokasi Peta{" "}
-                <span className="text-error">*</span>
+                Lokasi Usaha di Peta (Pratinjau Pin)
               </label>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input
-                  id="field-latitude"
-                  type="number"
-                  step="any"
-                  value={formData.latitude || -8.2811}
-                  onChange={(e) => onChange("latitude", Number(e.target.value))}
-                  placeholder="Latitude (-8.2811)"
-                  className="text-on-surface rounded-lg border-none bg-[#F1F5F9] p-3 text-sm"
-                />
-                <input
-                  id="field-longitude"
-                  type="number"
-                  step="any"
-                  value={formData.longitude || 112.5664}
-                  onChange={(e) =>
-                    onChange("longitude", Number(e.target.value))
-                  }
-                  placeholder="Longitude (112.5664)"
-                  className="text-on-surface rounded-lg border-none bg-[#F1F5F9] p-3 text-sm"
-                />
-              </div>
 
               {/* Interactive Map Preview Canvas */}
               <div className="border-outline-variant/30 relative mt-2 h-48 overflow-hidden rounded-lg border shadow-inner">
@@ -500,7 +478,6 @@ export function SubmitUmkmForm({
               </div>
             </div>
 
-            {/* Link Google Maps / Share Link */}
             <div className="space-y-1.5">
               <label className="font-label-sm text-on-surface-variant">
                 Link Google Maps (Share Link / Place ID)
@@ -508,13 +485,20 @@ export function SubmitUmkmForm({
               <input
                 type="url"
                 value={formData.googlePlaceId || ""}
-                onChange={(e) => onChange("googlePlaceId", e.target.value)}
+                onChange={(e) => {
+                  const url = e.target.value;
+                  onChange("googlePlaceId", url);
+                  const { lat, lng } = extractCoordinatesFromUrl(url);
+                  onChange("latitude", lat);
+                  onChange("longitude", lng);
+                }}
                 placeholder="https://maps.app.goo.gl/..."
                 className="text-body-base text-on-surface focus:ring-primary/20 w-full rounded-lg border-none bg-[#F1F5F9] p-3 focus:ring-2"
               />
               <p className="text-on-surface-variant/70 text-[11px] italic">
                 Tempelkan link lokasi Google Maps agar pembeli dapat langsung
-                menavigasi dengan sangat presisi.
+                menavigasi dengan sangat presisi. Koordinat peta akan terisi
+                otomatis.
               </p>
             </div>
           </div>

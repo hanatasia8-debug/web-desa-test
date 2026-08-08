@@ -7,24 +7,7 @@ import type {
   AdminMapLocation,
   AdminMapCategory,
 } from "@/entities/admin/model/admin.types";
-
-function extractCoordinatesFromUrl(url: string): { lat: number; lng: number } {
-  if (!url) return { lat: -7.981, lng: 112.631 };
-
-  const match = url.match(
-    /@(-?\d+\.\d+),(-?\d+\.\d+)|q=(-?\d+\.\d+),(-?\d+\.\d+)|ll=(-?\d+\.\d+),(-?\d+\.\d+)|(-?\d+\.\d+),\s*(-?\d+\.\d+)/,
-  );
-
-  if (match) {
-    const latStr = match[1] || match[3] || match[5] || match[7];
-    const lngStr = match[2] || match[4] || match[6] || match[8];
-    if (latStr && lngStr) {
-      return { lat: parseFloat(latStr), lng: parseFloat(lngStr) };
-    }
-  }
-
-  return { lat: -7.981, lng: 112.631 };
-}
+import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
 
 export function AdminPetaPage() {
   const [locations, setLocations] = useState<AdminMapLocation[]>([]);

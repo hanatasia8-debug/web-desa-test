@@ -17,7 +17,7 @@ export const registerNewsSchema = z
       (val) => (val ? String(val) : null),
       z.string().nullable().optional(),
     ),
-    excerpt: z.string().min(1, "Ringkasan berita (lead) wajib diisi"),
+    excerpt: z.string().optional().nullable(),
     coverUrl: z.string().min(1, "Foto cover utama wajib diunggah"),
     coverCaption: z.string().nullable().optional(),
     blocks: z

@@ -28,7 +28,7 @@ let localProfil: AdminProfilPayload = {
   headPosition: MOCK_PROFILE.headPosition || "Kepala Desa Pringgodani",
   headPhoto:
     MOCK_PROFILE.headPhoto ||
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
+    "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0607.jpg",
   headGreeting:
     MOCK_PROFILE.headGreeting ||
     "Selamat datang di website resmi Desa Pringgodani.",
@@ -43,14 +43,14 @@ let localProfil: AdminProfilPayload = {
     "Mendorong UMKM desa",
   ],
   structureImageUrl:
-    "https://images.unsplash.com/photo-1542744801-43245f175232?auto=format&fit=crop&w=1200&q=80",
+    "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/j.png",
   officials: (MOCK_PROFILE.officials || []).map((o, i) => ({
     id: `official-${i + 1}`,
     name: o.name,
     position: o.position,
     photoUrl:
       o.photo ||
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80",
+      "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0607.jpg",
     email: "perangkat@pringgodani.desa.id",
   })),
 };

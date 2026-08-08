@@ -7,11 +7,32 @@ import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { AdminNewsService } from "@/entities/admin/api/admin-news.service";
 import type { NewsStatus } from "@/entities/admin/model/admin.types";
+import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 
 interface ContentBlockInput {
   subHeading: string;
   content: string;
   imageUrl: string;
+}
+
+interface AdminNewsDetail {
+  title?: string;
+  categoryName?: string;
+  excerpt?: string;
+  summary?: string;
+  coverUrl?: string;
+  coverImage?: string;
+  status?: NewsStatus;
+  contentSections?: Array<{
+    sectionTitle?: string | null;
+    paragraph?: string;
+    sectionImage?: string | null;
+  }>;
+  contentBlocks?: Array<{
+    subHeading?: string;
+    content: string;
+    imageUrl?: string;
+  }>;
 }
 
 export function AdminBeritaEditor({
@@ -22,48 +43,46 @@ export function AdminBeritaEditor({
   newsId?: string;
 }) {
   const router = useRouter();
-  const [title, setTitle] = useState(
-    "Kerja Bakti Massal Pembersihan Saluran Irigasi Desa",
-  );
+  const [title, setTitle] = useState("");
   const [categoryName, setCategoryName] = useState("Kegiatan Desa");
-  const [excerpt, setExcerpt] = useState(
-    "Ratusan warga Desa Pringgodani kompak melaksanakan kerja bakti pembersihan alur irigasi sawah menjelang musim tanam.",
-  );
-  const [coverUrl, setCoverUrl] = useState(
-    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
-  );
+  const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<NewsStatus>("PUBLISHED");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [blocks, setBlocks] = useState<ContentBlockInput[]>([
+    { subHeading: "", content: "", imageUrl: "" },
+  ]);
 
   useEffect(() => {
     if (newsId) {
       AdminNewsService.getNewsById(newsId).then((data) => {
         if (data) {
-          setTitle(data.title);
-          setCategoryName(data.categoryName || "Kegiatan Desa");
-          setExcerpt(data.excerpt || "");
-          setCoverUrl(data.coverUrl || "");
-          setStatus(data.status || "PUBLISHED");
+          const detail = data as unknown as AdminNewsDetail;
+          setTitle(detail.title || "");
+          setCategoryName(detail.categoryName || "Kegiatan Desa");
+          setCoverUrl(detail.coverUrl || detail.coverImage || "");
+          setStatus(detail.status || "PUBLISHED");
+
+          if (detail.contentSections && detail.contentSections.length > 0) {
+            setBlocks(
+              detail.contentSections.map((sec) => ({
+                subHeading: sec.sectionTitle || "",
+                content: sec.paragraph || "",
+                imageUrl: sec.sectionImage || "",
+              })),
+            );
+          } else if (detail.contentBlocks && detail.contentBlocks.length > 0) {
+            setBlocks(
+              detail.contentBlocks.map((b) => ({
+                subHeading: b.subHeading || "",
+                content: b.content || "",
+                imageUrl: b.imageUrl || "",
+              })),
+            );
+          }
         }
       });
     }
   }, [newsId]);
-
-  const [blocks, setBlocks] = useState<ContentBlockInput[]>([
-    {
-      subHeading: "Semangat Gotong Royong Warga Desa",
-      content:
-        "Pada Minggu pagi, ratusan warga antusias membawa cangkul dan pembersih rumput untuk merapikan alur irigasi utama desa. Kegiatan ini dipimpin langsung oleh Kepala Desa.",
-      imageUrl:
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      subHeading: "Dampak Positif Bagi Pertanian Jeruk",
-      content:
-        "Dengan irigasi yang lancar, pasokan air menuju kebun jeruk warga terjamin pasokannya sehingga panen mendatang diperkirakan melimpah.",
-      imageUrl: "",
-    },
-  ]);
 
   const addBlock = () => {
     setBlocks([...blocks, { subHeading: "", content: "", imageUrl: "" }]);
@@ -87,11 +106,20 @@ export function AdminBeritaEditor({
     e.preventDefault();
     setIsSubmitting(true);
 
+    const autoExcerpt = generateAutoExcerpt({
+      newsTypeId: "STANDARD",
+      title,
+      blocks: blocks.map((b) => ({
+        content: b.content,
+        subHeading: b.subHeading,
+      })),
+    });
+
     try {
       await AdminNewsService.createNews({
         title,
         categoryName,
-        excerpt,
+        excerpt: autoExcerpt,
         coverUrl,
         status,
       });
@@ -226,19 +254,6 @@ export function AdminBeritaEditor({
             />
           </div>
 
-          <div>
-            <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              Ringkasan Singkat (Excerpt)
-            </label>
-            <textarea
-              rows={3}
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none"
-              placeholder="Ringkasan 1-2 kalimat..."
-            />
-          </div>
-
           {/* Dinamis Paragraf Blocks */}
           <div className="space-y-4 border-t pt-6">
             <div className="flex items-center justify-between">
@@ -347,7 +362,16 @@ export function AdminBeritaEditor({
               </div>
 
               <div className="text-on-surface-variant border-t border-b py-4 text-sm leading-relaxed italic">
-                &quot;{excerpt || "Ringkasan artikel belum diisi..."}&quot;
+                &quot;
+                {generateAutoExcerpt({
+                  newsTypeId: "STANDARD",
+                  title,
+                  blocks: blocks.map((b) => ({
+                    content: b.content,
+                    subHeading: b.subHeading,
+                  })),
+                })}
+                &quot;
               </div>
 
               <div className="space-y-6">

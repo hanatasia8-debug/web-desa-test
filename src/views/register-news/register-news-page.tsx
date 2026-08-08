@@ -16,6 +16,7 @@ import {
 import { useRegisterNewsDraft } from "@/features/register-news/model/use-register-news-draft";
 import { SubmitBeritaForm } from "@/views/submit-berita/submit-berita-form";
 import { SubmitBeritaPreview } from "@/views/submit-berita-preview/submit-berita-preview";
+import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 
 interface RegisterNewsPageProps {
   categories: NewsCategoryDto[];
@@ -163,7 +164,11 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
 
     setIsSubmitting(true);
     try {
-      await BeritaService.submit(formData);
+      const finalPayload = {
+        ...formData,
+        excerpt: generateAutoExcerpt(formData),
+      };
+      await BeritaService.submit(finalPayload);
       clearDraft();
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -196,7 +201,7 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
     categoryId: formData.newsCategoryId || "cat-1",
     categoryName: previewCategoryName,
     categorySlug: previewCategorySlug,
-    summary: formData.excerpt || "Ringkasan berita akan tampil di sini.",
+    summary: generateAutoExcerpt(formData),
     publishedAt: new Date().toISOString(),
     coverImage:
       formData.coverUrl ||

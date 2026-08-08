@@ -16,34 +16,17 @@ interface ProductInput {
 
 export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
   const router = useRouter();
-  const [name, setName] = useState("Kopi Pringgodani Asri");
-  const [ownerName, setOwnerName] = useState("Ibu Nurhayati");
+  const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [categoryName, setCategoryName] = useState("Kuliner");
-  const [phone, setPhone] = useState("081234567891");
-  const [address, setAddress] = useState(
-    "Dusun Krajan RT 02 / RW 01, Desa Pringgodani",
-  );
-  const [description, setDescription] = useState(
-    "Produsen bubuk kopi biji roaster pilihan dengan aroma khas perbukitan Pringgodani.",
-  );
-  const [coverUrl, setCoverUrl] = useState(
-    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
-  );
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<UmkmStatus>("APPROVED");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [products, setProducts] = useState<ProductInput[]>([
-    {
-      name: "Kopi Robusta Pringgodani 250g",
-      price: 35000,
-      description: "Biji kopi dipanggang medium roast",
-    },
-    {
-      name: "Sirup Jeruk Manis Alami 500ml",
-      price: 25000,
-      description: "Konsentrat sirup jeruk segar",
-    },
-  ]);
+  const [products, setProducts] = useState<ProductInput[]>([]);
 
   const addProduct = () => {
     setProducts([...products, { name: "", price: 0, description: "" }]);

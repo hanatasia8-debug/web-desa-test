@@ -146,23 +146,23 @@ export function ProfilPage({
 
               <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
+                  value={4850}
+                  label="Total Penduduk (Jiwa)"
+                  icon="groups"
+                />
+                <StatCard
+                  value={1420}
+                  label="Kepala Keluarga (KK)"
+                  icon="family_restroom"
+                />
+                <StatCard
                   value={stats.umkmCount}
                   label="UMKM Terdaftar"
                   icon="storefront"
                 />
                 <StatCard
-                  value={stats.productCount}
-                  label="Produk Unggulan"
-                  icon="inventory_2"
-                />
-                <StatCard
-                  value={stats.newsCount}
-                  label="Berita Desa"
-                  icon="newspaper"
-                />
-                <StatCard
                   value={stats.dusunCount}
-                  label="Dusun"
+                  label="Wilayah Dusun"
                   icon="location_city"
                 />
               </div>
@@ -200,37 +200,65 @@ export function ProfilPage({
               </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="border-outline-variant/20 bg-surface-container-lowest rounded-[2rem] border p-8 shadow-sm">
-                <p className="font-label-sm text-on-surface-variant tracking-[0.18em] uppercase">
-                  Visi Desa
-                </p>
-                <h2 className="font-headline-md text-headline-md text-primary mt-4">
-                  Mewujudkan Desa Mandiri dan Sejahtera
+            {/* ── Visi & Misi — Premium Section ── */}
+            <div className="bg-primary/[0.03] -mx-10 rounded-[2.5rem] px-10 py-12">
+              {/* Section Header */}
+              <div className="mb-10 text-center">
+                <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold">
+                  <Icon name="flag" className="text-base" /> Arah & Tujuan Desa
+                </span>
+                <h2 className="font-headline-lg text-headline-lg text-primary mt-5">
+                  Visi & Misi Desa
                 </h2>
-                <p className="font-body-base text-body-base text-on-surface-variant mt-4 leading-relaxed">
-                  {profile?.vision ??
-                    "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera."}
+                <p className="text-on-surface-variant font-body-base mx-auto mt-3 max-w-xl">
+                  Landasan dan arah pembangunan Desa Pringgodani menuju
+                  kesejahteraan bersama.
                 </p>
               </div>
 
-              <div className="border-outline-variant/20 bg-surface-container-lowest rounded-[2rem] border p-8 shadow-sm">
-                <p className="font-label-sm text-on-surface-variant tracking-[0.18em] uppercase">
+              {/* Visi — Hero Quote */}
+              <div className="border-primary/30 bg-surface-container-lowest relative overflow-hidden rounded-[2rem] border-l-4 p-8 shadow-md lg:p-10">
+                <div className="text-primary/10 pointer-events-none absolute -top-4 -right-4">
+                  <Icon name="target" className="text-[120px]" />
+                </div>
+                <p className="font-label-sm text-primary tracking-[0.18em] uppercase">
+                  Visi Desa
+                </p>
+                <blockquote className="font-headline-md text-headline-md text-on-surface relative mt-4 leading-snug lg:max-w-[85%]">
+                  <span className="text-primary/30 absolute -top-3 -left-2 text-5xl font-bold">
+                    &ldquo;
+                  </span>
+                  {profile?.vision ??
+                    "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera."}
+                </blockquote>
+              </div>
+
+              {/* Misi — Numbered Cards */}
+              <div className="mt-8">
+                <p className="font-label-sm text-primary mb-6 tracking-[0.18em] uppercase">
                   Misi Desa
                 </p>
-                <div className="text-body-base text-on-surface-variant mt-6 space-y-4">
-                  {missions.length === 0 ? (
-                    <p className="text-on-surface-variant/70 text-sm italic">
-                      Misi desa belum tersedia.
-                    </p>
-                  ) : (
-                    missions.map((mission) => (
-                      <div key={mission} className="bg-surface rounded-3xl p-5">
-                        <p>{mission}</p>
+                {missions.length === 0 ? (
+                  <p className="text-on-surface-variant/70 text-sm italic">
+                    Misi desa belum tersedia.
+                  </p>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {missions.map((mission, index) => (
+                      <div
+                        key={mission}
+                        className="border-outline-variant/20 bg-surface-container-lowest group flex items-start gap-4 rounded-2xl border p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <span className="bg-primary text-on-primary flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold shadow-sm">
+                          {index + 1}
+                        </span>
+                        <p className="font-body-base text-on-surface leading-relaxed">
+                          {mission}
+                        </p>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -260,15 +288,36 @@ export function ProfilPage({
 
             <div className="border-outline-variant/20 bg-surface-container-lowest rounded-[2rem] border p-8 shadow-sm">
               <p className="font-label-sm text-on-surface-variant tracking-[0.18em] uppercase">
-                Statistik Desa
+                Statistik & Demografi
               </p>
               <ul className="text-body-base text-on-surface-variant mt-6 space-y-4">
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="groups" className="text-primary" />
+                    Total Penduduk
+                  </span>
+                  <span className="font-bold">4.850 Jiwa</span>
+                </li>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="family_restroom" className="text-primary" />
+                    Kepala Keluarga (KK)
+                  </span>
+                  <span className="font-bold">1.420 KK</span>
+                </li>
                 <li className="flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
                     <Icon name="storefront" className="text-primary" />
                     UMKM Terdaftar
                   </span>
                   <span className="font-bold">{stats.umkmCount}</span>
+                </li>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <Icon name="inventory_2" className="text-primary" />
+                    Katalog Produk
+                  </span>
+                  <span className="font-bold">{stats.productCount}</span>
                 </li>
                 <li className="flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
@@ -280,9 +329,9 @@ export function ProfilPage({
                 <li className="flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
                     <Icon name="location_city" className="text-primary" />
-                    Dusun
+                    Wilayah Dusun
                   </span>
-                  <span className="font-bold">{stats.dusunCount}</span>
+                  <span className="font-bold">{stats.dusunCount} Dusun</span>
                 </li>
               </ul>
             </div>

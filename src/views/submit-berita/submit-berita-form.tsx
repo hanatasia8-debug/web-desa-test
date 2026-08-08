@@ -290,30 +290,6 @@ export function SubmitBeritaForm({
             </div>
           )}
 
-          {/* RINGKASAN (LEAD) */}
-          <div className="space-y-1.5">
-            <label className="font-label-sm text-label-sm text-on-surface block">
-              Ringkasan Berita (Lead) <span className="text-error">*</span>
-            </label>
-            <textarea
-              id="field-excerpt"
-              rows={3}
-              value={formData.excerpt || ""}
-              onChange={(e) => onChange("excerpt", e.target.value)}
-              placeholder="Tuliskan rangkuman singkat berita (1-2 kalimat) yang akan tampil di halaman depan..."
-              className={`text-body-base text-on-surface w-full rounded-lg bg-[#F1F5F9] p-3 transition-all ${
-                errors.excerpt
-                  ? "border-error ring-error/20 border-2 bg-red-50/30 ring-2"
-                  : "focus:ring-primary/20 border-none focus:ring-2"
-              }`}
-            />
-            {errors.excerpt && (
-              <p className="text-error mt-1 text-xs font-medium">
-                ⚠️ {errors.excerpt}
-              </p>
-            )}
-          </div>
-
           {/* MEDIA & FOTO UTAMA UPLOAD BOX */}
           <div
             id="field-coverUrl"

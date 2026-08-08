@@ -20,6 +20,5 @@ export function resolveImageUrl(
     return storagePathOrUrl;
   }
 
-  // Fallback high-quality Unsplash image for relative keys
-  return "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80";
+  return storagePathOrUrl;
 }

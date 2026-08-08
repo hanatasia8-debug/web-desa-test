@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { BeritaListPage } from "@/views/berita-list/berita-list-page";
+
+export const metadata: Metadata = {
+  title: "Kabar & Berita",
+  description:
+    "Baca warta terkini, pengumuman resmi, kegiatan warga, dan kabar pembangunan dari Pemerintah Desa Pringgodani.",
+};
 
 export default function Page({
   searchParams,

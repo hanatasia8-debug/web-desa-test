@@ -58,7 +58,7 @@ export const AdminNewsService = {
       publishedAt: new Date().toISOString(),
       coverUrl:
         payload.coverUrl ||
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
+        "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0607.jpg",
     };
 
     localNews.unshift(newItem);

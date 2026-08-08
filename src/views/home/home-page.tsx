@@ -26,12 +26,12 @@ const DEFAULT_STATS: VillageStatsDto = {
  * never touching the database directly from this component.
  */
 export async function HomePage() {
-  const [profileResult, umkmResult, beritaResult, kantorDesaResult] =
+  const [profileResult, umkmResult, beritaResult, mapLocationsResult] =
     await Promise.allSettled([
       DesaService.getProfileWithStats(),
       UmkmService.getLatestPublished({ limit: 3 }),
       BeritaService.getLatestPublished({ limit: 3 }),
-      FasilitasService.getFacilities({ category: "KANTOR_DESA", limit: 1 }),
+      FasilitasService.getFacilities(),
     ]);
 
   const profile =
@@ -44,10 +44,10 @@ export async function HomePage() {
     umkmResult.status === "fulfilled" ? umkmResult.value.items : [];
   const newsItems =
     beritaResult.status === "fulfilled" ? beritaResult.value.items : [];
-  const kantorDesa =
-    kantorDesaResult.status === "fulfilled"
-      ? (kantorDesaResult.value.items[0] ?? null)
-      : null;
+  const locations =
+    mapLocationsResult.status === "fulfilled"
+      ? mapLocationsResult.value.items
+      : [];
 
   return (
     <>
@@ -56,7 +56,7 @@ export async function HomePage() {
       <StatsSection stats={stats} />
       <UmkmSection items={umkmItems} />
       <NewsSection items={newsItems} />
-      <MapPreviewSection kantorDesa={kantorDesa} />
+      <MapPreviewSection locations={locations} />
       <CommunityCtaSection />
     </>
   );
