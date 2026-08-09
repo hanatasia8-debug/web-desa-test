@@ -83,4 +83,38 @@ export const AdminUmkmService = {
     localUmkm = localUmkm.filter((u) => u.id !== id);
     return { success: true };
   },
+
+  async getUmkmById(id: string): Promise<AdminUmkmItem | null> {
+    if (IS_API_CONNECTED) {
+      try {
+        const { data } = await apiClient.get<ApiSuccessBody<AdminUmkmItem>>(
+          `/admin/umkm/${id}`,
+        );
+        if (data?.data) return data.data;
+      } catch (err) {
+        console.error(`Gagal memuat UMKM ${id}:`, err);
+      }
+    }
+    return localUmkm.find((u) => u.id === id) || null;
+  },
+
+  async updateUmkm(
+    id: string,
+    payload: Partial<AdminUmkmItem>,
+  ): Promise<{ success: boolean }> {
+    if (IS_API_CONNECTED) {
+      try {
+        await apiClient.put(`/admin/umkm/${id}`, payload);
+        return { success: true };
+      } catch (err) {
+        console.error(`Gagal memperbarui UMKM ${id}:`, err);
+      }
+    }
+
+    const idx = localUmkm.findIndex((u) => u.id === id);
+    if (idx !== -1) {
+      localUmkm[idx] = { ...localUmkm[idx], ...payload };
+    }
+    return { success: true };
+  },
 };

@@ -207,9 +207,16 @@ export function AdminUmkmList() {
                           Setujui
                         </button>
                       )}
+                      <Link
+                        href={`/admin/umkm/${item.id}/edit`}
+                        className="bg-secondary/10 text-secondary hover:bg-secondary hover:text-on-secondary inline-block rounded-xl px-3 py-1.5 align-middle text-xs font-bold transition"
+                        title="Sunting UMKM"
+                      >
+                        Sunting
+                      </Link>
                       <button
                         onClick={() => handleDelete(item.id, item.name)}
-                        className="bg-error/10 text-error hover:bg-error hover:text-on-error rounded-xl px-3 py-1.5 text-xs font-bold transition"
+                        className="bg-error/10 text-error hover:bg-error hover:text-on-error rounded-xl px-3 py-1.5 align-middle text-xs font-bold transition"
                         title="Hapus UMKM"
                       >
                         Hapus

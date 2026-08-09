@@ -16,7 +16,13 @@ interface ProductInput {
   description: string;
 }
 
-export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
+export function AdminUmkmEditor({
+  isNew = true,
+  umkmId,
+}: {
+  isNew?: boolean;
+  umkmId?: string;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -87,6 +93,45 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
   }, [isNew]);
 
   useEffect(() => {
+    console.log(
+      "DEBUG FRONTEND: AdminUmkmEditor mounted. umkmId =",
+      umkmId,
+      "isNew =",
+      isNew,
+    );
+    if (umkmId && !isNew) {
+      AdminUmkmService.getUmkmById(umkmId)
+        .then((data) => {
+          console.log("DEBUG FRONTEND: getUmkmById response data =", data);
+          if (data) {
+            setTimeout(() => {
+              setName(data.name || "");
+              setOwnerName(data.ownerName || "");
+              setCategoryName(data.categoryName || "Kuliner");
+              setPhone(data.phone || "");
+              setAddress(data.address || "");
+              setDescription(
+                ((data as unknown as Record<string, unknown>)
+                  .description as string) || "",
+              );
+              setCoverUrl(data.coverUrl || "");
+              setStatus(data.status || "APPROVED");
+              if ((data as unknown as Record<string, unknown>).products) {
+                setProducts(
+                  (data as unknown as Record<string, unknown>)
+                    .products as ProductInput[],
+                );
+              }
+            }, 0);
+          }
+        })
+        .catch((err) => {
+          console.error("DEBUG FRONTEND: Failed to getUmkmById API call:", err);
+        });
+    }
+  }, [umkmId, isNew]);
+
+  useEffect(() => {
     if (typeof window !== "undefined" && isNew) {
       try {
         const draft = {
@@ -149,7 +194,7 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
         }
       }
 
-      await AdminUmkmService.createUmkm({
+      const payload = {
         name,
         ownerName,
         categoryName,
@@ -157,7 +202,24 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
         address,
         coverUrl: finalCoverUrl,
         status,
-      });
+        products,
+        description,
+      };
+
+      if (isNew) {
+        await AdminUmkmService.createUmkm(
+          payload as unknown as Parameters<
+            typeof AdminUmkmService.createUmkm
+          >[0],
+        );
+      } else if (umkmId) {
+        await AdminUmkmService.updateUmkm(
+          umkmId,
+          payload as unknown as Parameters<
+            typeof AdminUmkmService.updateUmkm
+          >[1],
+        );
+      }
       clearDraft();
       router.push("/admin/umkm");
     } catch (err) {
