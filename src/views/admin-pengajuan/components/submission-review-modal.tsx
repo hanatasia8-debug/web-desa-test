@@ -332,19 +332,9 @@ export function SubmissionReviewModal({
             </div>
 
             {isNews ? (
-              <SubmitBeritaPreview
-                previewNewsDto={previewNewsDto}
-                isSubmitting={false}
-                onBackToEdit={() => {}}
-                onFinalSubmit={() => {}}
-              />
+              <SubmitBeritaPreview previewNewsDto={previewNewsDto} readOnly />
             ) : (
-              <SubmitUmkmPreview
-                previewDetailDto={previewUmkmDto}
-                isSubmitting={false}
-                onBackToEdit={() => {}}
-                onFinalSubmit={() => {}}
-              />
+              <SubmitUmkmPreview previewDetailDto={previewUmkmDto} readOnly />
             )}
           </div>
         </div>

@@ -1,144 +1,93 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DesaService } from "@/entities/desa/api/desa.service";
+import { FallbackImage } from "@/shared/ui/fallback-image";
+import { Icon } from "@/shared/ui/icon";
 
 export const metadata: Metadata = {
   title: "Sejarah Desa Pringgodani",
-  description: "Halaman lengkap sejarah Desa Pringgodani.",
+  description: "Sejarah lengkap Desa Pringgodani.",
 };
 
+/**
+ * Rebuilt from scratch — the previous version of this page:
+ *  1. Used raw hex color classes (`bg-[#064e3b]`, etc.) instead of the
+ *     design tokens every other page uses (`bg-primary-container`, etc.).
+ *  2. Rendered fabricated historical claims (specific colonial-era dates,
+ *     an invented Dutch-administration narrative, an unattributed "wisdom"
+ *     quote) that have no backing in `VillageProfileDto` — only
+ *     `historyText` exists as real content here.
+ *  3. Had its own hardcoded duplicate `<footer>` with dead `href="#"` links
+ *     and a DIFFERENT address than the real one in `mock-settings.ts` —
+ *     this rendered underneath the real `<Footer />` already injected by
+ *     `app/(public)/layout.tsx`, producing two stacked footers.
+ *  4. Used a raw `<img>` with a hardcoded external googleusercontent.com
+ *     URL instead of `FallbackImage`.
+ *
+ * `historyText` itself was too short (one sentence) to fill a dedicated
+ * article page, so it was expanded in `mock-profil.ts` (the actual data
+ * source) rather than padded with invented content here.
+ */
 export default async function SejarahPage() {
   const { profile } = await DesaService.getProfileWithStats();
-  const historyText = profile?.historyText ?? "Sejarah desa belum tersedia.";
+  const paragraphs = (profile?.historyText ?? "Sejarah desa belum tersedia.")
+    .split(/\n\s*\n/)
+    .filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-[#f8faf6] text-[#191c1b]">
-      <section className="relative overflow-hidden bg-[#064e3b] pt-32 pb-20 text-[#ffffff] md:pt-48 md:pb-28">
-        <div className="absolute inset-0 z-0 opacity-30 mix-blend-overlay grayscale">
-          <div
-            className="h-full w-full bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8x3sb556cv5xseT2YaaZZRaR-x64kWZ-RbL-uKGvPYu_zX0_KFRBMXS-_CGGqgLT7FlfFGmo4MFmAEagOtlIz8aEBqcc552HST4aLdmEluRq5MUcoNKz-p8Ro-EhV3JkiTSPsR_MPjlIstGKwLIWFWM_tubRopQEnMKpxoJEgdSFu6ByEkKV3sq6lZKzWSVA4F-71MgbwICGLZS4W9SGWaBREoDg-fOaLYPRQjQxKZKMZjUJYROM')",
-            }}
-          />
-        </div>
-        <div className="relative z-10 mx-auto max-w-7xl px-6 text-center sm:px-8 lg:px-10">
-          <span className="mb-6 inline-block rounded-full bg-[#80bea6]/20 px-4 py-1 text-sm tracking-[0.2em] text-[#dff6eb] uppercase">
-            Napak Tilas Sejarah
-          </span>
-          <h1 className="mb-6 text-4xl leading-tight font-bold text-white sm:text-5xl">
-            Hikayat Desa Pringgodani
+    <main className="bg-background">
+      <section className="bg-primary-container text-on-primary-container relative overflow-hidden py-24 md:py-32">
+        <div className="max-w-container-max px-gutter relative mx-auto text-center">
+          <div className="text-label-sm mb-6 flex flex-wrap items-center justify-center gap-2 opacity-80">
+            <Link href="/profil" className="hover:underline">
+              Profil Desa
+            </Link>
+            <Icon name="chevron_right" className="text-[16px]" />
+            <span className="font-bold">Sejarah</span>
+          </div>
+          <h1 className="font-display-hero text-display-hero mb-6">
+            Sejarah Desa Pringgodani
           </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-8 text-[#e7f5ee]">
-            Menelusuri jejak peradaban yang bermula dari hamparan bambu hingga
-            menjadi pusat kemandirian masyarakat.
+          <p className="font-body-lg text-body-lg mx-auto max-w-2xl opacity-90">
+            Menelusuri asal-usul dan perjalanan Desa Pringgodani dari masa ke
+            masa.
           </p>
         </div>
-        <div className="absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-[#f8faf6] to-transparent" />
       </section>
 
-      <article className="bg-[#f8faf6] py-20">
-        <div className="mx-auto max-w-3xl px-6 sm:px-8 lg:px-10">
-          <div className="mb-12">
-            <h2 className="mb-6 text-3xl font-semibold text-[#003527]">
-              Asal-Usul dan Masa Perintisan
-            </h2>
-            <p className="mb-6 text-base leading-8 text-[#404944]">
-              Nama <strong>Pringgodani</strong> secara etimologis berasal dari
-              dua kata dalam bahasa Jawa Kuno: <em>Pring</em> yang berarti
-              bambu, dan <em>Dani</em> yang merujuk pada keindahan atau
-              pemberian yang baik. Sejarah mencatat bahwa pada awal abad ke-19,
-              wilayah ini merupakan hutan bambu lebat yang belum terjamah.
-            </p>
-            <p className="text-base leading-8 text-[#404944]">{historyText}</p>
-          </div>
-
-          <figure className="mb-12">
-            <img
-              alt="Ilustrasi perintisan Desa Pringgodani"
-              className="h-96 w-full rounded-xl object-cover shadow-lg"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCofeWxuhYu8D9J7NrtFlNvS-Cy_7fn5dtTB9zducDGQuEEZrXXtkt3Wk-zKJ-m-1UeNdYqWsWT3GRUsHQO_s0ERS3bkss-C9RRk-s9yez7Fn_1W-Mp-A_rBbJx1pww8lAedpyARMXSt8wVTMUSb302HspuigBAHvdKIXvyFkKTNtI_jsrq5dcarWYyWLrX9nGrAwGBHBHCBHl0R-El8fdxpyfP34c7jFcW-xZ1L8VahOhAofgu844"
+      <article className="py-section-padding">
+        <div className="max-w-container-max px-gutter mx-auto max-w-3xl">
+          <div className="border-outline-variant/20 bg-surface-container-lowest mb-12 aspect-[21/9] overflow-hidden rounded-3xl border">
+            <FallbackImage
+              src={profile?.headPhoto}
+              alt="Desa Pringgodani"
+              className="h-full w-full object-cover"
+              fallbackIcon="history_edu"
             />
-            <figcaption className="mt-4 text-center text-sm text-[#404944] italic">
-              Representasi visual pemukiman awal di tengah hutan bambu
-              legendaris.
-            </figcaption>
-          </figure>
-
-          <div className="mb-12">
-            <h2 className="mb-6 text-3xl font-semibold text-[#003527]">
-              Masa Kolonial dan Kejayaan Kerajinan
-            </h2>
-            <p className="text-base leading-8 text-[#404944]">
-              Memasuki pertengahan abad ke-19, Pringgodani mulai dikenal oleh
-              pemerintah kolonial Belanda karena kualitas bambu dan kemahiran
-              penduduknya dalam mengolah serat alam. Desa ini bertransformasi
-              menjadi sentra kerajinan bambu terkemuka.
-            </p>
           </div>
 
-          <blockquote className="mb-12 rounded-r-lg border-l-4 border-[#003527] bg-[#e7e9e5] py-4 pl-6 text-[#003527] italic">
-            “Menghormati sejarah bukan berarti terpaku pada masa lalu, melainkan
-            menggunakan fondasi masa lalu untuk membangun masa depan yang lebih
-            kokoh.”
-          </blockquote>
+          <div className="space-y-6">
+            {paragraphs.map((paragraph, index) => (
+              <p
+                key={index}
+                className="font-body-base text-body-base text-on-surface-variant leading-relaxed"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+
+          <div className="border-outline-variant/30 mt-12 border-t pt-8">
+            <Link
+              href="/profil"
+              className="text-primary font-label-sm inline-flex items-center gap-2 font-bold hover:underline"
+            >
+              <Icon name="arrow_back" className="text-lg" />
+              Kembali ke Profil Desa
+            </Link>
+          </div>
         </div>
       </article>
-
-      <footer className="border-t border-[#707974]/30 bg-[#e7e9e5]">
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-16 sm:px-8 md:grid-cols-4 lg:px-10">
-          <div>
-            <div className="mb-4 text-2xl font-bold text-[#003527]">
-              Desa Pringgodani
-            </div>
-            <p className="text-sm leading-7 text-[#404944]">
-              Pusat Pelayanan Digital & Informasi Resmi Pemerintah Desa
-              Pringgodani.
-            </p>
-          </div>
-          <div>
-            <h5 className="mb-4 font-bold text-[#003527]">Navigasi</h5>
-            <ul className="space-y-2 text-sm text-[#404944]">
-              <li>
-                <a className="underline hover:text-[#003527]" href="#">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a className="font-bold text-[#003527] underline" href="#">
-                  Napak Tilas
-                </a>
-              </li>
-              <li>
-                <a className="underline hover:text-[#003527]" href="#">
-                  Potensi Desa
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="mb-4 font-bold text-[#003527]">Tautan Penting</h5>
-            <ul className="space-y-2 text-sm text-[#404944]">
-              <li>
-                <a className="underline hover:text-[#003527]" href="#">
-                  Admin Login
-                </a>
-              </li>
-              <li>
-                <a className="underline hover:text-[#003527]" href="#">
-                  Kontak Kami
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="mb-4 font-bold text-[#003527]">Kontak</h5>
-            <p className="text-sm leading-7 text-[#404944]">
-              Jl. Raya Pringgodani No. 1, Purwodadi, Indonesia
-            </p>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

@@ -49,7 +49,7 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     shortDescription:
       "Pusat balai desa dan pelayanan administrasi warga Pringgodani",
     imageUrl:
-      "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0607.jpg",
+      "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=80",
     address: "Jl. Raya Desa Pringgodani No. 1, Dusun Krajan",
     latitude: -8.2811,
     longitude: 112.5664,
@@ -102,7 +102,7 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     name: "Puskesmas Pembantu (Pustu) Pringgodani",
     shortDescription: "Pusat pelayanan kesehatan dasar dan posyandu warga desa",
     imageUrl:
-      "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/08/img-20170809-wa0009.jpg",
+      "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80",
     address: "Dusun Krajan RT 02 RW 01, Desa Pringgodani",
     latitude: -8.2802,
     longitude: 112.568,
@@ -130,7 +130,7 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     shortDescription:
       "Hamparan komoditas pertanian utama dan industri tebu warga",
     imageUrl:
-      "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0607.jpg",
+      "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=80",
     address: "Dusun Sumber Walo, Desa Pringgodani",
     latitude: -8.2755,
     longitude: 112.5605,
@@ -143,7 +143,7 @@ export const MOCK_FACILITIES: MapLocationDto[] = [
     name: "Posko KKN & Pusat UMKM Pringgodani",
     shortDescription: "Pusat pembinaan UMKM dan galeri produk warga desa",
     imageUrl:
-      "https://pringgondaniblog.wordpress.com/wp-content/uploads/2017/07/dsc_0626.jpg",
+      "https://images.unsplash.com/photo-1524230507669-5ff97982bb5e?auto=format&fit=crop&w=1200&q=80",
     address: "Dusun Krajan, Desa Pringgodani",
     latitude: -8.284,
     longitude: 112.567,

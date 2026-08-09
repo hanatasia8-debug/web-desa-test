@@ -1,257 +1,495 @@
-<!DOCTYPE html><html class="light" lang="id"><head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Napak Tilas | Desa Pringgodani</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "status-pending": "#F59E0B",
-                        "on-primary-container": "#80bea6",
-                        "primary-fixed-dim": "#95d3ba",
-                        "error": "#ba1a1a",
-                        "primary": "#003527",
-                        "surface-container-high": "#e7e9e5",
-                        "primary-container": "#064e3b",
-                        "inverse-primary": "#95d3ba",
-                        "on-primary-fixed": "#002117",
-                        "surface-tint": "#2b6954",
-                        "secondary-container": "#7bc2ff",
-                        "tertiary-fixed": "#ffdad5",
-                        "on-surface": "#191c1b",
-                        "tertiary-container": "#6b342d",
-                        "surface-container-low": "#f2f4f1",
-                        "on-error": "#ffffff",
-                        "surface-container": "#eceeeb",
-                        "inverse-on-surface": "#eff1ee",
-                        "status-verified": "#10B981",
-                        "on-tertiary-fixed-variant": "#6e372f",
-                        "nature-green": "#15803D",
-                        "on-tertiary-fixed": "#380d08",
-                        "on-secondary": "#ffffff",
-                        "on-primary-fixed-variant": "#0b513d",
-                        "admin-surface": "#F8FAFC",
-                        "on-secondary-fixed": "#001d32",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-bright": "#f8faf6",
-                        "on-background": "#191c1b",
-                        "on-primary": "#ffffff",
-                        "secondary": "#006399",
-                        "error-container": "#ffdad6",
-                        "secondary-fixed": "#cde5ff",
-                        "background": "#f8faf6",
-                        "on-secondary-container": "#004f7b",
-                        "on-tertiary": "#ffffff",
-                        "surface": "#f8faf6",
-                        "surface-container-highest": "#e1e3e0",
-                        "inverse-surface": "#2e312f",
-                        "outline": "#707974",
-                        "tertiary-fixed-dim": "#ffb4a9",
-                        "secondary-fixed-dim": "#94ccff",
-                        "on-surface-variant": "#404944",
-                        "tertiary": "#4f1f19",
-                        "surface-dim": "#d8dbd7",
-                        "primary-fixed": "#b0f0d6",
-                        "on-tertiary-container": "#ea9e93",
-                        "outline-variant": "#bfc9c3",
-                        "on-secondary-fixed-variant": "#004b74",
-                        "surface-variant": "#e1e3e0",
-                        "on-error-container": "#93000a"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "stack-sm": "0.5rem",
-                        "container-max": "1280px",
-                        "stack-md": "1rem",
-                        "gutter": "1.5rem",
-                        "section-padding": "5rem",
-                        "stack-lg": "2rem"
-                    },
-                    "fontFamily": {
-                        "display-hero": ["Hanken Grotesk"],
-                        "headline-lg-mobile": ["Hanken Grotesk"],
-                        "body-lg": ["Inter"],
-                        "body-base": ["Inter"],
-                        "label-sm": ["Inter"],
-                        "headline-md": ["Hanken Grotesk"],
-                        "headline-lg": ["Hanken Grotesk"],
-                        "badge-xs": ["Inter"]
-                    },
-                    "fontSize": {
-                        "display-hero": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "label-sm": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
-                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
-                        "badge-xs": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
-                    }
-                },
+<!doctype html>
+<html class="light" lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Napak Tilas | Desa Pringgodani</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "status-pending": "#F59E0B",
+              "on-primary-container": "#80bea6",
+              "primary-fixed-dim": "#95d3ba",
+              error: "#ba1a1a",
+              primary: "#003527",
+              "surface-container-high": "#e7e9e5",
+              "primary-container": "#064e3b",
+              "inverse-primary": "#95d3ba",
+              "on-primary-fixed": "#002117",
+              "surface-tint": "#2b6954",
+              "secondary-container": "#7bc2ff",
+              "tertiary-fixed": "#ffdad5",
+              "on-surface": "#191c1b",
+              "tertiary-container": "#6b342d",
+              "surface-container-low": "#f2f4f1",
+              "on-error": "#ffffff",
+              "surface-container": "#eceeeb",
+              "inverse-on-surface": "#eff1ee",
+              "status-verified": "#10B981",
+              "on-tertiary-fixed-variant": "#6e372f",
+              "nature-green": "#15803D",
+              "on-tertiary-fixed": "#380d08",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed-variant": "#0b513d",
+              "admin-surface": "#F8FAFC",
+              "on-secondary-fixed": "#001d32",
+              "surface-container-lowest": "#ffffff",
+              "surface-bright": "#f8faf6",
+              "on-background": "#191c1b",
+              "on-primary": "#ffffff",
+              secondary: "#006399",
+              "error-container": "#ffdad6",
+              "secondary-fixed": "#cde5ff",
+              background: "#f8faf6",
+              "on-secondary-container": "#004f7b",
+              "on-tertiary": "#ffffff",
+              surface: "#f8faf6",
+              "surface-container-highest": "#e1e3e0",
+              "inverse-surface": "#2e312f",
+              outline: "#707974",
+              "tertiary-fixed-dim": "#ffb4a9",
+              "secondary-fixed-dim": "#94ccff",
+              "on-surface-variant": "#404944",
+              tertiary: "#4f1f19",
+              "surface-dim": "#d8dbd7",
+              "primary-fixed": "#b0f0d6",
+              "on-tertiary-container": "#ea9e93",
+              "outline-variant": "#bfc9c3",
+              "on-secondary-fixed-variant": "#004b74",
+              "surface-variant": "#e1e3e0",
+              "on-error-container": "#93000a",
             },
-        }
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              "stack-sm": "0.5rem",
+              "container-max": "1280px",
+              "stack-md": "1rem",
+              gutter: "1.5rem",
+              "section-padding": "5rem",
+              "stack-lg": "2rem",
+            },
+            fontFamily: {
+              "display-hero": ["Hanken Grotesk"],
+              "headline-lg-mobile": ["Hanken Grotesk"],
+              "body-lg": ["Inter"],
+              "body-base": ["Inter"],
+              "label-sm": ["Inter"],
+              "headline-md": ["Hanken Grotesk"],
+              "headline-lg": ["Hanken Grotesk"],
+              "badge-xs": ["Inter"],
+            },
+            fontSize: {
+              "display-hero": [
+                "48px",
+                {
+                  lineHeight: "56px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-lg-mobile": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "600" },
+              ],
+              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+              "body-base": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+              "label-sm": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+              "headline-md": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "600" },
+              ],
+              "headline-lg": [
+                "32px",
+                { lineHeight: "40px", fontWeight: "600" },
+              ],
+              "badge-xs": [
+                "12px",
+                {
+                  lineHeight: "16px",
+                  letterSpacing: "0.05em",
+                  fontWeight: "700",
+                },
+              ],
+            },
+          },
+        },
+      };
     </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
     </style>
-</head>
-<body class="bg-surface font-body-base text-on-surface">
-<!-- Top Navigation Bar -->
-<nav class="fixed top-0 w-full z-50 backdrop-blur-md bg-surface/80 border-b border-outline-variant/30 shadow-sm">
-<div class="flex justify-between items-center max-w-container-max mx-auto px-gutter py-4">
-<div class="font-headline-md text-headline-md font-bold text-primary">Desa Pringgodani</div>
-<div class="hidden md:flex items-center gap-stack-lg">
-<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Home</a>
-<a class="font-label-sm text-label-sm text-primary border-b-2 border-primary pb-1 font-bold" href="#">Profil</a>
-<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Potensi</a>
-<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">UMKM</a>
-<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Berita</a>
-<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Peta</a>
-<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-sm text-label-sm font-semibold hover:opacity-90 active:scale-95 transition-all">
-                    Ajukan Konten
-                </button>
-</div>
-<button class="md:hidden text-primary">
-<span class="material-symbols-outlined">menu</span>
-</button>
-</div>
-</nav>
-<!-- Hero Section -->
-<section class="relative pt-32 pb-20 md:pt-48 md:pb-28 bg-primary-container overflow-hidden">
-<div class="absolute inset-0 z-0">
-<div class="w-full h-full opacity-30 grayscale mix-blend-overlay" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8x3sb556cv5xseT2YaaZZRaR-x64kWZ-RbL-uKGvPYu_zX0_KFRBMXS-_CGGqgLT7FlfFGmo4MFmAEagOtlIz8aEBqcc552HST4aLdmEluRq5MUcoNKz-p8Ro-EhV3JkiTSPsR_MPjlIstGKwLIWFWM_tubRopQEnMKpxoJEgdSFu6ByEkKV3sq6lZKzWSVA4F-71MgbwICGLZS4W9SGWaBREoDg-fOaLYPRQjQxKZKMZjUJYROM'); background-size: cover; background-position: center;"></div>
-</div>
-<div class="relative z-10 max-w-container-max mx-auto px-gutter text-center text-on-primary">
-<span class="font-label-sm text-label-sm uppercase tracking-widest bg-on-primary-fixed-variant/20 px-4 py-1 rounded-full mb-6 inline-block">Napak Tilas Sejarah</span>
-<h1 class="font-display-hero text-display-hero mb-6 text-white">Hikayat Desa Pringgodani</h1>
-<p class="font-body-lg text-body-lg max-w-2xl mx-auto opacity-90">
-                Menelusuri jejak peradaban yang bermula dari hamparan bambu hingga menjadi pusat kemandirian masyarakat.
-            </p>
-</div>
-<div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-surface to-transparent"></div>
-</section>
-<!-- History Article Section -->
-<article class="py-section-padding bg-surface">
-<div class="max-w-3xl mx-auto px-gutter">
-<!-- Article Intro -->
-<div class="mb-12">
-<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Asal-Usul dan Masa Perintisan</h2>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Nama <strong>Pringgodani</strong> secara etimologis berasal dari dua kata dalam bahasa Jawa Kuno: <em>"Pring"</em> yang berarti bambu, dan <em>"Dani"</em> yang merujuk pada keindahan atau pemberian yang baik. Sejarah mencatat bahwa pada awal abad ke-19, wilayah ini merupakan hutan bambu lebat yang belum terjamah.
-                </p>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Perintisan desa dipelopori oleh Kyai Pringgo, seorang tokoh spiritual dan pengembara yang mencari ketenangan di lereng perbukitan Purwodadi. Bersama sekelompok pengikutnya, beliau mulai membuka lahan (<em>babad alas</em>) dengan tetap menjaga keseimbangan ekosistem bambu yang ada. Kyai Pringgo mengajarkan masyarakat pertama untuk tidak hanya bertani, tetapi juga memanfaatkan kekayaan hayati bambu untuk kebutuhan hidup sehari-hari.
-                </p>
-</div>
-<!-- Image Break -->
-<figure class="mb-12">
-<img alt="Ilustrasi perintisan Desa Pringgodani" class="rounded-xl shadow-lg w-full h-96 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCofeWxuhYu8D9J7NrtFlNvS-Cy_7fn5dtTB9zducDGQuEEZrXXtkt3Wk-zKJ-m-1UeNdYqWsWT3GRUsHQO_s0ERS3bkss-C9RRk-s9yez7Fn_1W-Mp-A_rBbJx1pww8lAedpyARMXSt8wVTMUSb302HspuigBAHvdKIXvyFkKTNtI_jsrq5dcarWYyWLrX9nGrAwGBHBHCBHl0R-El8fdxpyfP34c7jFcW-xZ1L8VahOhAofgu844">
-<figcaption class="mt-4 text-center text-sm text-on-surface-variant italic font-label-sm">Representasi visual pemukiman awal di tengah hutan bambu legendaris.</figcaption>
-</figure>
-<!-- Colonial Era & Economic Growth -->
-<div class="mb-12">
-<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Masa Kolonial dan Kejayaan Kerajinan</h2>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Memasuki pertengahan abad ke-19, Pringgodani mulai dikenal oleh pemerintah kolonial Belanda karena kualitas bambu dan kemahiran penduduknya dalam mengolah serat alam. Desa ini bertransformasi menjadi sentra kerajinan bambu terkemuka. Produk-produk seperti perabot rumah tangga, alat pertanian, hingga elemen dekoratif dari Pringgodani banyak diminati oleh pasar di karesidenan sekitar.
-                </p>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Ketangguhan ekonomi masyarakat Pringgodani di masa ini bukan karena dukungan kolonial, melainkan karena solidaritas antar warga yang kuat. Mereka membentuk semacam koperasi tradisional untuk mengatur distribusi hasil bumi dan kerajinan, sehingga kemakmuran dapat dirasakan secara merata oleh seluruh lapisan masyarakat desa.
-                </p>
-</div>
-<!-- Post-Independence Section -->
-<div class="mb-12">
-<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Era Kemerdekaan dan Modernisasi</h2>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Pasca proklamasi kemerdekaan Republik Indonesia, fokus pembangunan Desa Pringgodani beralih pada ketahanan pangan. Pada dekade 1960-an hingga 1970-an, sistem irigasi permanen mulai dibangun secara gotong royong. Pringgodani yang dulunya hanya mengandalkan tadah hujan, kini bertransformasi menjadi lumbung padi yang produktif.
-                </p>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Nilai-nilai luhur <em>gotong royong</em> yang diwariskan oleh para leluhur tetap menjadi fondasi utama dalam setiap gerak perubahan. Meski teknologi pertanian mulai masuk, tradisi upacara adat pasca panen sebagai bentuk syukur kepada Sang Pencipta tetap dilestarikan hingga saat ini sebagai identitas budaya yang tak lekang oleh waktu.
-                </p>
-</div>
-<!-- Smart Village Section -->
-<div class="mb-12">
-<h2 class="font-headline-lg text-headline-lg text-primary mb-6">Menuju Masa Depan: Pringgodani Digital</h2>
-<p class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed">
-                    Kini, di era disrupsi teknologi, Desa Pringgodani kembali melakukan lompatan besar. Dengan mengusung konsep <strong>Smart Village</strong>, pemerintah desa mengintegrasikan pelayanan publik berbasis digital untuk mempermudah akses warga. Pemberdayaan UMKM lokal melalui platform e-commerce memungkinkan produk kerajinan bambu khas Pringgodani menjangkau pasar internasional.
-                </p>
-<p class="font-body-base text-body-base text-on-surface-variant leading-relaxed">
-                    Napak tilas ini bukan sekadar mengenang masa lalu, melainkan upaya untuk mengambil api semangat para pendahulu. Dari Kyai Pringgo hingga generasi digital saat ini, satu hal yang tidak pernah berubah adalah kecintaan pada tanah kelahiran dan semangat untuk terus bertumbuh tanpa meninggalkan akar tradisi.
-                </p>
-</div>
-<!-- Quote Block -->
-<blockquote class="border-l-4 border-primary pl-6 py-4 bg-surface-container-low rounded-r-lg mb-12 italic text-primary font-headline-md">
-                "Menghormati sejarah bukan berarti terpaku pada masa lalu, melainkan menggunakan fondasi masa lalu untuk membangun masa depan yang lebih kokoh."
-            </blockquote>
-</div>
-</article>
-<!-- Footer -->
-<footer class="bg-surface-container-highest border-t border-outline-variant">
-<div class="max-w-container-max mx-auto px-gutter py-section-padding grid grid-cols-1 md:grid-cols-4 gap-gutter">
-<div class="col-span-1 md:col-span-1">
-<div class="font-headline-md text-headline-md font-bold text-primary mb-4">Desa Pringgodani</div>
-<p class="text-on-surface-variant text-sm">Pusat Pelayanan Digital &amp; Informasi Resmi Pemerintah Desa Pringgodani, Kecamatan Purwodadi.</p>
-</div>
-<div>
-<h5 class="font-bold text-primary mb-4">Navigasi</h5>
-<ul class="space-y-2">
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Home</a></li>
-<li><a class="text-primary font-bold underline font-label-sm text-label-sm" href="#">Napak Tilas</a></li>
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Potensi Desa</a></li>
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Berita Terkini</a></li>
-</ul>
-</div>
-<div>
-<h5 class="font-bold text-primary mb-4">Tautan Penting</h5>
-<ul class="space-y-2">
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Admin Login</a></li>
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Kontak Kami</a></li>
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Peta Situs</a></li>
-<li><a class="text-on-surface-variant hover:text-primary underline font-label-sm text-label-sm" href="#">Kebijakan Privasi</a></li>
-</ul>
-</div>
-<div>
-<h5 class="font-bold text-primary mb-4">Kontak</h5>
-<div class="flex items-start gap-2 mb-2">
-<span class="material-symbols-outlined text-primary text-sm">location_on</span>
-<span class="text-sm text-on-surface-variant">Jl. Raya Pringgodani No. 1, Purwodadi, Indonesia</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary text-sm">mail</span>
-<span class="text-sm text-on-surface-variant">info@pringgodani.desa.id</span>
-</div>
-</div>
-</div>
-<div class="max-w-container-max mx-auto px-gutter py-6 border-t border-outline-variant/30 flex flex-col md:flex-row justify-between items-center gap-4">
-<p class="text-on-surface-variant text-sm font-label-sm text-label-sm">© 2024 Pemerintah Desa Pringgodani. Seluruh Hak Cipta Dilindungi.</p>
-<div class="flex gap-4">
-<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">qr_code_2</span></a>
-<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">camera</span></a>
-<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
-</div>
-</div>
-</footer>
-<script>
-        window.addEventListener('scroll', () => {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 50) {
-                nav.classList.add('shadow-md');
-                nav.classList.remove('shadow-sm');
-            } else {
-                nav.classList.add('shadow-sm');
-                nav.classList.remove('shadow-md');
-            }
-        });
+  </head>
+  <body class="bg-surface font-body-base text-on-surface">
+    <!-- Top Navigation Bar -->
+    <nav
+      class="bg-surface/80 border-outline-variant/30 fixed top-0 z-50 w-full border-b shadow-sm backdrop-blur-md"
+    >
+      <div
+        class="max-w-container-max px-gutter mx-auto flex items-center justify-between py-4"
+      >
+        <div class="font-headline-md text-headline-md text-primary font-bold">
+          Desa Pringgodani
+        </div>
+        <div class="gap-stack-lg hidden items-center md:flex">
+          <a
+            class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
+            href="#"
+            >Home</a
+          >
+          <a
+            class="font-label-sm text-label-sm text-primary border-primary border-b-2 pb-1 font-bold"
+            href="#"
+            >Profil</a
+          >
+          <a
+            class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
+            href="#"
+            >Potensi</a
+          >
+          <a
+            class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
+            href="#"
+            >UMKM</a
+          >
+          <a
+            class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
+            href="#"
+            >Berita</a
+          >
+          <a
+            class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
+            href="#"
+            >Peta</a
+          >
+          <button
+            class="bg-primary text-on-primary font-label-sm text-label-sm rounded-full px-6 py-2.5 font-semibold transition-all hover:opacity-90 active:scale-95"
+          >
+            Ajukan Konten
+          </button>
+        </div>
+        <button class="text-primary md:hidden">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </nav>
+    <!-- Hero Section -->
+    <section
+      class="bg-primary-container relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-28"
+    >
+      <div class="absolute inset-0 z-0">
+        <div
+          class="h-full w-full opacity-30 mix-blend-overlay grayscale"
+          style="
+            background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuC8x3sb556cv5xseT2YaaZZRaR-x64kWZ-RbL-uKGvPYu_zX0_KFRBMXS-_CGGqgLT7FlfFGmo4MFmAEagOtlIz8aEBqcc552HST4aLdmEluRq5MUcoNKz-p8Ro-EhV3JkiTSPsR_MPjlIstGKwLIWFWM_tubRopQEnMKpxoJEgdSFu6ByEkKV3sq6lZKzWSVA4F-71MgbwICGLZS4W9SGWaBREoDg-fOaLYPRQjQxKZKMZjUJYROM&quot;);
+            background-size: cover;
+            background-position: center;
+          "
+        ></div>
+      </div>
+      <div
+        class="max-w-container-max px-gutter text-on-primary relative z-10 mx-auto text-center"
+      >
+        <span
+          class="font-label-sm text-label-sm bg-on-primary-fixed-variant/20 mb-6 inline-block rounded-full px-4 py-1 tracking-widest uppercase"
+          >Napak Tilas Sejarah</span
+        >
+        <h1 class="font-display-hero text-display-hero mb-6 text-white">
+          Hikayat Desa Pringgodani
+        </h1>
+        <p class="font-body-lg text-body-lg mx-auto max-w-2xl opacity-90">
+          Menelusuri jejak peradaban yang bermula dari hamparan bambu hingga
+          menjadi pusat kemandirian masyarakat.
+        </p>
+      </div>
+      <div
+        class="from-surface absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t to-transparent"
+      ></div>
+    </section>
+    <!-- History Article Section -->
+    <article class="py-section-padding bg-surface">
+      <div class="px-gutter mx-auto max-w-3xl">
+        <!-- Article Intro -->
+        <div class="mb-12">
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-6">
+            Asal-Usul dan Masa Perintisan
+          </h2>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Nama <strong>Pringgodani</strong> secara etimologis berasal dari dua
+            kata dalam bahasa Jawa Kuno: <em>"Pring"</em> yang berarti bambu,
+            dan <em>"Dani"</em> yang merujuk pada keindahan atau pemberian yang
+            baik. Sejarah mencatat bahwa pada awal abad ke-19, wilayah ini
+            merupakan hutan bambu lebat yang belum terjamah.
+          </p>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Perintisan desa dipelopori oleh Kyai Pringgo, seorang tokoh
+            spiritual dan pengembara yang mencari ketenangan di lereng
+            perbukitan Purwodadi. Bersama sekelompok pengikutnya, beliau mulai
+            membuka lahan (<em>babad alas</em>) dengan tetap menjaga
+            keseimbangan ekosistem bambu yang ada. Kyai Pringgo mengajarkan
+            masyarakat pertama untuk tidak hanya bertani, tetapi juga
+            memanfaatkan kekayaan hayati bambu untuk kebutuhan hidup
+            sehari-hari.
+          </p>
+        </div>
+        <!-- Image Break -->
+        <figure class="mb-12">
+          <img
+            alt="Ilustrasi perintisan Desa Pringgodani"
+            class="h-96 w-full rounded-xl object-cover shadow-lg"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCofeWxuhYu8D9J7NrtFlNvS-Cy_7fn5dtTB9zducDGQuEEZrXXtkt3Wk-zKJ-m-1UeNdYqWsWT3GRUsHQO_s0ERS3bkss-C9RRk-s9yez7Fn_1W-Mp-A_rBbJx1pww8lAedpyARMXSt8wVTMUSb302HspuigBAHvdKIXvyFkKTNtI_jsrq5dcarWYyWLrX9nGrAwGBHBHCBHl0R-El8fdxpyfP34c7jFcW-xZ1L8VahOhAofgu844"
+          />
+          <figcaption
+            class="text-on-surface-variant font-label-sm mt-4 text-center text-sm italic"
+          >
+            Representasi visual pemukiman awal di tengah hutan bambu legendaris.
+          </figcaption>
+        </figure>
+        <!-- Colonial Era & Economic Growth -->
+        <div class="mb-12">
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-6">
+            Masa Kolonial dan Kejayaan Kerajinan
+          </h2>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Memasuki pertengahan abad ke-19, Pringgodani mulai dikenal oleh
+            pemerintah kolonial Belanda karena kualitas bambu dan kemahiran
+            penduduknya dalam mengolah serat alam. Desa ini bertransformasi
+            menjadi sentra kerajinan bambu terkemuka. Produk-produk seperti
+            perabot rumah tangga, alat pertanian, hingga elemen dekoratif dari
+            Pringgodani banyak diminati oleh pasar di karesidenan sekitar.
+          </p>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Ketangguhan ekonomi masyarakat Pringgodani di masa ini bukan karena
+            dukungan kolonial, melainkan karena solidaritas antar warga yang
+            kuat. Mereka membentuk semacam koperasi tradisional untuk mengatur
+            distribusi hasil bumi dan kerajinan, sehingga kemakmuran dapat
+            dirasakan secara merata oleh seluruh lapisan masyarakat desa.
+          </p>
+        </div>
+        <!-- Post-Independence Section -->
+        <div class="mb-12">
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-6">
+            Era Kemerdekaan dan Modernisasi
+          </h2>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Pasca proklamasi kemerdekaan Republik Indonesia, fokus pembangunan
+            Desa Pringgodani beralih pada ketahanan pangan. Pada dekade 1960-an
+            hingga 1970-an, sistem irigasi permanen mulai dibangun secara gotong
+            royong. Pringgodani yang dulunya hanya mengandalkan tadah hujan,
+            kini bertransformasi menjadi lumbung padi yang produktif.
+          </p>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Nilai-nilai luhur <em>gotong royong</em> yang diwariskan oleh para
+            leluhur tetap menjadi fondasi utama dalam setiap gerak perubahan.
+            Meski teknologi pertanian mulai masuk, tradisi upacara adat pasca
+            panen sebagai bentuk syukur kepada Sang Pencipta tetap dilestarikan
+            hingga saat ini sebagai identitas budaya yang tak lekang oleh waktu.
+          </p>
+        </div>
+        <!-- Smart Village Section -->
+        <div class="mb-12">
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-6">
+            Menuju Masa Depan: Pringgodani Digital
+          </h2>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant mb-6 leading-relaxed"
+          >
+            Kini, di era disrupsi teknologi, Desa Pringgodani kembali melakukan
+            lompatan besar. Dengan mengusung konsep
+            <strong>Smart Village</strong>, pemerintah desa mengintegrasikan
+            pelayanan publik berbasis digital untuk mempermudah akses warga.
+            Pemberdayaan UMKM lokal melalui platform e-commerce memungkinkan
+            produk kerajinan bambu khas Pringgodani menjangkau pasar
+            internasional.
+          </p>
+          <p
+            class="font-body-base text-body-base text-on-surface-variant leading-relaxed"
+          >
+            Napak tilas ini bukan sekadar mengenang masa lalu, melainkan upaya
+            untuk mengambil api semangat para pendahulu. Dari Kyai Pringgo
+            hingga generasi digital saat ini, satu hal yang tidak pernah berubah
+            adalah kecintaan pada tanah kelahiran dan semangat untuk terus
+            bertumbuh tanpa meninggalkan akar tradisi.
+          </p>
+        </div>
+        <!-- Quote Block -->
+        <blockquote
+          class="border-primary bg-surface-container-low text-primary font-headline-md mb-12 rounded-r-lg border-l-4 py-4 pl-6 italic"
+        >
+          "Menghormati sejarah bukan berarti terpaku pada masa lalu, melainkan
+          menggunakan fondasi masa lalu untuk membangun masa depan yang lebih
+          kokoh."
+        </blockquote>
+      </div>
+    </article>
+    <!-- Footer -->
+    <footer
+      class="bg-surface-container-highest border-outline-variant border-t"
+    >
+      <div
+        class="max-w-container-max px-gutter py-section-padding gap-gutter mx-auto grid grid-cols-1 md:grid-cols-4"
+      >
+        <div class="col-span-1 md:col-span-1">
+          <div
+            class="font-headline-md text-headline-md text-primary mb-4 font-bold"
+          >
+            Desa Pringgodani
+          </div>
+          <p class="text-on-surface-variant text-sm">
+            Pusat Pelayanan Digital &amp; Informasi Resmi Pemerintah Desa
+            Pringgodani, Kecamatan Purwodadi.
+          </p>
+        </div>
+        <div>
+          <h5 class="text-primary mb-4 font-bold">Navigasi</h5>
+          <ul class="space-y-2">
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Home</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-primary font-label-sm text-label-sm font-bold underline"
+                href="#"
+                >Napak Tilas</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Potensi Desa</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Berita Terkini</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-primary mb-4 font-bold">Tautan Penting</h5>
+          <ul class="space-y-2">
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Admin Login</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Kontak Kami</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Peta Situs</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-on-surface-variant hover:text-primary font-label-sm text-label-sm underline"
+                href="#"
+                >Kebijakan Privasi</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-primary mb-4 font-bold">Kontak</h5>
+          <div class="mb-2 flex items-start gap-2">
+            <span class="material-symbols-outlined text-primary text-sm"
+              >location_on</span
+            >
+            <span class="text-on-surface-variant text-sm"
+              >Jl. Raya Pringgodani No. 1, Purwodadi, Indonesia</span
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-sm"
+              >mail</span
+            >
+            <span class="text-on-surface-variant text-sm"
+              >info@pringgodani.desa.id</span
+            >
+          </div>
+        </div>
+      </div>
+      <div
+        class="max-w-container-max px-gutter border-outline-variant/30 mx-auto flex flex-col items-center justify-between gap-4 border-t py-6 md:flex-row"
+      >
+        <p class="text-on-surface-variant font-label-sm text-label-sm text-sm">
+          © 2024 Pemerintah Desa Pringgodani. Seluruh Hak Cipta Dilindungi.
+        </p>
+        <div class="flex gap-4">
+          <a class="text-on-surface-variant hover:text-primary" href="#"
+            ><span class="material-symbols-outlined">qr_code_2</span></a
+          >
+          <a class="text-on-surface-variant hover:text-primary" href="#"
+            ><span class="material-symbols-outlined">camera</span></a
+          >
+          <a class="text-on-surface-variant hover:text-primary" href="#"
+            ><span class="material-symbols-outlined">alternate_email</span></a
+          >
+        </div>
+      </div>
+    </footer>
+    <script>
+      window.addEventListener("scroll", () => {
+        const nav = document.querySelector("nav");
+        if (window.scrollY > 50) {
+          nav.classList.add("shadow-md");
+          nav.classList.remove("shadow-sm");
+        } else {
+          nav.classList.add("shadow-sm");
+          nav.classList.remove("shadow-md");
+        }
+      });
     </script>
-</body></html>
+  </body>
+</html>
