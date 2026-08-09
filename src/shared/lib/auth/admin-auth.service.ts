@@ -51,7 +51,8 @@ export const AdminAuthService = {
           // Store serialized user inside cookie with 3-hour limit (10800 seconds)
           const serialized = encodeURIComponent(JSON.stringify(user));
           const isSecure = window.location.protocol === "https:";
-          document.cookie = `${SESSION_KEY}=${serialized}; path=/; max-age=10800; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+          const sameSite = isSecure ? "Strict" : "Lax";
+          document.cookie = `${SESSION_KEY}=${serialized}; path=/; max-age=10800; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
         }
 
         return { success: true, user };
