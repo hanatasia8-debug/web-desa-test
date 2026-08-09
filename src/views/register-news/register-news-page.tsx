@@ -17,6 +17,7 @@ import { useRegisterNewsDraft } from "@/features/register-news/model/use-registe
 import { SubmitBeritaForm } from "@/views/submit-berita/submit-berita-form";
 import { SubmitBeritaPreview } from "@/views/submit-berita-preview/submit-berita-preview";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
+import axios from "axios";
 
 interface RegisterNewsPageProps {
   categories: NewsCategoryDto[];
@@ -30,6 +31,22 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [blockFiles, setBlockFiles] = useState<Record<number, File>>({});
+  const [galleryFiles, setGalleryFiles] = useState<Record<number, File>>({});
+
+  const uploadSingleFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
+    const { data } = await axios.post<any>(uploadUrl, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.data.url;
+  };
 
   // Field change handler
   const handleChange = (field: keyof RegisterNewsDTO, value: any) => {
@@ -67,6 +84,11 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       "blocks",
       currentBlocks.filter((_, i) => i !== index),
     );
+    setBlockFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handleBlockChange = (index: number, field: string, value: any) => {
@@ -93,6 +115,11 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       "galleryImages",
       currentGallery.filter((_, i) => i !== index),
     );
+    setGalleryFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handleGalleryImageChange = (
@@ -164,11 +191,57 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
 
     setIsSubmitting(true);
     try {
+      // 1. Upload cover
+      let finalCoverUrl = formData.coverUrl;
+      if (coverFile) {
+        finalCoverUrl = await uploadSingleFile(coverFile);
+        if (formData.coverUrl?.startsWith("blob:")) {
+          URL.revokeObjectURL(formData.coverUrl);
+        }
+      }
+
+      // 2. Upload blocks
+      const finalBlocks = await Promise.all(
+        (formData.blocks || []).map(async (block, idx) => {
+          let finalBlockImgUrl = block.imageUrl;
+          const localBlockFile = blockFiles[idx];
+          if (localBlockFile) {
+            finalBlockImgUrl = await uploadSingleFile(localBlockFile);
+            if (block.imageUrl?.startsWith("blob:")) {
+              URL.revokeObjectURL(block.imageUrl);
+            }
+          }
+          return { ...block, imageUrl: finalBlockImgUrl };
+        }),
+      );
+
+      // 3. Upload gallery images
+      const finalGalleryImages = await Promise.all(
+        (formData.galleryImages || []).map(async (img, idx) => {
+          let finalGalleryImgUrl = img.imageUrl;
+          const localGalleryFile = galleryFiles[idx];
+          if (localGalleryFile) {
+            finalGalleryImgUrl = await uploadSingleFile(localGalleryFile);
+            if (img.imageUrl?.startsWith("blob:")) {
+              URL.revokeObjectURL(img.imageUrl);
+            }
+          }
+          return { ...img, imageUrl: finalGalleryImgUrl };
+        }),
+      );
+
       const finalPayload = {
         ...formData,
-        excerpt: generateAutoExcerpt(formData),
+        coverUrl: finalCoverUrl,
+        blocks: finalBlocks,
+        galleryImages: finalGalleryImages,
+        excerpt: generateAutoExcerpt({
+          ...formData,
+          blocks: finalBlocks,
+        } as any),
       };
-      await BeritaService.submit(finalPayload);
+
+      await BeritaService.submit(finalPayload as any);
       clearDraft();
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -303,6 +376,13 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           onGalleryImageChange={handleGalleryImageChange}
           onClearDraft={clearDraft}
           onSubmitStep={handleGoToPreview}
+          onSetCoverFile={setCoverFile}
+          onSetBlockFile={(idx, file) =>
+            setBlockFiles((prev) => ({ ...prev, [idx]: file }))
+          }
+          onSetGalleryFile={(idx, file) =>
+            setGalleryFiles((prev) => ({ ...prev, [idx]: file }))
+          }
         />
       )}
 

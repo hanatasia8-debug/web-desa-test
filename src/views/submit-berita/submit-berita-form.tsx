@@ -20,6 +20,9 @@ interface SubmitBeritaFormProps {
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
   hideSidebar?: boolean;
+  onSetCoverFile?: (file: File) => void;
+  onSetBlockFile?: (index: number, file: File) => void;
+  onSetGalleryFile?: (index: number, file: File) => void;
 }
 
 export function SubmitBeritaForm({
@@ -36,6 +39,9 @@ export function SubmitBeritaForm({
   onClearDraft,
   onSubmitStep,
   hideSidebar = false,
+  onSetCoverFile,
+  onSetBlockFile,
+  onSetGalleryFile,
 }: SubmitBeritaFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -304,11 +310,17 @@ export function SubmitBeritaForm({
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) =>
-                handleFileChange(e.target.files?.[0], (url) =>
-                  onChange("coverUrl", url),
-                )
-              }
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (onSetCoverFile) {
+                    onSetCoverFile(file);
+                    onChange("coverUrl", URL.createObjectURL(file));
+                  } else {
+                    handleFileChange(file, (url) => onChange("coverUrl", url));
+                  }
+                }
+              }}
             />
 
             {isMounted && formData.coverUrl ? (
@@ -428,6 +440,7 @@ export function SubmitBeritaForm({
                           onBlockChange(idx, field, value)
                         }
                         onRemove={() => onRemoveBlock(idx)}
+                        onSetFile={(file) => onSetBlockFile?.(idx, file)}
                       />
                     ))}
                 </div>
@@ -480,6 +493,7 @@ export function SubmitBeritaForm({
                           onGalleryImageChange(idx, field, value)
                         }
                         onRemove={() => onRemoveGalleryImage(idx)}
+                        onSetFile={(file) => onSetGalleryFile?.(idx, file)}
                       />
                     ))}
                 </div>
@@ -584,6 +598,7 @@ function ArticleBlockItemUpload({
   block,
   onChange,
   onRemove,
+  onSetFile,
 }: {
   index: number;
   block: {
@@ -593,18 +608,24 @@ function ArticleBlockItemUpload({
   };
   onChange: (field: string, value: any) => void;
   onRemove: () => void;
+  onSetFile?: (file: File) => void;
 }) {
   const blockFileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file?: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        onChange("imageUrl", e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (onSetFile) {
+      onSetFile(file);
+      onChange("imageUrl", URL.createObjectURL(file));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          onChange("imageUrl", e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -705,23 +726,30 @@ function GalleryImageItemUpload({
   item,
   onChange,
   onRemove,
+  onSetFile,
 }: {
   index: number;
   item: { imageUrl?: string; imageDescription?: string | null };
   onChange: (field: string, value: any) => void;
   onRemove: () => void;
+  onSetFile?: (file: File) => void;
 }) {
   const galFileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file?: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        onChange("imageUrl", e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (onSetFile) {
+      onSetFile(file);
+      onChange("imageUrl", URL.createObjectURL(file));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          onChange("imageUrl", e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (

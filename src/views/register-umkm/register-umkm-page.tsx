@@ -16,6 +16,7 @@ import {
 import { useRegisterUmkmDraft } from "@/features/register-umkm/model/use-register-umkm-draft";
 import { SubmitUmkmForm } from "@/views/submit-umkm/submit-umkm-form";
 import { SubmitUmkmPreview } from "@/views/submit-umkm-preview/submit-umkm-preview";
+import axios from "axios";
 
 interface RegisterUmkmPageProps {
   categories: UmkmCategoryDto[];
@@ -29,6 +30,22 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [productFiles, setProductFiles] = useState<Record<number, File>>({});
+  const [galleryFiles, setGalleryFiles] = useState<Record<number, File>>({});
+
+  const uploadSingleFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
+    const { data } = await axios.post<any>(uploadUrl, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.data.url;
+  };
 
   // Field change handler
   const handleChange = (field: keyof RegisterUmkmDTO, value: any) => {
@@ -61,6 +78,11 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
       "products",
       currentProducts.filter((_, i) => i !== index),
     );
+    setProductFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handleProductChange = (index: number, field: string, value: any) => {
@@ -128,7 +150,53 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
 
     setIsSubmitting(true);
     try {
-      await UmkmService.register(formData);
+      // 1. Upload cover
+      let finalCoverUrl = formData.coverUrl;
+      if (coverFile) {
+        finalCoverUrl = await uploadSingleFile(coverFile);
+        if (formData.coverUrl?.startsWith("blob:")) {
+          URL.revokeObjectURL(formData.coverUrl);
+        }
+      }
+
+      // 2. Upload products
+      const finalProducts = await Promise.all(
+        (formData.products || []).map(async (prod, idx) => {
+          let finalProdImgUrl = prod.imageUrl;
+          const localProdFile = productFiles[idx];
+          if (localProdFile) {
+            finalProdImgUrl = await uploadSingleFile(localProdFile);
+            if (prod.imageUrl?.startsWith("blob:")) {
+              URL.revokeObjectURL(prod.imageUrl);
+            }
+          }
+          return { ...prod, imageUrl: finalProdImgUrl };
+        }),
+      );
+
+      // 3. Upload galleries
+      const finalGalleries = await Promise.all(
+        (formData.galleries || []).map(async (url, idx) => {
+          let finalGalImgUrl = url;
+          const localGalFile = galleryFiles[idx];
+          if (localGalFile) {
+            finalGalImgUrl = await uploadSingleFile(localGalFile);
+            if (url.startsWith("blob:")) {
+              URL.revokeObjectURL(url);
+            }
+          }
+          return finalGalImgUrl;
+        }),
+      );
+
+      const finalPayload = {
+        ...formData,
+        coverUrl: finalCoverUrl,
+        products: finalProducts,
+        galleries: finalGalleries,
+      };
+
+      await UmkmService.register(finalPayload as any);
       clearDraft();
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -256,6 +324,13 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
           onProductChange={handleProductChange}
           onClearDraft={clearDraft}
           onSubmitStep={handleGoToPreview}
+          onSetCoverFile={setCoverFile}
+          onSetProductFile={(idx, file) =>
+            setProductFiles((prev) => ({ ...prev, [idx]: file }))
+          }
+          onSetGalleryFile={(idx, file) =>
+            setGalleryFiles((prev) => ({ ...prev, [idx]: file }))
+          }
         />
       )}
 
