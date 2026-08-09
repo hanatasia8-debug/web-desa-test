@@ -9,6 +9,7 @@ import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
 import axios from "axios";
 import type { ApiSuccessBody } from "@/shared/api/response";
+import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 
 interface ProductInput {
   name: string;
@@ -34,6 +35,8 @@ export function AdminUmkmEditor({
   const [status, setStatus] = useState<UmkmStatus>("APPROVED");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState(-8.2811);
+  const [longitude, setLongitude] = useState(112.5664);
 
   const [products, setProducts] = useState<ProductInput[]>([]);
 
@@ -116,6 +119,15 @@ export function AdminUmkmEditor({
               );
               setCoverUrl(data.coverUrl || "");
               setStatus(data.status || "APPROVED");
+              setLatitude(
+                Number((data as unknown as Record<string, unknown>).latitude) ||
+                  -8.2811,
+              );
+              setLongitude(
+                Number(
+                  (data as unknown as Record<string, unknown>).longitude,
+                ) || 112.5664,
+              );
               if ((data as unknown as Record<string, unknown>).products) {
                 setProducts(
                   (data as unknown as Record<string, unknown>)
@@ -204,6 +216,8 @@ export function AdminUmkmEditor({
         status,
         products,
         description,
+        latitude,
+        longitude,
       };
 
       if (isNew) {
@@ -422,6 +436,67 @@ export function AdminUmkmEditor({
               className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
               placeholder="Alamat dusun / RT / RW..."
             />
+          </div>
+
+          <div>
+            <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+              Pin Point Koordinat Lokasi
+            </label>
+            <div className="border-outline-variant/30 mb-2 h-72 w-full overflow-hidden rounded-2xl border">
+              <GoogleMapCanvas
+                locations={[
+                  {
+                    id: "temp-pin",
+                    mapCategoryId: "cat-1",
+                    name: name || "Lokasi UMKM",
+                    shortDescription: address || "Desa Pringgodani",
+                    imageUrl: coverUrl || null,
+                    address: address || null,
+                    latitude: Number(latitude) || -8.2811,
+                    longitude: Number(longitude) || 112.5664,
+                    category: {
+                      id: "cat-1",
+                      name: "UMKM",
+                      slug: "umkm",
+                      icon: "storefront",
+                      color: "#0284c7",
+                    },
+                  },
+                ]}
+                selectedLocation={null}
+                onSelectLocation={() => {}}
+                onMapClick={(lat: number, lng: number) => {
+                  setLatitude(lat);
+                  setLongitude(lng);
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-on-surface-variant text-[11px] font-bold">
+                  Latitude
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={latitude}
+                  onChange={(e) => setLatitude(Number(e.target.value))}
+                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                />
+              </div>
+              <div>
+                <span className="text-on-surface-variant text-[11px] font-bold">
+                  Longitude
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={longitude}
+                  onChange={(e) => setLongitude(Number(e.target.value))}
+                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                />
+              </div>
+            </div>
           </div>
 
           <div>

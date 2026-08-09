@@ -8,6 +8,8 @@ import type {
   AdminMapCategory,
 } from "@/entities/admin/model/admin.types";
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
+import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
+import type { MapLocationDto } from "@/entities/fasilitas/model/types";
 
 export function AdminPetaPage() {
   const [locations, setLocations] = useState<AdminMapLocation[]>([]);
@@ -23,6 +25,10 @@ export function AdminPetaPage() {
   const [shortDescription, setShortDescription] = useState("");
   const [address, setAddress] = useState("");
   const [googleMapsUrl, setGoogleMapsUrl] = useState("");
+  const [latitude, setLatitude] = useState(-8.2811);
+  const [longitude, setLongitude] = useState(112.5664);
+  const [selectedLocation, setSelectedLocation] =
+    useState<MapLocationDto | null>(null);
 
   const loadData = () => {
     setIsLoading(true);
@@ -74,6 +80,8 @@ export function AdminPetaPage() {
     setShortDescription("");
     setAddress("Desa Pringgodani");
     setGoogleMapsUrl("https://maps.app.goo.gl/pringgodani");
+    setLatitude(-8.2811);
+    setLongitude(112.5664);
     setIsModalOpen(true);
   };
 
@@ -87,6 +95,8 @@ export function AdminPetaPage() {
       loc.googleMapsUrl ||
         `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`,
     );
+    setLatitude(loc.latitude);
+    setLongitude(loc.longitude);
     setIsModalOpen(true);
   };
 
@@ -103,8 +113,8 @@ export function AdminPetaPage() {
       categoryName: selectedCat ? selectedCat.name : "Fasilitas Umum",
       shortDescription,
       address,
-      latitude: lat,
-      longitude: lng,
+      latitude,
+      longitude,
       googleMapsUrl,
     };
 
@@ -160,6 +170,33 @@ export function AdminPetaPage() {
           <Icon name="add_location_alt" className="text-xl" /> Tambah Titik Peta
           Baru
         </button>
+      </div>
+
+      {/* Peta Interaktif Sebaran Fasilitas Desa */}
+      <div className="border-outline-variant/30 relative h-96 w-full overflow-hidden rounded-3xl border shadow-sm">
+        <GoogleMapCanvas
+          locations={locations.map((loc) => ({
+            id: loc.id,
+            name: loc.name,
+            mapCategoryId: loc.categoryId,
+            categoryName: loc.categoryName,
+            shortDescription: loc.shortDescription || null,
+            address: loc.address || null,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            googleMapsUrl: loc.googleMapsUrl || null,
+            imageUrl: null,
+            category: {
+              id: loc.categoryId,
+              name: loc.categoryName,
+              slug: loc.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+              icon: "place",
+              color: "#0284c7",
+            },
+          }))}
+          selectedLocation={selectedLocation}
+          onSelectLocation={(loc) => setSelectedLocation(loc)}
+        />
       </div>
 
       {/* Tabel Titik Peta */}
@@ -282,15 +319,100 @@ export function AdminPetaPage() {
                   type="url"
                   required
                   value={googleMapsUrl}
-                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setGoogleMapsUrl(url);
+                    const { lat, lng } = extractCoordinatesFromUrl(url);
+                    if (lat !== 0 && lng !== 0) {
+                      setLatitude(lat);
+                      setLongitude(lng);
+                    }
+                  }}
                   className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-xs outline-none"
                   placeholder="Tempelkan link lokasi dari Google Maps (cth: https://maps.app.goo.gl/...)"
                 />
                 <p className="text-on-surface-variant mt-1.5 flex items-center gap-1 text-[11px]">
                   <Icon name="info" className="text-primary text-sm" />
                   Koordinat lokasi akan otomatis dideteksi dari link Google Maps
-                  yang Anda tempelkan.
+                  yang Anda tempelkan, atau Anda dapat mengeklik peta di bawah.
                 </p>
+              </div>
+
+              <div>
+                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
+                  Pin Point Lokasi di Peta
+                </label>
+                <div className="border-outline-variant/30 mb-2 h-48 w-full overflow-hidden rounded-2xl border">
+                  <GoogleMapCanvas
+                    locations={[
+                      {
+                        id: "temp-pin",
+                        mapCategoryId: categoryId || "cat-1",
+                        name: name || "Lokasi Baru",
+                        shortDescription:
+                          shortDescription || address || "Desa Pringgodani",
+                        latitude,
+                        longitude,
+                        address: address || null,
+                        imageUrl: null,
+                        category: {
+                          id: categoryId || "cat-1",
+                          name: "Fasilitas",
+                          slug: "facility",
+                          icon: "place",
+                          color: "#0284c7",
+                        },
+                      },
+                    ]}
+                    selectedLocation={null}
+                    onSelectLocation={() => {}}
+                    onMapClick={(lat: number, lng: number) => {
+                      setLatitude(lat);
+                      setLongitude(lng);
+                      setGoogleMapsUrl(
+                        `https://www.google.com/maps?q=${lat},${lng}`,
+                      );
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-on-surface-variant text-[11px] font-bold">
+                      Latitude
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={latitude}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setLatitude(val);
+                        setGoogleMapsUrl(
+                          `https://www.google.com/maps?q=${val},${longitude}`,
+                        );
+                      }}
+                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-on-surface-variant text-[11px] font-bold">
+                      Longitude
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={longitude}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setLongitude(val);
+                        setGoogleMapsUrl(
+                          `https://www.google.com/maps?q=${latitude},${val}`,
+                        );
+                      }}
+                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
