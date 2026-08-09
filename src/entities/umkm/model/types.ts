@@ -8,6 +8,7 @@ export interface UmkmListItemDto {
   whatsappNumber: string;
   /** `Umkm.address` — shown as the location line on the directory card. */
   address: string;
+  addressUrl?: string | null;
   ownerName: string;
   publishedAt: string; // ISO string over the wire
 }

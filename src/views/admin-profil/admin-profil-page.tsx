@@ -37,6 +37,8 @@ export function AdminProfilPage() {
   const [officialPosition, setOfficialPosition] = useState("");
   const [officialPhotoUrl, setOfficialPhotoUrl] = useState("");
   const [officialEmail, setOfficialEmail] = useState("");
+  const [officialGreeting, setOfficialGreeting] = useState("");
+  const [isSavingOfficial, setIsSavingOfficial] = useState(false);
 
   const loadData = () => {
     setIsLoading(true);
@@ -130,6 +132,7 @@ export function AdminProfilPage() {
     setOfficialPosition("");
     setOfficialPhotoUrl("");
     setOfficialEmail("");
+    setOfficialGreeting("");
     setIsOfficialModalOpen(true);
   };
 
@@ -139,30 +142,42 @@ export function AdminProfilPage() {
     setOfficialPosition(item.position);
     setOfficialPhotoUrl(item.photoUrl);
     setOfficialEmail(item.email || "");
+    setOfficialGreeting(item.greeting || "");
     setIsOfficialModalOpen(true);
   };
 
   const handleSaveOfficial = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
-      name: officialName,
-      position: officialPosition,
-      photoUrl:
-        officialPhotoUrl ||
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80",
-      email: officialEmail,
-    };
+    if (isSavingOfficial) return;
+    setIsSavingOfficial(true);
 
-    if (editingOfficialId) {
-      await AdminProfilService.updateOfficial(editingOfficialId, payload);
-      showToast(`Perangkat desa "${officialName}" berhasil diperbarui.`);
-    } else {
-      await AdminProfilService.addOfficial(payload);
-      showToast(`Perangkat desa baru "${officialName}" berhasil ditambahkan.`);
+    try {
+      const payload = {
+        name: officialName,
+        position: officialPosition,
+        photoUrl:
+          officialPhotoUrl ||
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80",
+        email: officialEmail,
+        greeting: officialGreeting,
+      };
+
+      if (editingOfficialId) {
+        await AdminProfilService.updateOfficial(editingOfficialId, payload);
+        showToast(`Perangkat desa "${officialName}" berhasil diperbarui.`);
+      } else {
+        await AdminProfilService.addOfficial(payload);
+        showToast(`Perangkat desa baru "${officialName}" berhasil ditambahkan.`);
+      }
+
+      setIsOfficialModalOpen(false);
+      loadData();
+    } catch (err) {
+      console.error("Gagal menyimpan perangkat desa:", err);
+      alert("Terjadi kesalahan saat menyimpan perangkat desa.");
+    } finally {
+      setIsSavingOfficial(false);
     }
-
-    setIsOfficialModalOpen(false);
-    loadData();
   };
 
   const handleDeleteOfficial = async (id: string, name: string) => {
@@ -602,19 +617,41 @@ export function AdminProfilPage() {
                 />
               </div>
 
+              <div>
+                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
+                  Quotes / Kata Mutiara (Opsional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={officialGreeting}
+                  onChange={(e) => setOfficialGreeting(e.target.value)}
+                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
+                  placeholder="Melayani dengan integritas dan keikhlasan."
+                />
+              </div>
+
               <div className="flex justify-end gap-3 border-t pt-4">
                 <button
                   type="button"
+                  disabled={isSavingOfficial}
                   onClick={() => setIsOfficialModalOpen(false)}
-                  className="bg-surface border-outline-variant text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold"
+                  className="bg-surface border-outline-variant text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="bg-primary text-on-primary hover:bg-primary/90 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition"
+                  disabled={isSavingOfficial}
+                  className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition disabled:opacity-50"
                 >
-                  Simpan Perangkat Desa
+                  {isSavingOfficial ? (
+                    <>
+                      <Icon name="sync" className="animate-spin text-base" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Perangkat Desa</span>
+                  )}
                 </button>
               </div>
             </form>

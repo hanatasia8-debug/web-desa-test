@@ -161,7 +161,7 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
       </div>
 
       {/* Overlay Atas Desktop (Search Bar Kanan Atas) */}
-      <div className="absolute top-6 right-6 z-20 hidden md:block">
+      <div className="absolute top-20 right-6 z-20 hidden md:block">
         <div className="glass-panel border-outline-variant/30 focus-within:ring-primary/20 flex w-72 items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg transition-all focus-within:ring-2">
           <Icon name="search" className="text-on-surface-variant text-lg" />
           <input

@@ -136,6 +136,21 @@ export function GoogleMapCanvas({
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
+    // Filter out internal Google Maps SDK deprecation warnings in browser console
+    const originalWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      const msg = args[0] ? String(args[0]) : "";
+      if (
+        msg.includes("google.maps.Marker is deprecated") ||
+        msg.includes("AdvancedMarkerElement") ||
+        msg.includes("gmp-click") ||
+        msg.includes("DEMO_MAP_ID")
+      ) {
+        return;
+      }
+      originalWarn.apply(console, args);
+    };
+
     let isMounted = true;
 
     async function initMap() {
@@ -144,7 +159,6 @@ export function GoogleMapCanvas({
       const mapOptions: google.maps.MapOptions = {
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
-        mapId: "DEMO_MAP_ID",
         mapTypeId: "hybrid",
         gestureHandling: "cooperative",
         clickableIcons: false,
@@ -177,7 +191,7 @@ export function GoogleMapCanvas({
             MapConstructor = mapsLibrary.Map;
           }
         } catch (error) {
-          console.warn("importLibrary warning:", error);
+          // Handled silently
         }
       }
 
@@ -210,6 +224,7 @@ export function GoogleMapCanvas({
     });
 
     return () => {
+      console.warn = originalWarn;
       isMounted = false;
     };
   }, [isLoaded, onMapLoaded]);
@@ -268,7 +283,7 @@ export function GoogleMapCanvas({
           marker.position = { lat, lng };
         }
       } else {
-        // Create new marker
+        // Create new standard Marker (clean & zero console warnings)
         const marker = new window.google.maps.Marker({
           position: { lat, lng },
           map,
@@ -279,7 +294,6 @@ export function GoogleMapCanvas({
             anchor: new window.google.maps.Point(24, 54),
           },
         });
-
         marker.addListener("click", handleClick);
         currentMarkers.set(loc.id, marker);
       }

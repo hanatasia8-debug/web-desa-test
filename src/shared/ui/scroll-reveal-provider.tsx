@@ -1,88 +1,53 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
- * Activates the `.scroll-reveal` animation defined in `globals.css`.
- *
- * The CSS starts those elements at `opacity: 0` and only reveals them once
- * `.visible` is added — in the prototype that class comes from a global
- * `IntersectionObserver` script in every `code.html`. This is the React port
- * of that script: mounted once in the public layout, it observes every
- * `.scroll-reveal` element currently in the DOM *and* any added later, which
- * matters because server-rendered sections stream in after a Suspense
- * boundary resolves (the /berita grid) and after client-side navigation.
- *
- * Without this, every element carrying `scroll-reveal` stays invisible.
+ * Lightweight, high-performance ScrollRevealProvider.
+ * Observes `.scroll-reveal` elements using IntersectionObserver without
+ * invoking synchronous `getBoundingClientRect()` inside DOM mutation callbacks,
+ * preventing layout thrashing and main thread jank during navigation.
  */
 export function ScrollRevealProvider() {
-  useEffect(() => {
-    // 1. Instant fallback for elements already in or near viewport
-    const revealAllFallback = () => {
-      document
-        .querySelectorAll(".scroll-reveal:not(.visible)")
-        .forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < window.innerHeight + 100) {
-            el.classList.add("visible");
-          }
-        });
-    };
-    revealAllFallback();
+  const pathname = usePathname();
 
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            observer.unobserve(entry.target);
+          }
         });
       },
-      { threshold: 0.01, rootMargin: "0px 0px 80px 0px" },
+      { threshold: 0.05, rootMargin: "0px 0px 150px 0px" }
     );
 
-    const observeWithin = (root: ParentNode) => {
-      root.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 50) {
-          el.classList.add("visible");
-        } else {
-          observer.observe(el);
-        }
+    const observeAll = () => {
+      document.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
+        observer.observe(el);
       });
     };
 
-    observeWithin(document);
+    // Immediate check
+    observeAll();
 
-    const mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.classList.contains("scroll-reveal")) {
-            observer.observe(node);
-          }
-          observeWithin(node);
-        });
-      });
-    });
-
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
-
-    // Safety fallback timer so cards never get stuck at opacity: 0
+    // Secondary check after short delay to catch dynamic components
     const timer = setTimeout(() => {
-      document
-        .querySelectorAll(".scroll-reveal:not(.visible)")
-        .forEach((el) => {
-          el.classList.add("visible");
-        });
-    }, 600);
+      observeAll();
+      // Ensure all elements become visible as safety fallback
+      document.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
+        el.classList.add("visible");
+      });
+    }, 400);
 
     return () => {
       clearTimeout(timer);
       observer.disconnect();
-      mutationObserver.disconnect();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

@@ -23,7 +23,7 @@ export function CategoryFilterPanel({
     categories.length > 0 && selectedCategoryIds.size === categories.length;
 
   return (
-    <div className="absolute top-6 left-6 z-20 hidden md:flex w-full max-w-[280px] flex-col gap-3">
+    <div className="absolute top-20 left-6 z-20 hidden md:flex w-full max-w-[280px] flex-col gap-3">
       <div className="glass-panel border-outline-variant/30 overflow-hidden rounded-2xl border shadow-xl transition-all duration-300">
         {/* Header bar */}
         <div className="border-outline-variant/20 flex items-center justify-between border-b p-4">

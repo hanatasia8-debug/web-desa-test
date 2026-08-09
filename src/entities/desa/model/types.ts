@@ -2,6 +2,8 @@ export interface VillageOfficialDto {
   name: string;
   position: string;
   photo: string;
+  greeting?: string;
+  email?: string;
 }
 
 export interface VillageProfileDto {

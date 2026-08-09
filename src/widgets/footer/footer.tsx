@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/shared/ui/icon";
 import { SettingsService } from "@/entities/settings/api/settings.service";
+import { cn } from "@/shared/utils/cn";
 
 const CACHE_KEY = "pringgodani_site_settings";
 
@@ -28,6 +30,8 @@ const DEFAULT_SETTINGS: FooterSettings = {
 
 export function Footer() {
   const [settings, setSettings] = useState<FooterSettings>(DEFAULT_SETTINGS);
+  const pathname = usePathname();
+  const isMapPage = pathname === "/peta";
 
   useEffect(() => {
     // 1. Read from localStorage immediately if available (0ms)
@@ -44,14 +48,15 @@ export function Footer() {
     SettingsService.getAll()
       .then((res) => {
         if (res && res.settings) {
+          const s = res.settings as Record<string, string | undefined>;
           const fresh: FooterSettings = {
-            contactEmail: res.settings.contact_email || DEFAULT_SETTINGS.contactEmail,
-            contactPhone: res.settings.contact_phone || DEFAULT_SETTINGS.contactPhone,
-            contactAddress: res.settings.address || DEFAULT_SETTINGS.contactAddress,
-            socialFacebook: res.settings.social_facebook || DEFAULT_SETTINGS.socialFacebook,
-            socialInstagram: res.settings.social_instagram || DEFAULT_SETTINGS.socialInstagram,
-            socialYoutube: res.settings.social_youtube || DEFAULT_SETTINGS.socialYoutube,
-            socialTiktok: res.settings.social_tiktok || DEFAULT_SETTINGS.socialTiktok,
+            contactEmail: s.contact_email || DEFAULT_SETTINGS.contactEmail,
+            contactPhone: s.contact_phone || DEFAULT_SETTINGS.contactPhone,
+            contactAddress: s.address || DEFAULT_SETTINGS.contactAddress,
+            socialFacebook: s.social_facebook || DEFAULT_SETTINGS.socialFacebook,
+            socialInstagram: s.social_instagram || DEFAULT_SETTINGS.socialInstagram,
+            socialYoutube: s.social_youtube || DEFAULT_SETTINGS.socialYoutube,
+            socialTiktok: s.social_tiktok || DEFAULT_SETTINGS.socialTiktok,
           };
 
           setSettings(fresh);
@@ -70,7 +75,12 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="bg-surface-container-highest border-outline-variant mt-stack-lg border-t">
+    <footer
+      className={cn(
+        "bg-surface-container-highest border-outline-variant mt-stack-lg border-t",
+        isMapPage && "hidden md:block",
+      )}
+    >
       <div className="max-w-container-max gap-gutter px-gutter py-section-padding mx-auto grid grid-cols-1 md:grid-cols-2">
         {/* Kolom Kiri: Kontak Kami */}
         <div>

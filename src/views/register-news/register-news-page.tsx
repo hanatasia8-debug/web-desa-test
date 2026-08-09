@@ -17,6 +17,7 @@ import { useRegisterNewsDraft } from "@/features/register-news/model/use-registe
 import { SubmitBeritaForm } from "@/views/submit-berita/submit-berita-form";
 import { SubmitBeritaPreview } from "@/views/submit-berita-preview/submit-berita-preview";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
+import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
 import axios from "axios";
 
 interface RegisterNewsPageProps {
@@ -25,16 +26,23 @@ interface RegisterNewsPageProps {
 
 export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
   const router = useRouter();
-  const { formData, setFormData, clearDraft } = useRegisterNewsDraft();
+  const { pendingSubmission, savePendingSubmission } = useSubmissionTracker("NEWS");
+  const {
+    formData,
+    setFormData,
+    coverFile,
+    setCoverFile,
+    blockFiles,
+    setBlockFile,
+    galleryFiles,
+    setGalleryFile,
+    clearDraft,
+  } = useRegisterNewsDraft();
 
-  const [activeStep, setActiveStep] = useState<1 | 2>(1); // 1: Formulir, 2: Pratinjau
+  const [activeStep, setActiveStep] = useState<1 | 2>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [blockFiles, setBlockFiles] = useState<Record<number, File>>({});
-  const [galleryFiles, setGalleryFiles] = useState<Record<number, File>>({});
 
   const uploadSingleFile = async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -84,11 +92,7 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       "blocks",
       currentBlocks.filter((_, i) => i !== index),
     );
-    setBlockFiles((prev) => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
+    setBlockFile(index, null);
   };
 
   const handleBlockChange = (index: number, field: string, value: any) => {
@@ -115,11 +119,7 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       "galleryImages",
       currentGallery.filter((_, i) => i !== index),
     );
-    setGalleryFiles((prev) => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
+    setGalleryFile(index, null);
   };
 
   const handleGalleryImageChange = (
@@ -241,7 +241,10 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
         } as any),
       };
 
-      await BeritaService.submit(finalPayload as any);
+      const result = await BeritaService.submit(finalPayload as any);
+      if (result?.id) {
+        savePendingSubmission(result.id, result.title || formData.title || "Berita Baru");
+      }
       clearDraft();
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -367,6 +370,7 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           formData={formData}
           categories={categories}
           errors={errors}
+          pendingSubmission={pendingSubmission}
           onChange={handleChange}
           onAddBlock={handleAddBlock}
           onRemoveBlock={handleRemoveBlock}
@@ -377,12 +381,8 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           onClearDraft={clearDraft}
           onSubmitStep={handleGoToPreview}
           onSetCoverFile={setCoverFile}
-          onSetBlockFile={(idx, file) =>
-            setBlockFiles((prev) => ({ ...prev, [idx]: file }))
-          }
-          onSetGalleryFile={(idx, file) =>
-            setGalleryFiles((prev) => ({ ...prev, [idx]: file }))
-          }
+          onSetBlockFile={setBlockFile}
+          onSetGalleryFile={setGalleryFile}
         />
       )}
 

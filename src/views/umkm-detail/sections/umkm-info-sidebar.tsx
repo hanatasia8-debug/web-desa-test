@@ -23,24 +23,24 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <Icon name="phone" className="text-secondary" />
-            <div>
+            <Icon name="phone" className="text-secondary shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
               <p className="font-label-sm text-label-sm text-on-surface-variant">
                 WhatsApp
               </p>
-              <p className="font-body-base text-body-base font-semibold">
+              <p className="font-body-base text-body-base font-semibold break-words">
                 {formatWhatsappNumber(umkm.whatsappNumber)}
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <Icon name="location_on" className="text-secondary" />
-            <div>
+            <Icon name="location_on" className="text-secondary shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
               <p className="font-label-sm text-label-sm text-on-surface-variant">
                 Alamat Usaha
               </p>
-              <p className="font-body-base text-body-base font-semibold">
+              <p className="font-body-base text-body-base font-semibold break-words">
                 {umkm.address}
               </p>
             </div>
@@ -58,6 +58,7 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
         latitude={umkm.latitude}
         longitude={umkm.longitude}
         placeName={umkm.name}
+        addressUrl={umkm.addressUrl}
       />
     </div>
   );

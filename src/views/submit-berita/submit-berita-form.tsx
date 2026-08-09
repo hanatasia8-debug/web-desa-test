@@ -6,10 +6,14 @@ import { Icon } from "@/shared/ui/icon";
 import type { NewsCategoryDto } from "@/entities/berita/model/types";
 import type { RegisterNewsDTO } from "@/entities/berita/model/register-news.schema";
 
+import { PendingStatusCard } from "@/features/submission-tracker/ui/pending-status-card";
+import type { PendingSubmissionState } from "@/features/submission-tracker/model/use-submission-tracker";
+
 interface SubmitBeritaFormProps {
   formData: Partial<RegisterNewsDTO>;
   categories: NewsCategoryDto[];
   errors: Record<string, string>;
+  pendingSubmission?: PendingSubmissionState | null;
   onChange: (field: keyof RegisterNewsDTO, value: any) => void;
   onAddBlock: () => void;
   onRemoveBlock: (index: number) => void;
@@ -20,15 +24,16 @@ interface SubmitBeritaFormProps {
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
   hideSidebar?: boolean;
-  onSetCoverFile?: (file: File) => void;
-  onSetBlockFile?: (index: number, file: File) => void;
-  onSetGalleryFile?: (index: number, file: File) => void;
+  onSetCoverFile?: (file: File | null) => void;
+  onSetBlockFile?: (index: number, file: File | null) => void;
+  onSetGalleryFile?: (index: number, file: File | null) => void;
 }
 
 export function SubmitBeritaForm({
   formData,
   categories,
   errors,
+  pendingSubmission,
   onChange,
   onAddBlock,
   onRemoveBlock,
@@ -341,7 +346,10 @@ export function SubmitBeritaForm({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onChange("coverUrl", "")}
+                    onClick={() => {
+                      if (onSetCoverFile) onSetCoverFile(null);
+                      onChange("coverUrl", "");
+                    }}
                     className="bg-error flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-md hover:bg-red-700"
                   >
                     <Icon name="delete" className="text-sm" /> Hapus
@@ -357,9 +365,7 @@ export function SubmitBeritaForm({
                     : "border-outline-variant hover:border-primary bg-surface-container-lowest hover:bg-surface-container-low"
                 }`}
               >
-                <span className="material-symbols-outlined text-outline mb-2 text-[48px]">
-                  cloud_upload
-                </span>
+                <Icon name="upload" className="text-outline mb-2 text-[48px]" />
                 <p className="text-on-surface font-label-sm text-label-sm font-bold">
                   Klik untuk unggah foto cover utama
                 </p>
@@ -565,27 +571,8 @@ export function SubmitBeritaForm({
             </ul>
           </div>
 
-          {/* Status Pengajuan Terakhir */}
-          <div className="bg-surface-container-high border-outline-variant/20 rounded-xl border p-6 shadow-sm">
-            <h4 className="font-headline-md text-on-surface mb-3 text-xs font-bold tracking-wider uppercase">
-              Status Pengajuan Terakhir Anda
-            </h4>
-            <div className="space-y-3">
-              <div className="bg-surface-container-lowest border-outline-variant/10 flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="text-on-surface text-xs font-bold">
-                    Kerja Bakti Dusun Krajan
-                  </p>
-                  <p className="text-on-surface-variant text-[11px]">
-                    Diajukan kemarin
-                  </p>
-                </div>
-                <span className="font-badge-xs rounded bg-[#F59E0B]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#F59E0B] uppercase">
-                  Pending
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Status Pengajuan Terakhir Real Data */}
+          <PendingStatusCard type="NEWS" />
         </div>
       )}
     </div>
@@ -699,7 +686,10 @@ function ArticleBlockItemUpload({
               </button>
               <button
                 type="button"
-                onClick={() => onChange("imageUrl", "")}
+                onClick={() => {
+                  if (onSetFile) onSetFile(null as any);
+                  onChange("imageUrl", "");
+                }}
                 className="bg-error rounded p-1 text-xs text-white"
               >
                 <Icon name="delete" className="text-xs" />

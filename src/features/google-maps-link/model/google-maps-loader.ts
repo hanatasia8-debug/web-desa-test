@@ -81,7 +81,7 @@ export function loadGoogleMapsSDK(
     script.id = scriptId;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries.join(
       ",",
-    )}&v=weekly&callback=${callbackName}`;
+    )}&v=weekly&loading=async&callback=${callbackName}`;
     script.async = true;
     script.defer = true;
 

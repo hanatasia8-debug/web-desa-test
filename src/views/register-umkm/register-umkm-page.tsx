@@ -18,22 +18,31 @@ import { SubmitUmkmForm } from "@/views/submit-umkm/submit-umkm-form";
 import { SubmitUmkmPreview } from "@/views/submit-umkm-preview/submit-umkm-preview";
 import axios from "axios";
 
+import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
+
 interface RegisterUmkmPageProps {
   categories: UmkmCategoryDto[];
 }
 
 export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   const router = useRouter();
-  const { formData, setFormData, clearDraft } = useRegisterUmkmDraft();
+  const { pendingSubmission, savePendingSubmission } = useSubmissionTracker("UMKM");
+  const {
+    formData,
+    setFormData,
+    coverFile,
+    setCoverFile,
+    productFiles,
+    setProductFile,
+    galleryFiles,
+    setGalleryFile,
+    clearDraft,
+  } = useRegisterUmkmDraft();
 
-  const [activeStep, setActiveStep] = useState<1 | 2>(1); // 1: Formulir, 2: Pratinjau
+  const [activeStep, setActiveStep] = useState<1 | 2>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [productFiles, setProductFiles] = useState<Record<number, File>>({});
-  const [galleryFiles, setGalleryFiles] = useState<Record<number, File>>({});
 
   const uploadSingleFile = async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -78,11 +87,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
       "products",
       currentProducts.filter((_, i) => i !== index),
     );
-    setProductFiles((prev) => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
+    setProductFile(index, null);
   };
 
   const handleProductChange = (index: number, field: string, value: any) => {
@@ -196,7 +201,10 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
         galleries: finalGalleries,
       };
 
-      await UmkmService.register(finalPayload as any);
+      const result = await UmkmService.register(finalPayload as any);
+      if (result?.id) {
+        savePendingSubmission(result.id, result.name || formData.name || "UMKM Baru");
+      }
       clearDraft();
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -250,7 +258,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   };
 
   return (
-    <div className="px-gutter mx-auto mt-24 max-w-4xl pb-20">
+    <div className="max-w-container-max px-gutter mx-auto mt-24 pb-20">
       {/* Header */}
       <header className="mb-8 text-center">
         <span className="bg-primary/10 text-primary mb-2 inline-block rounded-full px-3 py-1 text-xs font-bold tracking-wider uppercase">
@@ -318,6 +326,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
           formData={formData}
           categories={categories}
           errors={errors}
+          pendingSubmission={pendingSubmission}
           onChange={handleChange}
           onAddProduct={handleAddProduct}
           onRemoveProduct={handleRemoveProduct}
@@ -325,12 +334,8 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
           onClearDraft={clearDraft}
           onSubmitStep={handleGoToPreview}
           onSetCoverFile={setCoverFile}
-          onSetProductFile={(idx, file) =>
-            setProductFiles((prev) => ({ ...prev, [idx]: file }))
-          }
-          onSetGalleryFile={(idx, file) =>
-            setGalleryFiles((prev) => ({ ...prev, [idx]: file }))
-          }
+          onSetProductFile={setProductFile}
+          onSetGalleryFile={setGalleryFile}
         />
       )}
 

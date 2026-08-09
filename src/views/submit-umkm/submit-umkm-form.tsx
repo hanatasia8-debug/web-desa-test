@@ -5,28 +5,31 @@ import React, { useRef } from "react";
 import { Icon } from "@/shared/ui/icon";
 import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 import type { RegisterUmkmDTO } from "@/entities/umkm/model/register-umkm.schema";
-import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
+import { PendingStatusCard } from "@/features/submission-tracker/ui/pending-status-card";
+import type { PendingSubmissionState } from "@/features/submission-tracker/model/use-submission-tracker";
 
 interface SubmitUmkmFormProps {
   formData: Partial<RegisterUmkmDTO>;
   categories: UmkmCategoryDto[];
   errors: Record<string, string>;
+  pendingSubmission?: PendingSubmissionState | null;
   onChange: (field: keyof RegisterUmkmDTO, value: any) => void;
   onAddProduct: () => void;
   onRemoveProduct: (index: number) => void;
   onProductChange: (index: number, field: string, value: any) => void;
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
-  onSetCoverFile?: (file: File) => void;
-  onSetProductFile?: (index: number, file: File) => void;
-  onSetGalleryFile?: (index: number, file: File) => void;
+  onSetCoverFile?: (file: File | null) => void;
+  onSetProductFile?: (index: number, file: File | null) => void;
+  onSetGalleryFile?: (index: number, file: File | null) => void;
 }
 
 export function SubmitUmkmForm({
   formData,
   categories,
   errors,
+  pendingSubmission,
   onChange,
   onAddProduct,
   onRemoveProduct,
@@ -130,7 +133,9 @@ export function SubmitUmkmForm({
         </button>
       </div>
 
-      <form onSubmit={onSubmitStep} className="space-y-8" noValidate>
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+        <div className="space-y-8 lg:col-span-7">
+          <form onSubmit={onSubmitStep} className="space-y-8" noValidate>
         {/* SEKSI 1: IDENTITAS USAHA */}
         <div>
           <h3 className="font-headline-md text-headline-md text-primary border-outline-variant/20 mb-4 flex items-center gap-2 border-b pb-2">
@@ -417,11 +422,10 @@ export function SubmitUmkmForm({
           </div>
         </div>
 
-        {/* SEKSI 3: LOKASI & PETA INTERAKTIF */}
+        {/* SEKSI 3: LOKASI USAHA & GOOGLE MAPS LINK */}
         <div>
           <h3 className="font-headline-md text-headline-md text-primary border-outline-variant/20 mb-4 flex items-center gap-2 border-b pb-2">
-            <Icon name="location_on" className="text-primary text-xl" /> Lokasi
-            Usaha
+            <Icon name="location_on" className="text-primary text-xl" /> Lokasi Usaha
           </h3>
 
           <div className="space-y-4">
@@ -449,61 +453,29 @@ export function SubmitUmkmForm({
               )}
             </div>
 
-            {/* Google Maps Pinpoint Preview / Coordinates Tracker */}
-            <div className="space-y-2">
-              <label className="font-label-sm text-on-surface-variant">
-                Lokasi Usaha di Peta (Pratinjau Pin)
-              </label>
-
-              {/* Interactive Map Preview Canvas */}
-              <div className="border-outline-variant/30 relative mt-2 h-48 overflow-hidden rounded-lg border shadow-inner">
-                <GoogleMapCanvas
-                  locations={[
-                    {
-                      id: "temp-pin",
-                      mapCategoryId: "cat-1",
-                      name: formData.name || "Lokasi UMKM",
-                      shortDescription: formData.address || "Desa Pringgodani",
-                      imageUrl: formData.coverUrl || null,
-                      address: formData.address || null,
-                      latitude: Number(formData.latitude) || -8.2811,
-                      longitude: Number(formData.longitude) || 112.5664,
-                      category: {
-                        id: "cat-1",
-                        name: "UMKM",
-                        slug: "umkm",
-                        icon: "storefront",
-                        color: "#006399",
-                      },
-                    },
-                  ]}
-                  selectedLocation={null}
-                  onSelectLocation={() => {}}
-                />
-              </div>
-            </div>
-
+            {/* Link Google Maps */}
             <div className="space-y-1.5">
               <label className="font-label-sm text-on-surface-variant">
-                Link Google Maps (Share Link / Place ID)
+                Link Google Maps Lokasi Usaha (Opsional)
               </label>
-              <input
-                type="url"
-                value={formData.googlePlaceId || ""}
-                onChange={(e) => {
-                  const url = e.target.value;
-                  onChange("googlePlaceId", url);
-                  const { lat, lng } = extractCoordinatesFromUrl(url);
-                  onChange("latitude", lat);
-                  onChange("longitude", lng);
-                }}
-                placeholder="https://maps.app.goo.gl/..."
-                className="text-body-base text-on-surface focus:ring-primary/20 w-full rounded-lg border-none bg-[#F1F5F9] p-3 focus:ring-2"
-              />
-              <p className="text-on-surface-variant/70 text-[11px] italic">
-                Tempelkan link lokasi Google Maps agar pembeli dapat langsung
-                menavigasi dengan sangat presisi. Koordinat peta akan terisi
-                otomatis.
+              <div className="relative">
+                <input
+                  type="url"
+                  value={formData.googlePlaceId || ""}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    onChange("googlePlaceId", url);
+                    const { lat, lng } = extractCoordinatesFromUrl(url);
+                    if (lat) onChange("latitude", lat);
+                    if (lng) onChange("longitude", lng);
+                  }}
+                  placeholder="https://maps.app.goo.gl/..."
+                  className="text-body-base text-on-surface focus:ring-primary/20 w-full rounded-lg border-none bg-[#F1F5F9] p-3 pl-10 focus:ring-2"
+                />
+                <Icon name="link" className="text-on-surface-variant absolute top-3.5 left-3 text-lg" />
+              </div>
+              <p className="text-on-surface-variant/80 text-xs italic leading-relaxed">
+                💡 <strong>Cara mudah mendapatkan link:</strong> Buka aplikasi Google Maps di HP &rarr; Cari toko/lokasi Anda &rarr; Tekan tombol <strong>Bagikan (Share)</strong> &rarr; Salin Link lalu tempelkan di sini.
               </p>
             </div>
           </div>
@@ -562,7 +534,10 @@ export function SubmitUmkmForm({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onChange("coverUrl", "")}
+                      onClick={() => {
+                        if (onSetCoverFile) onSetCoverFile(null);
+                        onChange("coverUrl", "");
+                      }}
                       className="bg-error flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-md hover:bg-red-700"
                     >
                       <Icon name="delete" className="text-sm" /> Hapus
@@ -709,7 +684,60 @@ export function SubmitUmkmForm({
           </button>
         </div>
       </form>
-    </section>
+      </div>
+
+      {/* RIGHT COLUMN: SIDEBAR GUIDELINES & STATUS */}
+      <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-5">
+        {/* Panduan Pendaftaran */}
+        <div className="bg-primary-container text-on-primary-container rounded-xl p-6 shadow-sm">
+          <h4 className="font-headline-md text-label-sm mb-4 flex items-center gap-2 font-bold tracking-wider uppercase">
+            <Icon name="gavel" className="text-lg" /> Panduan Pendaftaran UMKM
+          </h4>
+          <ul className="font-body-base space-y-3 text-xs leading-relaxed">
+            <li className="flex gap-2.5">
+              <Icon
+                name="check_circle"
+                className="text-on-primary-container/80 shrink-0 text-base"
+              />
+              <span>
+                Gunakan nama usaha yang jelas dan sesuai lokasi di Desa Pringgodani.
+              </span>
+            </li>
+            <li className="flex gap-2.5">
+              <Icon
+                name="check_circle"
+                className="text-on-primary-container/80 shrink-0 text-base"
+              />
+              <span>
+                Pastikan nomor HP/WhatsApp aktif agar pembeli dan admin desa dapat menghubungi Anda.
+              </span>
+            </li>
+            <li className="flex gap-2.5">
+              <Icon
+                name="check_circle"
+                className="text-on-primary-container/80 shrink-0 text-base"
+              />
+              <span>
+                Unggah foto produk & sampul dengan pencahayaan yang terang.
+              </span>
+            </li>
+            <li className="flex gap-2.5">
+              <Icon
+                name="check_circle"
+                className="text-on-primary-container/80 shrink-0 text-base"
+              />
+              <span>
+                Admin desa akan meninjau setiap pengajuan sebelum dipublikasikan (Maks 24 Jam).
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Status Pengajuan Terakhir Real Data */}
+        <PendingStatusCard type="UMKM" />
+      </div>
+    </div>
+  </section>
   );
 }
 
@@ -774,7 +802,10 @@ function GalleryItemUpload({
             </button>
             <button
               type="button"
-              onClick={onRemove}
+              onClick={() => {
+                if (onSetFile) onSetFile(null as any);
+                onRemove();
+              }}
               className="bg-error rounded-full p-1.5 text-xs text-white hover:bg-red-700"
               title="Hapus Foto"
             >
@@ -892,7 +923,10 @@ function ProductItemUpload({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onChange("imageUrl", "")}
+                  onClick={() => {
+                    if (onSetFile) onSetFile(null as any);
+                    onChange("imageUrl", "");
+                  }}
                   className="bg-error rounded p-1 text-xs text-white"
                 >
                   <Icon name="delete" className="text-xs" />

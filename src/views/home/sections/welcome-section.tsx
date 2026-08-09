@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import type { VillageProfileDto } from "@/entities/desa/model/types";
+import { useVillageProfile } from "@/features/village-profile/model/use-village-profile";
 
 interface WelcomeSectionProps {
   profile: VillageProfileDto | null;
 }
 
-export function WelcomeSection({ profile }: WelcomeSectionProps) {
+export function WelcomeSection({ profile: initialProfile }: WelcomeSectionProps) {
+  const profile = useVillageProfile(initialProfile);
   if (!profile) {
     // Empty state — VillageProfile hasn't been filled in by an admin yet.
     return (

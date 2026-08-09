@@ -9,7 +9,6 @@ import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
 import axios from "axios";
 import type { ApiSuccessBody } from "@/shared/api/response";
-import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 
 interface ProductInput {
   name: string;
@@ -30,6 +29,7 @@ export function AdminUmkmEditor({
   const [categoryName, setCategoryName] = useState("Kuliner");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [addressUrl, setAddressUrl] = useState("");
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<UmkmStatus>("APPROVED");
@@ -212,6 +212,7 @@ export function AdminUmkmEditor({
         categoryName,
         phone,
         address,
+        addressUrl,
         coverUrl: finalCoverUrl,
         status,
         products,
@@ -440,63 +441,21 @@ export function AdminUmkmEditor({
 
           <div>
             <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              Pin Point Koordinat Lokasi
+              Link Google Maps Lokasi Usaha (Opsional)
             </label>
-            <div className="border-outline-variant/30 mb-2 h-72 w-full overflow-hidden rounded-2xl border">
-              <GoogleMapCanvas
-                locations={[
-                  {
-                    id: "temp-pin",
-                    mapCategoryId: "cat-1",
-                    name: name || "Lokasi UMKM",
-                    shortDescription: address || "Desa Pringgodani",
-                    imageUrl: coverUrl || null,
-                    address: address || null,
-                    latitude: Number(latitude) || -8.2811,
-                    longitude: Number(longitude) || 112.5664,
-                    category: {
-                      id: "cat-1",
-                      name: "UMKM",
-                      slug: "umkm",
-                      icon: "storefront",
-                      color: "#0284c7",
-                    },
-                  },
-                ]}
-                selectedLocation={null}
-                onSelectLocation={() => {}}
-                onMapClick={(lat: number, lng: number) => {
-                  setLatitude(lat);
-                  setLongitude(lng);
-                }}
+            <div className="relative">
+              <input
+                type="url"
+                value={addressUrl}
+                onChange={(e) => setAddressUrl(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 pl-10 text-sm outline-none"
+                placeholder="https://maps.app.goo.gl/..."
               />
+              <Icon name="link" className="text-on-surface-variant absolute top-3.5 left-3 text-lg" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-on-surface-variant text-[11px] font-bold">
-                  Latitude
-                </span>
-                <input
-                  type="number"
-                  step="any"
-                  value={latitude}
-                  onChange={(e) => setLatitude(Number(e.target.value))}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
-                />
-              </div>
-              <div>
-                <span className="text-on-surface-variant text-[11px] font-bold">
-                  Longitude
-                </span>
-                <input
-                  type="number"
-                  step="any"
-                  value={longitude}
-                  onChange={(e) => setLongitude(Number(e.target.value))}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
-                />
-              </div>
-            </div>
+            <p className="text-on-surface-variant/70 mt-1.5 text-[11px] italic">
+              Salin link lokasi dari Google Maps untuk memudahkan calon pembeli bernavigasi langsung via GPS HP.
+            </p>
           </div>
 
           <div>
@@ -632,6 +591,27 @@ export function AdminUmkmEditor({
                   <Icon name="chat" className="text-sm" /> Hubungi
                 </span>
               </div>
+
+              {addressUrl && (
+                <div className="bg-surface-container border-outline-variant/30 flex items-center justify-between rounded-2xl border p-4">
+                  <div className="overflow-hidden pr-2">
+                    <p className="text-on-surface-variant text-xs font-bold">
+                      Lokasi Google Maps
+                    </p>
+                    <p className="text-primary font-mono text-xs font-semibold truncate max-w-[200px]">
+                      {addressUrl}
+                    </p>
+                  </div>
+                  <a
+                    href={addressUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-primary text-on-primary flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold shrink-0 hover:bg-primary/90 transition shadow-sm"
+                  >
+                    <Icon name="open_in_new" className="text-sm" /> Buka Maps
+                  </a>
+                </div>
+              )}
 
               <div className="text-on-surface-variant border-t pt-4 text-sm leading-relaxed">
                 {description || "Deskripsi usaha belum diisi..."}

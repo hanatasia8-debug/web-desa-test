@@ -11,7 +11,7 @@ import { Icon } from "@/shared/ui/icon";
 export function UmkmPromoSection() {
   return (
     <section className="mt-section-padding max-w-container-max px-gutter mx-auto">
-      <div className="bg-primary scroll-reveal relative flex flex-col items-center justify-between gap-8 overflow-hidden rounded-2xl p-8 md:flex-row md:p-12">
+      <div suppressHydrationWarning className="bg-primary scroll-reveal relative flex flex-col items-center justify-between gap-8 overflow-hidden rounded-2xl p-8 md:flex-row md:p-12">
         <div className="relative z-10 md:max-w-xl">
           <h2 className="font-headline-lg text-headline-lg text-on-primary mb-4">
             Punya Usaha di Pringgodani?
