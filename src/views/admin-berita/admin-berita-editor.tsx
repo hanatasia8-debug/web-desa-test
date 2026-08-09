@@ -18,6 +18,12 @@ interface ContentBlockInput {
   imageUrl: string;
 }
 
+interface NewsCategoryLocal {
+  id: string | number;
+  name: string;
+  slug: string;
+}
+
 interface AdminNewsDetail {
   title?: string;
   categoryName?: string;
@@ -47,7 +53,7 @@ export function AdminBeritaEditor({
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [categories, setCategories] = useState<Record<string, unknown>[]>([]);
+  const [categories, setCategories] = useState<NewsCategoryLocal[]>([]);
   const [newsCategoryId, setNewsCategoryId] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<NewsStatus>("PUBLISHED");
@@ -254,7 +260,7 @@ export function AdminBeritaEditor({
           newsId,
           payload as unknown as Parameters<
             typeof AdminNewsService.updateNews
-          >[0],
+          >[1],
         );
       }
       clearDraft();

@@ -74,11 +74,6 @@ export function SubmitUmkmForm({
       "galleries",
       currentGalleries.filter((_, i) => i !== index),
     );
-    setGalleryFiles((prev) => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
   };
 
   const handleGalleryChange = (index: number, value: string) => {
