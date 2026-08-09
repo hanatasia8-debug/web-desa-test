@@ -11,16 +11,23 @@ import { UmkmCard } from "@/entities/umkm/ui/umkm-card";
 
 interface SubmitUmkmPreviewProps {
   previewDetailDto: UmkmDetailDto;
-  isSubmitting: boolean;
-  onBackToEdit: () => void;
-  onFinalSubmit: () => void;
+  isSubmitting?: boolean;
+  onBackToEdit?: () => void;
+  onFinalSubmit?: () => void;
+  /**
+   * When true, hides the "Ubah Isian"/"Kirim Pendaftaran UMKM" submit-flow
+   * controls. Used when reused as a read-only preview outside the submit
+   * flow (e.g. the admin Pengajuan review modal).
+   */
+  readOnly?: boolean;
 }
 
 export function SubmitUmkmPreview({
   previewDetailDto,
-  isSubmitting,
+  isSubmitting = false,
   onBackToEdit,
   onFinalSubmit,
+  readOnly = false,
 }: SubmitUmkmPreviewProps) {
   return (
     <section className="animate-in fade-in space-y-6 duration-300">
@@ -30,12 +37,14 @@ export function SubmitUmkmPreview({
           <Icon name="visibility" className="text-primary text-lg" />
           <span>Mode Pratinjau: Tampilan Profil Halaman Detail UMKM Anda</span>
         </div>
-        <button
-          onClick={onBackToEdit}
-          className="text-primary flex items-center gap-1 text-xs font-bold hover:underline"
-        >
-          <Icon name="edit" className="text-sm" /> Ubah Isian
-        </button>
+        {!readOnly && (
+          <button
+            onClick={onBackToEdit}
+            className="text-primary flex items-center gap-1 text-xs font-bold hover:underline"
+          >
+            <Icon name="edit" className="text-sm" /> Ubah Isian
+          </button>
+        )}
       </div>
 
       {/* EXACT RENDER OF UmkmDetailPage UI COMPONENTS */}
@@ -76,35 +85,37 @@ export function SubmitUmkmPreview({
       </div>
 
       {/* STEP 2 BOTTOM ACTIONS */}
-      <div className="border-outline-variant/30 flex justify-between gap-4 border-t pt-6">
-        <button
-          type="button"
-          onClick={onBackToEdit}
-          className="border-outline-variant text-on-surface-variant hover:bg-surface-container flex items-center gap-2 rounded-full border px-8 py-3 font-bold transition-all"
-        >
-          <Icon name="arrow_back" className="text-lg" />
-          <span>Kembali Edit</span>
-        </button>
+      {!readOnly && (
+        <div className="border-outline-variant/30 flex justify-between gap-4 border-t pt-6">
+          <button
+            type="button"
+            onClick={onBackToEdit}
+            className="border-outline-variant text-on-surface-variant hover:bg-surface-container flex items-center gap-2 rounded-full border px-8 py-3 font-bold transition-all"
+          >
+            <Icon name="arrow_back" className="text-lg" />
+            <span>Kembali Edit</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={onFinalSubmit}
-          disabled={isSubmitting}
-          className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-10 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
-        >
-          {isSubmitting ? (
-            <>
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              <span>Mengirim Pengajuan...</span>
-            </>
-          ) : (
-            <>
-              <Icon name="send" className="text-lg" />
-              <span>Kirim Pendaftaran UMKM</span>
-            </>
-          )}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onFinalSubmit}
+            disabled={isSubmitting}
+            className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-10 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span>Mengirim Pengajuan...</span>
+              </>
+            ) : (
+              <>
+                <Icon name="send" className="text-lg" />
+                <span>Kirim Pendaftaran UMKM</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
