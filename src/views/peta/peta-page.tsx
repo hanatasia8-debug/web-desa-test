@@ -11,6 +11,8 @@ import { MapLegend } from "./sections/map-legend";
 import { MapControls } from "./sections/map-controls";
 import { Icon } from "@/shared/ui/icon";
 
+import { cn } from "@/shared/utils/cn";
+
 interface PetaPageProps {
   initialLocations: MapLocationDto[];
   categories: MapCategoryDto[];
@@ -111,10 +113,56 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
   }, []);
 
   return (
-    <div className="bg-surface-container-low relative h-[calc(100vh-64px)] w-full overflow-hidden pt-16">
-      {/* Top Search Overlay */}
-      <div className="absolute top-4 right-6 z-20 hidden md:block">
-        <div className="glass-panel border-outline-variant/30 focus-within:ring-primary/20 flex w-72 items-center gap-2 rounded-full border px-4 py-2 shadow-lg transition-all focus-within:ring-2">
+    <div className="bg-surface-container-low relative h-[calc(100vh-64px)] w-full overflow-hidden pt-16 md:pt-0">
+      {/* Overlay Atas Khusus Mobile (Search + Horizontal Chips Kategori) */}
+      <div className="absolute top-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b px-4 py-3 flex flex-col gap-3 md:hidden shadow-sm">
+        {/* Search Bar Mobile */}
+        <div className="border-outline-variant/30 bg-surface flex items-center gap-2 rounded-full border px-4 py-2">
+          <Icon name="search" className="text-on-surface-variant text-base" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari fasilitas desa..."
+            className="text-on-surface w-full border-none bg-transparent text-sm focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-on-surface-variant hover:text-on-surface text-xs font-bold"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Horizontal Chips Kategori Mobile */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory whitespace-nowrap pb-1">
+          {categories.map((cat) => {
+            const isSelected = selectedCategoryIds.has(cat.id);
+            const color = cat.color || "#006399";
+            return (
+              <button
+                key={cat.id}
+                onClick={() => handleToggleCategory(cat.id)}
+                className={cn(
+                  "font-label-sm text-xs rounded-full px-3 py-1.5 flex items-center gap-1.5 border transition-all duration-200 snap-center flex-shrink-0",
+                  isSelected
+                    ? "bg-primary text-on-primary font-semibold border-primary shadow-sm"
+                    : "bg-white text-on-surface-variant border-outline-variant hover:bg-surface-container-low"
+                )}
+              >
+                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Overlay Atas Desktop (Search Bar Kanan Atas) */}
+      <div className="absolute top-6 right-6 z-20 hidden md:block">
+        <div className="glass-panel border-outline-variant/30 focus-within:ring-primary/20 flex w-72 items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg transition-all focus-within:ring-2">
           <Icon name="search" className="text-on-surface-variant text-lg" />
           <input
             type="text"
