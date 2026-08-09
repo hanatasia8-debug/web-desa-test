@@ -12,13 +12,13 @@ export default function AdminLoginPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    setTimeout(() => {
-      const result = AdminAuthService.login(username, password);
+    try {
+      const result = await AdminAuthService.login(username, password);
       setIsSubmitting(false);
 
       if (result.success) {
@@ -28,7 +28,10 @@ export default function AdminLoginPage() {
           result.message || "Gagal masuk. Periksa kembali kredensial Anda.",
         );
       }
-    }, 400);
+    } catch {
+      setIsSubmitting(false);
+      setErrorMsg("Terjadi kesalahan sistem saat mencoba masuk.");
+    }
   };
 
   return (

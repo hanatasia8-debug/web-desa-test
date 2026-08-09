@@ -22,19 +22,37 @@ function getBaseURL(): string {
     );
   }
 
-  // Client-side: dynamically resolve from current browser hostname
-  // e.g. if opened via 192.168.1.12:3001, API calls go to 192.168.1.12:3000
-  const protocol = window.location.protocol; // http: or https:
-  const hostname = window.location.hostname; // localhost or 192.168.x.x
-  return `${protocol}//${hostname}:${BACKEND_PORT}/api`;
+  // Client-side: use relative path /api to route through nextConfig rewrites (same-origin, preserving cookies)
+  return "/api";
 }
 
 export const apiClient = axios.create({
   baseURL: getBaseURL(),
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Interceptor to handle unauthorized access (401)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== "undefined") {
+        const SESSION_KEY = "pringgodani_admin_session";
+        localStorage.removeItem(SESSION_KEY);
+        document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
+        // Only redirect if we are not already on the login page
+        if (!window.location.pathname.startsWith("/admin/login")) {
+          window.location.href = "/admin/login";
+        }
+      }
+    }
+    return Promise.reject(error);
+  },
+);
 
 /** Zero Trust Architecture: Frontend strictly connects to backend REST API. */
 export const IS_API_CONNECTED = true;
