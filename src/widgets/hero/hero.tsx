@@ -1,25 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { BannerService } from "@/entities/banner/api/banner.service";
 
-/**
- * The prototype's hero (`beranda_desa_pringgodani_1/code.html`) uses a
- * single hardcoded background image — a static mockup can't demonstrate a
- * dynamic banner. Since the brief added a `Banner` model, this wires the
- * hero to the first active banner (by `order`) instead, falling back to a
- * neutral primary-colored background if none are configured yet. Layout,
- * copy, and both CTA buttons are unchanged from the prototype.
- */
-export async function Hero() {
-  let bannerImage: string | null = null;
+import { getCustomBanner } from "@/shared/utils/custom-banner-storage";
 
-  try {
-    const { items } = await BannerService.getActive();
-    bannerImage = items[0]?.imageUrl ?? null;
-  } catch {
-    // Banner service unavailable — fall back to the plain background below.
-  }
+export function Hero() {
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 1. Check if there's a custom banner set by the admin (using IndexedDB to bypass 5MB quota)
+    getCustomBanner()
+      .then((customUrl) => {
+        if (customUrl) {
+          setBannerImage(customUrl);
+        } else {
+          // 2. Fallback to active news banner
+          BannerService.getActive()
+            .then((res) => {
+              if (res && res.items && res.items.length > 0) {
+                setBannerImage(res.items[0].imageUrl);
+              }
+            })
+            .catch((err) => {
+              console.error("Gagal memuat banner dari API:", err);
+            });
+        }
+      });
+  }, []);
 
   return (
     <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">

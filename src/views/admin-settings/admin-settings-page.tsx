@@ -5,6 +5,7 @@ import { Icon } from "@/shared/ui/icon";
 import { AdminSettingsService } from "@/entities/admin/api/admin-settings.service";
 import type { AdminSettingsPayload } from "@/entities/admin/model/admin.types";
 import { FileUploadWithPreview } from "@/shared/ui/file-upload-with-preview";
+import { getCustomBanner, setCustomBanner, removeCustomBanner } from "@/shared/utils/custom-banner-storage";
 
 export function AdminSettingsPage() {
   const [formData, setFormData] = useState<AdminSettingsPayload>({
@@ -24,11 +25,20 @@ export function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [customBannerUrl, setCustomBannerUrl] = useState("");
 
   useEffect(() => {
     AdminSettingsService.getSettings()
       .then((data) => setFormData(data))
       .finally(() => setIsLoading(false));
+
+    getCustomBanner()
+      .then((url) => {
+        setCustomBannerUrl(url || "");
+      })
+      .catch((e) => {
+        console.warn("Gagal membaca custom banner dari IndexedDB:", e);
+      });
   }, []);
 
   const handleChange = (
@@ -44,6 +54,15 @@ export function AdminSettingsPage() {
 
     try {
       const res = await AdminSettingsService.updateSettings(formData);
+      try {
+        if (customBannerUrl) {
+          await setCustomBanner(customBannerUrl);
+        } else {
+          await removeCustomBanner();
+        }
+      } catch (e) {
+        console.error("Gagal menyimpan custom banner ke IndexedDB:", e);
+      }
       setToastMessage(res.message || "Pengaturan berhasil disimpan.");
       setTimeout(() => setToastMessage(null), 4000);
     } catch (err) {
@@ -113,7 +132,7 @@ export function AdminSettingsPage() {
               <input
                 type="text"
                 required
-                value={formData.website_name}
+                value={formData.website_name || ""}
                 onChange={(e) => handleChange("website_name", e.target.value)}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-bold outline-none"
               />
@@ -137,7 +156,7 @@ export function AdminSettingsPage() {
           <div className="grid grid-cols-1 gap-6 border-t pt-6 md:grid-cols-2">
             <FileUploadWithPreview
               label="Unggah Logo Resmi Desa"
-              value={formData.logo_url}
+              value={formData.logo_url || ""}
               onChange={(url) => handleChange("logo_url", url)}
               helperText="Format PNG / WEBP / JPG transparan (disarankan 512x512 px)."
               aspectRatio="square"
@@ -145,10 +164,20 @@ export function AdminSettingsPage() {
 
             <FileUploadWithPreview
               label="Unggah Favicon Browser (.ico / .png)"
-              value={formData.favicon_url}
+              value={formData.favicon_url || ""}
               onChange={(url) => handleChange("favicon_url", url)}
               helperText="Ikon tab browser web desa (disarankan 64x64 px)."
               aspectRatio="square"
+            />
+          </div>
+
+          <div className="border-t pt-6">
+            <FileUploadWithPreview
+              label="Unggah Gambar Banner Utama Beranda (Opsional)"
+              value={customBannerUrl}
+              onChange={(url) => setCustomBannerUrl(url)}
+              helperText="Jika diunggah, gambar ini akan menggantikan banner otomatis berita di beranda publik depan."
+              aspectRatio="banner"
             />
           </div>
         </div>
@@ -170,7 +199,7 @@ export function AdminSettingsPage() {
               <input
                 type="email"
                 required
-                value={formData.contact_email}
+                value={formData.contact_email || ""}
                 onChange={(e) => handleChange("contact_email", e.target.value)}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
               />
@@ -183,7 +212,7 @@ export function AdminSettingsPage() {
               <input
                 type="text"
                 required
-                value={formData.contact_phone}
+                value={formData.contact_phone || ""}
                 onChange={(e) => handleChange("contact_phone", e.target.value)}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 font-mono text-sm font-bold outline-none"
               />
@@ -197,7 +226,7 @@ export function AdminSettingsPage() {
             <textarea
               rows={2}
               required
-              value={formData.address}
+              value={formData.address || ""}
               onChange={(e) => handleChange("address", e.target.value)}
               className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none"
             />

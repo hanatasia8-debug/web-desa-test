@@ -21,6 +21,7 @@ export interface VillageProfileDto {
   vision: string;
   missions: string[];
   officials: VillageOfficialDto[];
+  structureImageUrl?: string;
 }
 
 export interface VillageStatsDto {

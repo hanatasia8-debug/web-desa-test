@@ -138,6 +138,21 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Info Banner Utama Beranda */}
+      <div className="border-secondary/20 bg-secondary/5 rounded-3xl border p-6 flex gap-4 items-start">
+        <div className="bg-secondary/10 text-secondary p-3 rounded-2xl flex items-center justify-center">
+          <Icon name="info" className="text-2xl" />
+        </div>
+        <div>
+          <h4 className="font-headline-md text-secondary text-base font-bold">
+            Informasi Pengelolaan Banner Utama Beranda
+          </h4>
+          <p className="text-on-surface-variant mt-2 text-sm leading-relaxed">
+            Gambar banner utama di halaman beranda depan diambil secara otomatis dari cover gambar berita terbaru yang berstatus <strong>PUBLISHED</strong>. Untuk mengubah gambar banner beranda, Anda cukup membuat/menerbitkan Berita Baru dengan gambar sampul (cover image) yang Anda inginkan.
+          </p>
+        </div>
+      </div>
+
       {/* Akses Cepat Modul Admin */}
       <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-8 shadow-sm">
         <div className="mb-6 flex items-center justify-between">
@@ -225,6 +240,24 @@ export default function AdminDashboardPage() {
             </p>
             <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
               Kelola Peta →
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/profil"
+            className="group border-outline-variant/30 bg-surface hover:bg-surface-container-high rounded-2xl border p-6 shadow-sm transition hover:shadow-md"
+          >
+            <div className="bg-secondary/10 text-secondary flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110">
+              <Icon name="assignment_ind" className="text-2xl" />
+            </div>
+            <h4 className="font-headline-md text-primary mt-4 text-base font-bold">
+              Profil & Perangkat Desa
+            </h4>
+            <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
+              Kelola sejarah, visi misi desa, serta jajaran perangkat desa dan struktur organisasi resmi.
+            </p>
+            <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
+              Kelola Profil & Perangkat →
             </span>
           </Link>
 

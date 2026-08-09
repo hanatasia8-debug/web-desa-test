@@ -24,9 +24,11 @@ export function NewsSection({ items }: NewsSectionProps) {
             Belum ada berita yang dipublikasikan.
           </p>
         ) : (
-          <div className="gap-gutter grid grid-cols-1 md:grid-cols-3">
+          <div className="flex gap-gutter overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible md:pb-0 scrollbar-hide snap-x snap-mandatory">
             {items.map((news) => (
-              <NewsCard key={news.id} news={news} />
+              <div key={news.id} className="w-[85vw] flex-shrink-0 md:w-auto snap-center">
+                <NewsCard news={news} />
+              </div>
             ))}
           </div>
         )}

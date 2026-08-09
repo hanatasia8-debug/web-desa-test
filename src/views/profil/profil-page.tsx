@@ -341,48 +341,31 @@ export function ProfilPage({
 
       <section className="bg-admin-surface py-section-padding border-outline-variant/10 border-y">
         <div className="max-w-container-max px-gutter mx-auto">
-          <div className="mb-16 text-center">
+          <div className="mb-12 text-center">
             <h2 className="font-headline-lg text-headline-lg text-primary mb-2">
               Struktur Pemerintahan
             </h2>
             <p className="text-on-surface-variant font-label-sm text-label-sm">
-              Sinergi kepemimpinan untuk kemajuan Desa Pringgodani.
+              Bagan tata kelola dan struktur organisasi resmi Pemerintah Desa Pringgodani.
             </p>
           </div>
 
-          <div className="relative overflow-x-auto pb-8">
-            <div className="flex min-w-[800px] flex-col items-center gap-12">
-              <div className="bg-primary text-on-primary relative rounded-[2rem] px-10 py-6 shadow-lg">
-                <p className="text-label-sm mb-2 uppercase opacity-70">
-                  Kepala Desa
-                </p>
-                <h3 className="font-headline-md">
-                  {profile?.headName ?? "Belum diisi"}
-                </h3>
-                <div className="bg-outline-variant absolute -bottom-12 left-1/2 h-12 w-px -translate-x-1/2" />
+          <div className="mx-auto max-w-4xl">
+            {profile?.structureImageUrl ? (
+              <div className="border-outline-variant/30 bg-white p-4 rounded-3xl border shadow-md">
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
+                  <FallbackImage
+                    src={profile.structureImageUrl}
+                    alt="Struktur Organisasi Desa Pringgodani"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
               </div>
-
-              <div className="relative flex w-3/4 justify-between">
-                <div className="bg-outline-variant absolute inset-x-0 top-1/2 h-0.5" />
-                <div className="bg-outline-variant h-12 w-0.5" />
-              </div>
-
-              <div className="flex flex-col gap-8 md:flex-row md:justify-center md:gap-12">
-                {officials.slice(1).map((official) => (
-                  <div
-                    key={official.name}
-                    className="bg-surface border-primary w-64 rounded-[1.5rem] border px-8 py-6 text-center shadow-sm"
-                  >
-                    <p className="text-label-sm text-primary mb-3 tracking-[0.18em] uppercase">
-                      {official.position}
-                    </p>
-                    <h4 className="text-on-surface font-bold">
-                      {official.name}
-                    </h4>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ) : (
+              <p className="text-on-surface-variant font-body-base py-12 text-center">
+                Bagan struktur organisasi belum diunggah oleh admin.
+              </p>
+            )}
           </div>
         </div>
       </section>
