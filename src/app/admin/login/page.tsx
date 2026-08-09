@@ -9,6 +9,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("admin@pringgodani.desa.id");
   const [password, setPassword] = useState("admin123");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -17,20 +18,26 @@ export default function AdminLoginPage() {
     setIsSubmitting(true);
     setErrorMsg(null);
 
+    let isSuccess = false;
+    let loginMessage = "";
+
     try {
       const result = await AdminAuthService.login(username, password);
-      setIsSubmitting(false);
-
-      if (result.success) {
-        router.push("/admin/dashboard");
-      } else {
-        setErrorMsg(
-          result.message || "Gagal masuk. Periksa kembali kredensial Anda.",
-        );
-      }
+      isSuccess = result.success;
+      loginMessage =
+        result.message || "Gagal masuk. Periksa kembali kredensial Anda.";
     } catch {
-      setIsSubmitting(false);
       setErrorMsg("Terjadi kesalahan sistem saat mencoba masuk.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(false);
+
+    if (isSuccess) {
+      router.push("/admin/dashboard");
+    } else {
+      setErrorMsg(loginMessage);
     }
   };
 
@@ -96,13 +103,28 @@ export default function AdminLoginPage() {
               </span>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border py-3.5 pr-4 pl-12 transition outline-none"
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border py-3.5 pr-12 pl-12 transition outline-none"
                 placeholder="••••••••"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-on-surface-variant hover:text-primary absolute inset-y-0 right-4 flex items-center transition"
+                title={
+                  showPassword
+                    ? "Sembunyikan Kata Sandi"
+                    : "Tampilkan Kata Sandi"
+                }
+              >
+                <Icon
+                  name={showPassword ? "visibility_off" : "visibility"}
+                  className="text-xl"
+                />
+              </button>
             </div>
           </div>
 

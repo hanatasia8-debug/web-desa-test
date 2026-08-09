@@ -60,17 +60,36 @@ export const AdminAuthService = {
       return {
         success: false,
         message:
-          data?.message || "Kredensial salah atau tidak memiliki akses admin.",
+          "Email atau kata sandi salah atau akun Anda tidak memiliki hak akses admin.",
       };
     } catch (err) {
-      console.error("Login error:", err);
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      const errMsg =
-        axiosError.response?.data?.message ||
-        "Gagal menghubungi server autentikasi.";
+      const axiosError = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
+
+      // Determine error message based on response status/message
+      const rawMessage = axiosError.response?.data?.message || "";
+      const status = axiosError.response?.status;
+
+      let message =
+        "Gagal menghubungi server autentikasi. Silakan periksa jaringan Anda atau coba beberapa saat lagi.";
+
+      if (
+        status === 400 ||
+        status === 401 ||
+        rawMessage.includes("Invalid login credentials") ||
+        rawMessage.includes("credentials")
+      ) {
+        message =
+          "Email atau kata sandi salah atau akun Anda tidak memiliki hak akses admin.";
+      } else if (status === 403) {
+        message =
+          "Akun Anda tidak memiliki izin untuk mengakses halaman admin.";
+      }
+
       return {
         success: false,
-        message: errMsg,
+        message,
       };
     }
   },

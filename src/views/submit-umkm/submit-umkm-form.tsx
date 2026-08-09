@@ -18,6 +18,9 @@ interface SubmitUmkmFormProps {
   onProductChange: (index: number, field: string, value: any) => void;
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
+  onSetCoverFile?: (file: File) => void;
+  onSetProductFile?: (index: number, file: File) => void;
+  onSetGalleryFile?: (index: number, file: File) => void;
 }
 
 export function SubmitUmkmForm({
@@ -30,6 +33,9 @@ export function SubmitUmkmForm({
   onProductChange,
   onClearDraft,
   onSubmitStep,
+  onSetCoverFile,
+  onSetProductFile,
+  onSetGalleryFile,
 }: SubmitUmkmFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +63,6 @@ export function SubmitUmkmForm({
     reader.readAsDataURL(file);
   };
 
-  // Gallery dynamic array handlers
   const handleAddGallery = () => {
     const currentGalleries = formData.galleries || [];
     onChange("galleries", [...currentGalleries, ""]);
@@ -524,11 +529,19 @@ export function SubmitUmkmForm({
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) =>
-                  handleFileChange(e.target.files?.[0], (url) =>
-                    onChange("coverUrl", url),
-                  )
-                }
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (onSetCoverFile) {
+                      onSetCoverFile(file);
+                      onChange("coverUrl", URL.createObjectURL(file));
+                    } else {
+                      handleFileChange(file, (url) =>
+                        onChange("coverUrl", url),
+                      );
+                    }
+                  }
+                }}
               />
 
               {formData.coverUrl ? (
@@ -620,13 +633,14 @@ export function SubmitUmkmForm({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {formData.galleries.map((galUrl, idx) => (
+                  {formData.galleries?.map((url, idx) => (
                     <GalleryItemUpload
                       key={idx}
                       index={idx}
-                      url={galUrl}
-                      onUpdate={(url) => handleGalleryChange(idx, url)}
+                      url={url}
+                      onUpdate={(val) => handleGalleryChange(idx, val)}
                       onRemove={() => handleRemoveGallery(idx)}
+                      onSetFile={(file) => onSetGalleryFile?.(idx, file)}
                     />
                   ))}
                 </div>
@@ -670,15 +684,14 @@ export function SubmitUmkmForm({
             </div>
           ) : (
             <div className="space-y-4">
-              {formData.products.map((prod, idx) => (
+              {formData.products?.map((prod, idx) => (
                 <ProductItemUpload
                   key={idx}
                   index={idx}
                   product={prod}
-                  onChange={(field, value) =>
-                    onProductChange(idx, field, value)
-                  }
+                  onChange={(field, val) => onProductChange(idx, field, val)}
                   onRemove={() => onRemoveProduct(idx)}
+                  onSetFile={(file) => onSetProductFile?.(idx, file)}
                 />
               ))}
             </div>
@@ -706,23 +719,30 @@ function GalleryItemUpload({
   url,
   onUpdate,
   onRemove,
+  onSetFile,
 }: {
   index: number;
   url: string;
   onUpdate: (url: string) => void;
   onRemove: () => void;
+  onSetFile?: (file: File) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file?: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        onUpdate(e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (onSetFile) {
+      onSetFile(file);
+      onUpdate(URL.createObjectURL(file));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          onUpdate(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -797,28 +817,30 @@ function ProductItemUpload({
   product,
   onChange,
   onRemove,
+  onSetFile,
 }: {
   index: number;
-  product: {
-    name: string;
-    description: string;
-    price?: number | null;
-    imageUrl?: string | null;
-  };
+  product: any;
   onChange: (field: string, value: any) => void;
   onRemove: () => void;
+  onSetFile?: (file: File) => void;
 }) {
   const prodFileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file?: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        onChange("imageUrl", e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (onSetFile) {
+      onSetFile(file);
+      onChange("imageUrl", URL.createObjectURL(file));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          onChange("imageUrl", e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (

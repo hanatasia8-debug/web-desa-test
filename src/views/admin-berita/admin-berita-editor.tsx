@@ -8,11 +8,20 @@ import { FallbackImage } from "@/shared/ui/fallback-image";
 import { AdminNewsService } from "@/entities/admin/api/admin-news.service";
 import type { NewsStatus } from "@/entities/admin/model/admin.types";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
+import type { ApiSuccessBody } from "@/shared/api/response";
+
+import axios from "axios";
 
 interface ContentBlockInput {
   subHeading: string;
   content: string;
   imageUrl: string;
+}
+
+interface NewsCategoryLocal {
+  id: string | number;
+  name: string;
+  slug: string;
 }
 
 interface AdminNewsDetail {
@@ -44,13 +53,63 @@ export function AdminBeritaEditor({
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [categoryName, setCategoryName] = useState("Kegiatan Desa");
+  const [categories, setCategories] = useState<NewsCategoryLocal[]>([]);
+  const [newsCategoryId, setNewsCategoryId] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<NewsStatus>("PUBLISHED");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [blocks, setBlocks] = useState<ContentBlockInput[]>([
     { subHeading: "", content: "", imageUrl: "" },
   ]);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [blockFiles, setBlockFiles] = useState<Record<number, File>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const uploadSingleFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
+
+    const { data } = await axios.post<ApiSuccessBody<{ url: string }>>(
+      uploadUrl,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    if (!data?.data?.url) {
+      throw new Error("Gagal mengunggah gambar");
+    }
+    return data.data.url;
+  };
+
+  const DRAFT_KEY = "admin_news_draft_v1";
+
+  const clearDraft = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+  };
+
+  useEffect(() => {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    axios
+      .get(`${protocol}//${hostname}:3000/api/public/news/categories`)
+      .then(({ data }) => {
+        if (data?.data?.items) {
+          setCategories(data.data.items);
+          if (!newsId && data.data.items.length > 0) {
+            setNewsCategoryId(String(data.data.items[0].id));
+          }
+        }
+      })
+      .catch((err) => console.error("Gagal memuat kategori berita:", err));
+  }, [newsId]);
 
   useEffect(() => {
     if (newsId) {
@@ -58,9 +117,13 @@ export function AdminBeritaEditor({
         if (data) {
           const detail = data as unknown as AdminNewsDetail;
           setTitle(detail.title || "");
-          setCategoryName(detail.categoryName || "Kegiatan Desa");
           setCoverUrl(detail.coverUrl || detail.coverImage || "");
           setStatus(detail.status || "PUBLISHED");
+          if ((detail as Record<string, unknown>).newsCategoryId) {
+            setNewsCategoryId(
+              String((detail as Record<string, unknown>).newsCategoryId),
+            );
+          }
 
           if (detail.contentSections && detail.contentSections.length > 0) {
             setBlocks(
@@ -81,8 +144,35 @@ export function AdminBeritaEditor({
           }
         }
       });
+    } else if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setTimeout(() => {
+            if (parsed.title) setTitle(parsed.title);
+            if (parsed.newsCategoryId) setNewsCategoryId(parsed.newsCategoryId);
+            if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
+            if (parsed.status) setStatus(parsed.status);
+            if (parsed.blocks) setBlocks(parsed.blocks);
+          }, 0);
+        }
+      } catch (e) {
+        console.error("Gagal memulihkan draf berita admin:", e);
+      }
     }
   }, [newsId]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !newsId) {
+      try {
+        const draft = { title, newsCategoryId, coverUrl, status, blocks };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch (e) {
+        console.error("Gagal menyimpan draf berita admin:", e);
+      }
+    }
+  }, [title, newsCategoryId, coverUrl, status, blocks, newsId]);
 
   const addBlock = () => {
     setBlocks([...blocks, { subHeading: "", content: "", imageUrl: "" }]);
@@ -100,32 +190,87 @@ export function AdminBeritaEditor({
 
   const removeBlock = (index: number) => {
     setBlocks(blocks.filter((_, i) => i !== index));
+    setBlockFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const autoExcerpt = generateAutoExcerpt({
-      newsTypeId: "STANDARD",
-      title,
-      blocks: blocks.map((b) => ({
-        content: b.content,
-        subHeading: b.subHeading,
-      })),
-    });
-
     try {
-      await AdminNewsService.createNews({
+      // 1. Upload cover photo if new file selected
+      let finalCoverUrl = coverUrl;
+      if (coverFile) {
+        finalCoverUrl = await uploadSingleFile(coverFile);
+        if (coverUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(coverUrl);
+        }
+      }
+
+      // 2. Upload block photos if new files selected
+      const finalBlocks = await Promise.all(
+        blocks.map(async (block, idx) => {
+          let finalBlockImgUrl = block.imageUrl;
+          const localBlockFile = blockFiles[idx];
+          if (localBlockFile) {
+            finalBlockImgUrl = await uploadSingleFile(localBlockFile);
+            if (block.imageUrl.startsWith("blob:")) {
+              URL.revokeObjectURL(block.imageUrl);
+            }
+          }
+          return {
+            subHeading: block.subHeading,
+            content: block.content,
+            imageUrl: finalBlockImgUrl,
+          };
+        }),
+      );
+
+      const autoExcerpt = generateAutoExcerpt({
+        newsTypeId: "STANDARD",
         title,
-        categoryName,
-        excerpt: autoExcerpt,
-        coverUrl,
-        status,
+        blocks: finalBlocks.map((b) => ({
+          content: b.content,
+          subHeading: b.subHeading,
+        })),
       });
+
+      const payload = {
+        title,
+        newsCategoryId: String(newsCategoryId),
+        newsTypeId: "STANDARD",
+        excerpt: autoExcerpt,
+        coverUrl: finalCoverUrl,
+        status,
+        blocks: finalBlocks,
+      };
+
+      if (isNew) {
+        await AdminNewsService.createNews(
+          payload as unknown as Parameters<
+            typeof AdminNewsService.createNews
+          >[0],
+        );
+      } else if (newsId) {
+        await AdminNewsService.updateNews(
+          newsId,
+          payload as unknown as Parameters<
+            typeof AdminNewsService.updateNews
+          >[1],
+        );
+      }
+      clearDraft();
       router.push("/admin/berita");
     } catch (err) {
       console.error("Gagal menyimpan berita:", err);
+      alert(
+        "Gagal menyimpan berita. Harap pastikan format berupa gambar dan ukuran di bawah 10MB.",
+      );
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -137,6 +282,7 @@ export function AdminBeritaEditor({
         <div>
           <Link
             href="/admin/berita"
+            onClick={clearDraft}
             className="text-primary font-label-sm mb-2 inline-flex items-center gap-1.5 text-xs font-bold hover:underline"
           >
             <Icon name="arrow_back" className="text-base" /> Kembali ke Daftar
@@ -152,6 +298,7 @@ export function AdminBeritaEditor({
         <div className="flex items-center gap-3">
           <Link
             href="/admin/berita"
+            onClick={clearDraft}
             className="bg-surface border-outline-variant text-on-surface hover:bg-surface-container-high rounded-2xl border px-5 py-3 text-xs font-bold transition"
           >
             Batal
@@ -164,43 +311,48 @@ export function AdminBeritaEditor({
           >
             {isSubmitting ? (
               <>
-                <Icon name="sync" className="animate-spin text-base" />
-                Menyimpan...
+                <svg
+                  className="h-4 w-4 animate-spin text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Menyimpan...</span>
               </>
             ) : (
               <>
                 <Icon name="save" className="text-base" />
-                Simpan & Terbitkan Berita
+                <span>Simpan Berita</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Grid Split-View 2 Kolom (Kiri: Form Input, Kanan: Real-Time Preview) */}
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
-        {/* Kolom Kiri: Formulir Penyuntingan */}
-        <form
-          onSubmit={handleSubmit}
-          className="border-outline-variant/30 bg-surface-container-lowest space-y-6 rounded-3xl border p-8 shadow-sm"
-        >
-          <div className="border-b pb-4">
-            <h3 className="font-headline-md text-primary flex items-center gap-2 text-lg font-bold">
-              <Icon name="edit" className="text-xl" /> Formulir Konten Berita
-            </h3>
-            <p className="text-on-surface-variant mt-1 text-xs">
-              Setiap perubahan pada input ini langsung memperbarui pratinjau di
-              sisi kanan.
-            </p>
-          </div>
-
+      {/* Main Split-View Layout */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Left Side: Editor Form */}
+        <div className="bg-surface-container-lowest border-outline-variant/30 space-y-6 rounded-2xl border p-6 shadow-sm">
           <div>
             <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              Judul Berita (Wajib)
+              Judul Berita Utama
             </label>
             <input
               type="text"
-              required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-bold outline-none"
@@ -214,14 +366,15 @@ export function AdminBeritaEditor({
                 Kategori Berita
               </label>
               <select
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+                value={newsCategoryId}
+                onChange={(e) => setNewsCategoryId(e.target.value)}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
               >
-                <option value="Kegiatan Desa">Kegiatan Desa</option>
-                <option value="Pembangunan">Pembangunan</option>
-                <option value="Pengumuman">Pengumuman</option>
-                <option value="Ekonomi & UMKM">Ekonomi & UMKM</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -243,15 +396,34 @@ export function AdminBeritaEditor({
 
           <div>
             <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              URL Foto Sampul Utama (Cover Image)
+              Foto Sampul Utama (Cover Image)
             </label>
-            <input
-              type="url"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-xs outline-none"
-              placeholder="https://..."
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                value={coverUrl}
+                onChange={(e) => setCoverUrl(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary flex-1 rounded-2xl border p-3.5 text-xs outline-none"
+                placeholder="https://..."
+              />
+              <label className="bg-primary text-on-primary hover:bg-primary/90 flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-4 text-xs font-bold whitespace-nowrap shadow-sm transition">
+                <Icon name="image" className="text-base" />
+                Pilih Foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setCoverFile(file);
+                      const localUrl = URL.createObjectURL(file);
+                      setCoverUrl(localUrl);
+                    }
+                  }}
+                />
+              </label>
+            </div>
           </div>
 
           {/* Dinamis Paragraf Blocks */}
@@ -307,17 +479,38 @@ export function AdminBeritaEditor({
                   className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs leading-relaxed outline-none"
                 />
 
-                <input
-                  type="url"
-                  value={block.imageUrl}
-                  onChange={(e) => updateBlock(idx, "imageUrl", e.target.value)}
-                  placeholder="URL Foto Blok Sisipan (Opsional)..."
-                  className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs outline-none"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    value={block.imageUrl}
+                    onChange={(e) =>
+                      updateBlock(idx, "imageUrl", e.target.value)
+                    }
+                    placeholder="URL Foto Sisipan (Opsional)..."
+                    className="bg-surface-container-lowest border-outline-variant text-on-surface flex-1 rounded-xl border p-2.5 text-xs outline-none"
+                  />
+                  <label className="bg-secondary-container text-on-secondary-container hover:bg-secondary-container/85 flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold whitespace-nowrap transition">
+                    <Icon name="image" className="text-sm" />
+                    Pilih Foto
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setBlockFiles((prev) => ({ ...prev, [idx]: file }));
+                          const localUrl = URL.createObjectURL(file);
+                          updateBlock(idx, "imageUrl", localUrl);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
             ))}
           </div>
-        </form>
+        </div>
 
         {/* Kolom Kanan: Live Real-Time Public Article Preview */}
         <div className="sticky top-24 space-y-4">
@@ -344,7 +537,8 @@ export function AdminBeritaEditor({
 
               <div>
                 <span className="bg-secondary-container text-on-secondary-container rounded-full px-3 py-1 text-xs font-bold">
-                  {categoryName}
+                  {categories.find((c) => String(c.id) === newsCategoryId)
+                    ?.name || "Kategori Berita"}
                 </span>
                 <h1 className="font-headline-lg text-primary mt-3 text-2xl leading-tight font-bold">
                   {title || "Judul Berita Belum Diisi"}

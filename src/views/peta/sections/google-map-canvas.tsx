@@ -12,6 +12,7 @@ interface GoogleMapCanvasProps {
   selectedLocation: MapLocationDto | null;
   onSelectLocation: (location: MapLocationDto | null) => void;
   onMapLoaded?: (mapInstance: google.maps.Map) => void;
+  onMapClick?: (lat: number, lng: number) => void;
 }
 
 // Center point of Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang
@@ -23,11 +24,17 @@ export function GoogleMapCanvas({
   selectedLocation,
   onSelectLocation,
   onMapLoaded,
+  onMapClick,
 }: GoogleMapCanvasProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
+  const onMapClickRef = useRef(onMapClick);
+
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const [isVisible, setIsVisible] = useState(
@@ -181,6 +188,12 @@ export function GoogleMapCanvas({
       }
 
       const map = new MapConstructor(mapRef.current, mapOptions);
+
+      map.addListener("click", (e: any) => {
+        if (e.latLng && onMapClickRef.current) {
+          onMapClickRef.current(e.latLng.lat(), e.latLng.lng());
+        }
+      });
 
       mapInstanceRef.current = map;
       setMapInstance(map);

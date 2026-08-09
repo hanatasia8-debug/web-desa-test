@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
+import axios from "axios";
+import type { ApiSuccessBody } from "@/shared/api/response";
+import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 
 interface ProductInput {
   name: string;
@@ -14,7 +17,13 @@ interface ProductInput {
   description: string;
 }
 
-export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
+export function AdminUmkmEditor({
+  isNew = true,
+  umkmId,
+}: {
+  isNew?: boolean;
+  umkmId?: string;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -24,9 +33,147 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<UmkmStatus>("APPROVED");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState(-8.2811);
+  const [longitude, setLongitude] = useState(112.5664);
 
   const [products, setProducts] = useState<ProductInput[]>([]);
+
+  const uploadSingleFile = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
+
+    const { data } = await axios.post<ApiSuccessBody<{ url: string }>>(
+      uploadUrl,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    if (!data?.data?.url) {
+      throw new Error("Gagal mengunggah gambar");
+    }
+    return data.data.url;
+  };
+
+  const DRAFT_KEY = "admin_umkm_draft_v1";
+
+  const clearDraft = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isNew) {
+      try {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setTimeout(() => {
+            if (parsed.name) setName(parsed.name);
+            if (parsed.ownerName) setOwnerName(parsed.ownerName);
+            if (parsed.categoryName) setCategoryName(parsed.categoryName);
+            if (parsed.phone) setPhone(parsed.phone);
+            if (parsed.address) setAddress(parsed.address);
+            if (parsed.description) setDescription(parsed.description);
+            if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
+            if (parsed.status) setStatus(parsed.status);
+            if (parsed.products) setProducts(parsed.products);
+          }, 0);
+        }
+      } catch (e) {
+        console.error("Gagal memulihkan draf UMKM admin:", e);
+      }
+    }
+  }, [isNew]);
+
+  useEffect(() => {
+    console.log(
+      "DEBUG FRONTEND: AdminUmkmEditor mounted. umkmId =",
+      umkmId,
+      "isNew =",
+      isNew,
+    );
+    if (umkmId && !isNew) {
+      AdminUmkmService.getUmkmById(umkmId)
+        .then((data) => {
+          console.log("DEBUG FRONTEND: getUmkmById response data =", data);
+          if (data) {
+            setTimeout(() => {
+              setName(data.name || "");
+              setOwnerName(data.ownerName || "");
+              setCategoryName(data.categoryName || "Kuliner");
+              setPhone(data.phone || "");
+              setAddress(data.address || "");
+              setDescription(
+                ((data as unknown as Record<string, unknown>)
+                  .description as string) || "",
+              );
+              setCoverUrl(data.coverUrl || "");
+              setStatus(data.status || "APPROVED");
+              setLatitude(
+                Number((data as unknown as Record<string, unknown>).latitude) ||
+                  -8.2811,
+              );
+              setLongitude(
+                Number(
+                  (data as unknown as Record<string, unknown>).longitude,
+                ) || 112.5664,
+              );
+              if ((data as unknown as Record<string, unknown>).products) {
+                setProducts(
+                  (data as unknown as Record<string, unknown>)
+                    .products as ProductInput[],
+                );
+              }
+            }, 0);
+          }
+        })
+        .catch((err) => {
+          console.error("DEBUG FRONTEND: Failed to getUmkmById API call:", err);
+        });
+    }
+  }, [umkmId, isNew]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isNew) {
+      try {
+        const draft = {
+          name,
+          ownerName,
+          categoryName,
+          phone,
+          address,
+          description,
+          coverUrl,
+          status,
+          products,
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch (e) {
+        console.error("Gagal menyimpan draf UMKM admin:", e);
+      }
+    }
+  }, [
+    name,
+    ownerName,
+    categoryName,
+    phone,
+    address,
+    description,
+    coverUrl,
+    status,
+    products,
+    isNew,
+  ]);
 
   const addProduct = () => {
     setProducts([...products, { name: "", price: 0, description: "" }]);
@@ -51,18 +198,50 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
     setIsSubmitting(true);
 
     try {
-      await AdminUmkmService.createUmkm({
+      let finalCoverUrl = coverUrl;
+      if (coverFile) {
+        finalCoverUrl = await uploadSingleFile(coverFile);
+        if (coverUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(coverUrl);
+        }
+      }
+
+      const payload = {
         name,
         ownerName,
         categoryName,
         phone,
         address,
-        coverUrl,
+        coverUrl: finalCoverUrl,
         status,
-      });
+        products,
+        description,
+        latitude,
+        longitude,
+      };
+
+      if (isNew) {
+        await AdminUmkmService.createUmkm(
+          payload as unknown as Parameters<
+            typeof AdminUmkmService.createUmkm
+          >[0],
+        );
+      } else if (umkmId) {
+        await AdminUmkmService.updateUmkm(
+          umkmId,
+          payload as unknown as Parameters<
+            typeof AdminUmkmService.updateUmkm
+          >[1],
+        );
+      }
+      clearDraft();
       router.push("/admin/umkm");
     } catch (err) {
       console.error("Gagal menyimpan UMKM:", err);
+      alert(
+        "Gagal menyimpan profil UMKM. Harap pastikan format berupa gambar dan ukuran di bawah 10MB.",
+      );
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -74,6 +253,7 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
         <div>
           <Link
             href="/admin/umkm"
+            onClick={clearDraft}
             className="text-primary font-label-sm mb-2 inline-flex items-center gap-1.5 text-xs font-bold hover:underline"
           >
             <Icon name="arrow_back" className="text-base" /> Kembali ke Daftar
@@ -89,6 +269,7 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/umkm"
+            onClick={clearDraft}
             className="bg-surface border-outline-variant text-on-surface hover:bg-surface-container-high rounded-2xl border px-5 py-3 text-xs font-bold transition"
           >
             Batal
@@ -214,15 +395,34 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
 
           <div>
             <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              URL Foto Sampul / Logo Usaha
+              Foto Sampul / Logo Usaha
             </label>
-            <input
-              type="url"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-xs outline-none"
-              placeholder="https://..."
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                value={coverUrl}
+                onChange={(e) => setCoverUrl(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary flex-1 rounded-2xl border p-3.5 text-xs outline-none"
+                placeholder="https://..."
+              />
+              <label className="bg-primary text-on-primary hover:bg-primary/90 flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-4 text-xs font-bold whitespace-nowrap shadow-sm transition">
+                <Icon name="image" className="text-base" />
+                Pilih Foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setCoverFile(file);
+                      const localUrl = URL.createObjectURL(file);
+                      setCoverUrl(localUrl);
+                    }
+                  }}
+                />
+              </label>
+            </div>
           </div>
 
           <div>
@@ -236,6 +436,67 @@ export function AdminUmkmEditor({ isNew = true }: { isNew?: boolean }) {
               className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
               placeholder="Alamat dusun / RT / RW..."
             />
+          </div>
+
+          <div>
+            <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+              Pin Point Koordinat Lokasi
+            </label>
+            <div className="border-outline-variant/30 mb-2 h-72 w-full overflow-hidden rounded-2xl border">
+              <GoogleMapCanvas
+                locations={[
+                  {
+                    id: "temp-pin",
+                    mapCategoryId: "cat-1",
+                    name: name || "Lokasi UMKM",
+                    shortDescription: address || "Desa Pringgodani",
+                    imageUrl: coverUrl || null,
+                    address: address || null,
+                    latitude: Number(latitude) || -8.2811,
+                    longitude: Number(longitude) || 112.5664,
+                    category: {
+                      id: "cat-1",
+                      name: "UMKM",
+                      slug: "umkm",
+                      icon: "storefront",
+                      color: "#0284c7",
+                    },
+                  },
+                ]}
+                selectedLocation={null}
+                onSelectLocation={() => {}}
+                onMapClick={(lat: number, lng: number) => {
+                  setLatitude(lat);
+                  setLongitude(lng);
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-on-surface-variant text-[11px] font-bold">
+                  Latitude
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={latitude}
+                  onChange={(e) => setLatitude(Number(e.target.value))}
+                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                />
+              </div>
+              <div>
+                <span className="text-on-surface-variant text-[11px] font-bold">
+                  Longitude
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={longitude}
+                  onChange={(e) => setLongitude(Number(e.target.value))}
+                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                />
+              </div>
+            </div>
           </div>
 
           <div>

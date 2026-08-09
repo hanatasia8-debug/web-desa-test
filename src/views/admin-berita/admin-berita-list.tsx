@@ -57,7 +57,8 @@ export function AdminBeritaList() {
   };
 
   const filteredItems = newsItems.filter((item) => {
-    if (filterStatus !== "ALL" && item.status !== filterStatus) return false;
+    const itemStatus = (item.status || "").toUpperCase();
+    if (filterStatus !== "ALL" && itemStatus !== filterStatus) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -179,19 +180,33 @@ export function AdminBeritaList() {
                       {item.categoryName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          item.status === "PUBLISHED"
-                            ? "bg-primary-container text-on-primary-container"
-                            : item.status === "PENDING"
-                              ? "bg-warning-container text-on-warning-container"
-                              : item.status === "REJECTED"
-                                ? "bg-error-container text-on-error-container"
-                                : "bg-surface-container-high text-on-surface-variant"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
+                      {(() => {
+                        const statusUpper = (item.status || "").toUpperCase();
+                        let badgeClasses =
+                          "bg-slate-100 text-slate-700 border border-slate-200/50";
+
+                        if (statusUpper === "PUBLISHED") {
+                          badgeClasses =
+                            "bg-emerald-50 text-emerald-700 border border-emerald-200/50";
+                        } else if (statusUpper === "PENDING") {
+                          badgeClasses =
+                            "bg-sky-50 text-sky-700 border border-sky-200/50";
+                        } else if (statusUpper === "DRAFT") {
+                          badgeClasses =
+                            "bg-amber-50 text-amber-700 border border-amber-200/50";
+                        } else if (statusUpper === "REJECTED") {
+                          badgeClasses =
+                            "bg-red-50 text-red-700 border border-red-200/50";
+                        }
+
+                        return (
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-bold ${badgeClasses}`}
+                          >
+                            {statusUpper}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="text-on-surface-variant px-6 py-4 text-xs whitespace-nowrap">
                       {new Date(item.publishedAt).toLocaleDateString("id-ID", {
