@@ -28,7 +28,7 @@ export async function getCustomBanner(): Promise<string | null> {
       req.onerror = () => resolve(null);
     });
   } catch (e) {
-    console.warn("Gagal inisialisasi IndexedDB:", e);
+    console.warn("IndexedDB initialization warning:", e);
     return null;
   }
 }
