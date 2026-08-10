@@ -8,8 +8,6 @@ import axios from "axios";
  * - Server-side (SSR / Docker): Uses INTERNAL_API_URL env var.
  */
 
-const BACKEND_PORT = 3000;
-
 function getBaseURL(): string {
   const isServer = typeof window === "undefined";
 

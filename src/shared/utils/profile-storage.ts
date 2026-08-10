@@ -1,38 +1,19 @@
 import type { AdminProfilPayload } from "@/entities/admin/api/admin-profil.service";
-import { MOCK_PROFILE } from "@/shared/data/mock-profil";
 
 const STORAGE_KEY = "app_village_profile_v1";
 
 export const DEFAULT_PROFIL_DATA: AdminProfilPayload = {
-  headName: MOCK_PROFILE.headName || "Ki Suryo Pringgo",
-  headPosition: MOCK_PROFILE.headPosition || "Kepala Desa Pringgodani",
+  headName: "Ki Suryo Pringgo",
+  headPosition: "Kepala Desa Pringgodani",
   headPhoto:
-    MOCK_PROFILE.headPhoto ||
     "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1200&q=80",
-  headGreeting:
-    MOCK_PROFILE.headGreeting ||
-    "Selamat datang di website resmi Desa Pringgodani.",
-  historyText:
-    MOCK_PROFILE.historyText ||
-    "Desa Pringgodani berdiri sejak masa kolonial...",
-  vision:
-    MOCK_PROFILE.vision ||
-    "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera.",
-  missions: MOCK_PROFILE.missions || [
-    "Meningkatkan kualitas pelayanan publik",
-    "Mendorong UMKM desa",
-  ],
+  headGreeting: "Selamat datang di website resmi Desa Pringgodani.",
+  historyText: "Desa Pringgodani berdiri sejak masa kolonial...",
+  vision: "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera.",
+  missions: ["Meningkatkan kualitas pelayanan publik", "Mendorong UMKM desa"],
   structureImageUrl:
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=1200&q=80",
-  officials: (MOCK_PROFILE.officials || []).map((o, i) => ({
-    id: `official-${i + 1}`,
-    name: o.name,
-    position: o.position,
-    photoUrl:
-      o.photo ||
-      "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1200&q=80",
-    email: "perangkat@pringgodani.desa.id",
-  })),
+  officials: [],
 };
 
 const listeners = new Set<() => void>();

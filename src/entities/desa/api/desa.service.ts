@@ -1,7 +1,6 @@
-import { apiClient, IS_API_CONNECTED } from "@/shared/api/axios-instance";
+import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
-import type { VillageProfileResponse } from "../model/types";
-import { MOCK_STATS } from "@/shared/data/mock-profil";
+import type { VillageProfileResponse, VillageStatsDto } from "../model/types";
 import { getStoredVillageProfile } from "@/shared/utils/profile-storage";
 
 export const DesaService = {
@@ -9,26 +8,26 @@ export const DesaService = {
     const stored = getStoredVillageProfile();
 
     let apiProfile = null;
-    let stats = MOCK_STATS;
+    let stats: VillageStatsDto = {
+      umkmCount: 0,
+      productCount: 0,
+      newsCount: 0,
+      dusunCount: 0,
+    };
 
-    if (IS_API_CONNECTED) {
-      try {
-        const { data } =
-          await apiClient.get<ApiSuccessBody<VillageProfileResponse>>(
-            "/public/profil",
-          );
-        if (data?.data) {
-          apiProfile = data.data.profile;
-          if (data.data.stats) {
-            stats = data.data.stats;
-          }
-        }
-      } catch (err) {
-        console.error(
-          "Gagal memuat profil desa dari API, menggunakan fallback profil lokal:",
-          err,
+    try {
+      const { data } =
+        await apiClient.get<ApiSuccessBody<VillageProfileResponse>>(
+          "/public/profil",
         );
+      if (data?.data) {
+        apiProfile = data.data.profile;
+        if (data.data.stats) {
+          stats = data.data.stats;
+        }
       }
+    } catch (err) {
+      console.error("Gagal memuat profil desa dari API:", err);
     }
 
     const historyContent = stored.historyText || apiProfile?.historyText || "";
@@ -60,11 +59,11 @@ export const DesaService = {
       officials:
         stored.officials?.length > 0
           ? stored.officials.map((o) => ({
-              name: o.name,
-              position: o.position,
-              photo: o.photoUrl,
-              greeting: o.greeting,
-              email: o.email,
+              name: String(o.name || ""),
+              position: String(o.position || ""),
+              photo: String(o.photoUrl || ""),
+              greeting: o.greeting ? String(o.greeting) : undefined,
+              email: o.email ? String(o.email) : undefined,
             }))
           : apiProfile?.officials || [],
       structureImageUrl:
