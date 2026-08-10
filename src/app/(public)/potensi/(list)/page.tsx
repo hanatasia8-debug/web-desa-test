@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "Direktori potensi unggulan Desa Pringgodani untuk pariwisata, pertanian, dan kerajinan.",
 };
 
+export const revalidate = 300;
+
 /**
  * Lives inside a `(list)` route group, sibling to `[slug]`, so that
  * `loading.tsx` (see this same folder) only wraps the listing route in a

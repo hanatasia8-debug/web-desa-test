@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     "Informasi profil Desa Pringgodani: sambutan kepala desa, statistik, sejarah, visi misi, dan struktur pemerintahan.",
 };
 
+export const revalidate = 300;
+
 export default async function Page() {
   const [{ profile, stats }, categoriesResult] = await Promise.all([
     DesaService.getProfileWithStats(),

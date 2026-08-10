@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api/axios-instance";
+import { apiClient, IS_API_CONNECTED } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import type { AdminSettingsPayload } from "../model/admin.types";
 
@@ -32,7 +32,7 @@ export function getStoredAdminSettings(): AdminSettingsPayload {
 export function saveStoredAdminSettings(
   payload: Partial<AdminSettingsPayload>,
 ): AdminSettingsPayload {
-  if (typeof window === "undefined") return { ...MOCK_ADMIN_SETTINGS };
+  if (typeof window === "undefined") return { ...DEFAULT_ADMIN_SETTINGS };
   try {
     const current = getStoredAdminSettings();
     const merged = { ...current, ...payload };
@@ -108,11 +108,6 @@ export const AdminSettingsService = {
           err,
         );
       }
-    } catch (err) {
-      console.error(
-        "Gagal memuat pengaturan admin dari API, menggunakan draf tersimpan:",
-        err,
-      );
     }
     return stored;
   },

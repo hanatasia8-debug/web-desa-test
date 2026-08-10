@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { PotensiService } from "@/entities/potensi/api/potensi.service";
 import { PotensiDetailPage } from "@/views/potensi/potensi-detail-page";
 
+export const revalidate = 300;
+
 interface PotensiDetailRouteProps {
   params: Promise<{ slug: string }>;
 }
