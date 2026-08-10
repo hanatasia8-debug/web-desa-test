@@ -48,12 +48,16 @@ export const AdminAuthService = {
         };
 
         if (typeof window !== "undefined") {
-          // Store serialized user inside cookie with 3-hour limit (10800 seconds)
+          // Store serialized user inside cookie & localStorage for 100% session persistence
           const serialized = encodeURIComponent(JSON.stringify(user));
           const isSecure = window.location.protocol === "https:";
-          // In production HTTPS, use SameSite=None to ensure cross-origin/redirection compatibility
           const sameSite = isSecure ? "None" : "Lax";
           document.cookie = `${SESSION_KEY}=${serialized}; path=/; max-age=10800; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
+          try {
+            localStorage.setItem(SESSION_KEY, serialized);
+          } catch {
+            // fallback if localStorage restricted
+          }
         }
 
         return { success: true, user };
@@ -104,19 +108,30 @@ export const AdminAuthService = {
     } finally {
       if (typeof window !== "undefined") {
         document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        try {
+          localStorage.removeItem(SESSION_KEY);
+        } catch {
+          // ignore
+        }
       }
     }
   },
 
   isAuthenticated(): boolean {
     if (typeof window === "undefined") return true;
-    return !!getCookie(SESSION_KEY);
+    const cookieVal = getCookie(SESSION_KEY);
+    if (cookieVal) return true;
+    try {
+      return !!localStorage.getItem(SESSION_KEY);
+    } catch {
+      return false;
+    }
   },
 
   getAdminUser(): AdminUser | null {
     if (typeof window === "undefined") return null;
     try {
-      const val = getCookie(SESSION_KEY);
+      const val = getCookie(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
       return val ? JSON.parse(decodeURIComponent(val)) : null;
     } catch {
       return null;
