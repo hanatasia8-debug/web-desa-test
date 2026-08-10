@@ -13,23 +13,22 @@ export function Hero() {
 
   useEffect(() => {
     // 1. Check if there's a custom banner set by the admin (using IndexedDB to bypass 5MB quota)
-    getCustomBanner()
-      .then((customUrl) => {
-        if (customUrl) {
-          setBannerImage(customUrl);
-        } else {
-          // 2. Fallback to active news banner
-          BannerService.getActive()
-            .then((res) => {
-              if (res && res.items && res.items.length > 0) {
-                setBannerImage(res.items[0].imageUrl);
-              }
-            })
-            .catch((err) => {
-              console.error("Gagal memuat banner dari API:", err);
-            });
-        }
-      });
+    getCustomBanner().then((customUrl) => {
+      if (customUrl) {
+        setBannerImage(customUrl);
+      } else {
+        // 2. Fallback to active news banner
+        BannerService.getActive()
+          .then((res) => {
+            if (res && res.items && res.items.length > 0) {
+              setBannerImage(res.items[0].imageUrl);
+            }
+          })
+          .catch((err) => {
+            console.error("Gagal memuat banner dari API:", err);
+          });
+      }
+    });
   }, []);
 
   return (
@@ -41,6 +40,8 @@ export function Hero() {
             src={bannerImage}
             alt="Desa Pringgodani"
             className="h-full w-full object-cover"
+            loading="eager"
+            priority
           />
         ) : (
           <div className="bg-primary-container h-full w-full" />

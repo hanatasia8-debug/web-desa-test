@@ -31,7 +31,7 @@ export function NewsCard({
   return (
     <article
       className={cn(
-        "scroll-reveal group visible flex flex-col overflow-hidden rounded-2xl border transition-all",
+        "scroll-reveal group visible flex flex-col overflow-hidden rounded-2xl border transition-opacity transition-shadow transition-transform",
         isCompact
           ? "bg-surface border-outline-variant/20 shadow-sm hover:shadow-md"
           : "bg-surface-container-lowest border-outline-variant/30 shadow-sm hover:shadow-xl",

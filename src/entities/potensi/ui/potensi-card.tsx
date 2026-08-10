@@ -13,7 +13,7 @@ export function PotensiCard({ item }: PotensiCardProps) {
   const categoryMeta = getPotensiCategoryMeta(item.category);
 
   return (
-    <article className="potential-card group border-outline-variant/30 bg-surface flex flex-col overflow-hidden rounded-[2rem] border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="potential-card group border-outline-variant/30 bg-surface flex flex-col overflow-hidden rounded-[2rem] border shadow-sm transition-opacity transition-shadow transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
       <Link
         href={`/potensi/${item.slug}`}
         className="relative block h-64 overflow-hidden"

@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Icon } from "@/shared/ui/icon";
 import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 import type { RegisterUmkmDTO } from "@/entities/umkm/model/register-umkm.schema";
@@ -55,6 +55,18 @@ export function SubmitUmkmForm({
   submitButton,
 }: SubmitUmkmFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const [localSubmitting, setLocalSubmitting] = useState(false);
+
+  const handleLocalSubmit = (e: React.FormEvent) => {
+    if (localSubmitting) return;
+    setLocalSubmitting(true);
+    try {
+      onSubmitStep(e);
+    } finally {
+      // release lock shortly after; if the component unmounts it's fine
+      setTimeout(() => setLocalSubmitting(false), 600);
+    }
+  };
 
   // Helper to scroll and focus field
   const scrollToField = (fieldId: string) => {
@@ -152,7 +164,7 @@ export function SubmitUmkmForm({
 
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-7">
-          <form onSubmit={onSubmitStep} className="space-y-8" noValidate>
+          <form onSubmit={handleLocalSubmit} className="space-y-8" noValidate>
             {/* SEKSI 1: IDENTITAS USAHA */}
             <div>
               <h3 className="font-headline-md text-headline-md text-primary border-outline-variant/20 mb-4 flex items-center gap-2 border-b pb-2">
@@ -706,10 +718,20 @@ export function SubmitUmkmForm({
               {submitButton ?? (
                 <button
                   type="submit"
-                  className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95"
+                  disabled={localSubmitting}
+                  className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
                 >
-                  <span>Lihat Pratinjau Tampilan</span>
-                  <Icon name="arrow_forward" className="text-lg" />
+                  {localSubmitting ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>Mengecek...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Lihat Pratinjau Tampilan</span>
+                      <Icon name="arrow_forward" className="text-lg" />
+                    </>
+                  )}
                 </button>
               )}
             </div>

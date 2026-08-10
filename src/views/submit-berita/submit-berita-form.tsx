@@ -57,6 +57,7 @@ export function SubmitBeritaForm({
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   const [isMounted, setIsMounted] = useState(false);
+  const [localSubmitting, setLocalSubmitting] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     return () => clearTimeout(timer);
@@ -151,7 +152,19 @@ export function SubmitBeritaForm({
             </div>
           ))}
 
-        <form onSubmit={onSubmitStep} className="space-y-6" noValidate>
+        <form
+          onSubmit={(e) => {
+            if (localSubmitting) return;
+            setLocalSubmitting(true);
+            try {
+              onSubmitStep(e);
+            } finally {
+              setTimeout(() => setLocalSubmitting(false), 600);
+            }
+          }}
+          className="space-y-6"
+          noValidate
+        >
           {/* TEMPLATE BERITA SELECTOR */}
           <div className="space-y-1.5">
             <label className="font-label-sm text-label-sm text-on-surface block">
@@ -521,10 +534,20 @@ export function SubmitBeritaForm({
             {submitButton ?? (
               <button
                 type="submit"
-                className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 sm:w-auto"
+                disabled={localSubmitting}
+                className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 sm:w-auto"
               >
-                <Icon name="visibility" className="text-lg" />
-                <span>Pratinjau Berita</span>
+                {localSubmitting ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Mengecek...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="visibility" className="text-lg" />
+                    <span>Pratinjau Berita</span>
+                  </>
+                )}
               </button>
             )}
           </div>

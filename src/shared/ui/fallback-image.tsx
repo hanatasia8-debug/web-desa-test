@@ -9,6 +9,10 @@ interface FallbackImageProps {
   src: string | null | undefined;
   alt: string;
   className?: string;
+  /** Loading strategy for the underlying <img> element. Default: "lazy" */
+  loading?: "lazy" | "eager";
+  /** Hint that this image is critical; when true sets a high fetch priority. */
+  priority?: boolean;
   /** Material Symbols icon shown in the empty-state placeholder. */
   fallbackIcon?: string;
 }
@@ -25,6 +29,8 @@ export function FallbackImage({
   alt,
   className,
   fallbackIcon = "image",
+  loading = "lazy",
+  priority = false,
 }: FallbackImageProps) {
   const resolvedUrl = resolveImageUrl(src);
   const [failed, setFailed] = useState(false);
@@ -61,7 +67,9 @@ export function FallbackImage({
       src={resolvedUrl}
       alt={alt}
       className={className}
-      loading="lazy"
+      loading={loading}
+      decoding="async"
+      {...(priority ? { fetchPriority: "high" } : {})}
       onError={() => setFailed(true)}
     />
   );
