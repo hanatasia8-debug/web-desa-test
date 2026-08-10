@@ -1,30 +1,45 @@
-import { apiClient, IS_API_CONNECTED } from "@/shared/api/axios-instance";
+import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import type { AdminSettingsPayload } from "../model/admin.types";
-import { MOCK_ADMIN_SETTINGS } from "@/shared/data/mock-admin";
 
 const LOCAL_STORAGE_KEY = "app_admin_settings_v1";
 
+const DEFAULT_ADMIN_SETTINGS: AdminSettingsPayload = {
+  website_name: "Desa Pringgodani",
+  logo_url: "/images/logo-desa.png",
+  favicon_url: "/favicon.ico",
+  contact_email: "info@pringgodani.desa.id",
+  contact_phone: "081234567890",
+  address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
+  social_facebook: "",
+  social_instagram: "",
+  social_youtube: "",
+  social_tiktok: "",
+  jumlah_dusun: 4,
+};
+
 export function getStoredAdminSettings(): AdminSettingsPayload {
-  if (typeof window === "undefined") return { ...MOCK_ADMIN_SETTINGS };
+  if (typeof window === "undefined") return { ...DEFAULT_ADMIN_SETTINGS };
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return { ...MOCK_ADMIN_SETTINGS };
-    return { ...MOCK_ADMIN_SETTINGS, ...JSON.parse(raw) };
+    if (!raw) return { ...DEFAULT_ADMIN_SETTINGS };
+    return { ...DEFAULT_ADMIN_SETTINGS, ...JSON.parse(raw) };
   } catch {
-    return { ...MOCK_ADMIN_SETTINGS };
+    return { ...DEFAULT_ADMIN_SETTINGS };
   }
 }
 
-export function saveStoredAdminSettings(payload: Partial<AdminSettingsPayload>): AdminSettingsPayload {
-  if (typeof window === "undefined") return { ...MOCK_ADMIN_SETTINGS };
+export function saveStoredAdminSettings(
+  payload: Partial<AdminSettingsPayload>,
+): AdminSettingsPayload {
+  if (typeof window === "undefined") return { ...DEFAULT_ADMIN_SETTINGS };
   try {
     const current = getStoredAdminSettings();
     const merged = { ...current, ...payload };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
     return merged;
   } catch {
-    return { ...MOCK_ADMIN_SETTINGS };
+    return { ...DEFAULT_ADMIN_SETTINGS };
   }
 }
 
@@ -32,63 +47,80 @@ export const AdminSettingsService = {
   async getSettings(): Promise<AdminSettingsPayload> {
     const stored = getStoredAdminSettings();
 
-    if (IS_API_CONNECTED) {
-      try {
-        const { data } =
-          await apiClient.get<ApiSuccessBody<any>>(
-            "/admin/settings",
-          );
-        if (data?.data) {
-          const raw = data.data;
-          const mapped: AdminSettingsPayload = {
-            website_name: raw.website_name || raw.websiteName || stored.website_name,
-            logo_url: raw.logo_url || raw.logoUrl || stored.logo_url,
-            favicon_url: raw.favicon_url || raw.faviconUrl || stored.favicon_url,
-            contact_email: raw.contact_email || raw.contactEmail || raw.email || stored.contact_email,
-            contact_phone: raw.contact_phone || raw.contactPhone || raw.phone || stored.contact_phone,
-            address: raw.address || stored.address,
-            social_facebook: raw.social_facebook || raw.socialFacebook || raw.facebook || stored.social_facebook,
-            social_instagram: raw.social_instagram || raw.socialInstagram || raw.instagram || stored.social_instagram,
-            social_youtube: raw.social_youtube || raw.socialYoutube || raw.youtube || stored.social_youtube,
-            social_tiktok: raw.social_tiktok || raw.socialTiktok || raw.tiktok || stored.social_tiktok,
-            jumlah_dusun: raw.jumlah_dusun || raw.jumlahDusun || stored.jumlah_dusun || 4,
-          };
-          saveStoredAdminSettings(mapped);
-          return mapped;
-        }
-      } catch (err) {
-        console.error("Gagal memuat pengaturan admin dari API, menggunakan draf tersimpan:", err);
+    try {
+      const { data } =
+        await apiClient.get<ApiSuccessBody<Record<string, unknown>>>(
+          "/admin/settings",
+        );
+      if (data?.data) {
+        const raw = data.data;
+        const mapped: AdminSettingsPayload = {
+          website_name:
+            raw.website_name || raw.websiteName || stored.website_name,
+          logo_url: raw.logo_url || raw.logoUrl || stored.logo_url,
+          favicon_url: raw.favicon_url || raw.faviconUrl || stored.favicon_url,
+          contact_email:
+            raw.contact_email ||
+            raw.contactEmail ||
+            raw.email ||
+            stored.contact_email,
+          contact_phone:
+            raw.contact_phone ||
+            raw.contactPhone ||
+            raw.phone ||
+            stored.contact_phone,
+          address: raw.address || stored.address,
+          social_facebook:
+            raw.social_facebook ||
+            raw.socialFacebook ||
+            raw.facebook ||
+            stored.social_facebook,
+          social_instagram:
+            raw.social_instagram ||
+            raw.socialInstagram ||
+            raw.instagram ||
+            stored.social_instagram,
+          social_youtube:
+            raw.social_youtube ||
+            raw.socialYoutube ||
+            raw.youtube ||
+            stored.social_youtube,
+          social_tiktok:
+            raw.social_tiktok ||
+            raw.socialTiktok ||
+            raw.tiktok ||
+            stored.social_tiktok,
+          jumlah_dusun:
+            raw.jumlah_dusun || raw.jumlahDusun || stored.jumlah_dusun || 4,
+        };
+        saveStoredAdminSettings(mapped);
+        return mapped;
       }
+    } catch (err) {
+      console.error(
+        "Gagal memuat pengaturan admin dari API, menggunakan draf tersimpan:",
+        err,
+      );
     }
     return stored;
   },
 
-  // Bug fix: same fake-success pattern as the other admin services - on
-  // API failure this used to fall through to the local mock success path.
-  // Directly explains UAT #200: "Nama web, email, nomor telephone hingga
-  // link instagram tidak dapat terupdate pada footer web" - the toast
-  // said success even when the real save failed.
   async updateSettings(
     payload: AdminSettingsPayload,
   ): Promise<{ success: boolean; message: string }> {
-    if (IS_API_CONNECTED) {
-      try {
-        const { data } = await apiClient.put("/admin/settings", payload);
-        saveStoredAdminSettings(payload);
-        return {
-          success: true,
-          message: data?.message || "Pengaturan desa berhasil diperbarui.",
-        };
-      } catch (err) {
-        console.error("Gagal menyimpan pengaturan admin ke API:", err);
-        return {
-          success: false,
-          message: "Gagal menyimpan pengaturan. Silakan coba lagi.",
-        };
-      }
+    try {
+      const { data } = await apiClient.put("/admin/settings", payload);
+      saveStoredAdminSettings(payload);
+      return {
+        success: true,
+        message: data?.message || "Pengaturan desa berhasil diperbarui.",
+      };
+    } catch (err) {
+      console.error("Gagal menyimpan pengaturan admin ke API:", err);
+      return {
+        success: false,
+        message: "Gagal menyimpan pengaturan. Silakan coba lagi.",
+      };
     }
-
-    saveStoredAdminSettings(payload);
-    return { success: true, message: "Pengaturan desa berhasil diperbarui." };
   },
 };
