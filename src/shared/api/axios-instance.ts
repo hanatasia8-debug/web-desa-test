@@ -16,14 +16,16 @@ function getBaseURL(): string {
   if (isServer) {
     // SSR (Next.js server-side rendering): call backend directly or via proxy
     return (
+      process.env.NEXT_PUBLIC_API_URL ||
       process.env.BACKEND_INTERNAL_URL ||
       process.env.INTERNAL_API_URL ||
-      `http://localhost:${BACKEND_PORT}/api`
+      "https://api-pringgodani.vercel.app/api"
     );
   }
 
-  // Client-side (Browser): strictly use relative path /api to route through Next.js Reverse Proxy
-  return "/api";
+  // Client-side (Browser): use relative path /api to route through Next.js Reverse Proxy,
+  // or fallback to NEXT_PUBLIC_API_URL / Vercel backend if specified.
+  return process.env.NEXT_PUBLIC_API_URL || "/api";
 }
 
 export const apiClient = axios.create({
