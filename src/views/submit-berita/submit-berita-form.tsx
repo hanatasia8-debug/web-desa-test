@@ -27,6 +27,10 @@ interface SubmitBeritaFormProps {
   onSetCoverFile?: (file: File | null) => void;
   onSetBlockFile?: (index: number, file: File | null) => void;
   onSetGalleryFile?: (index: number, file: File | null) => void;
+  /** See `SubmitUmkmForm`'s `draftBanner` prop — same override behavior. */
+  draftBanner?: React.ReactNode | null;
+  /** See `SubmitUmkmForm`'s `submitButton` prop — same override behavior. */
+  submitButton?: React.ReactNode;
 }
 
 export function SubmitBeritaForm({
@@ -47,6 +51,8 @@ export function SubmitBeritaForm({
   onSetCoverFile,
   onSetBlockFile,
   onSetGalleryFile,
+  draftBanner,
+  submitButton,
 }: SubmitBeritaFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -127,20 +133,23 @@ export function SubmitBeritaForm({
           </div>
         )}
 
-        {/* DRAFT BANNER */}
-        <div className="bg-surface-container-low border-outline-variant/20 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3">
-          <div className="text-on-surface-variant flex items-center gap-2 text-xs">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            <span>Draf Isian Tersimpan Otomatis (LocalStorage)</span>
-          </div>
-          <button
-            type="button"
-            onClick={onClearDraft}
-            className="text-error flex items-center gap-1 text-xs font-medium hover:underline"
-          >
-            <Icon name="delete" className="text-sm" /> Kosongkan Draf
-          </button>
-        </div>
+        {/* DRAFT BANNER (overridable — see `draftBanner` prop) */}
+        {draftBanner !== null &&
+          (draftBanner ?? (
+            <div className="bg-surface-container-low border-outline-variant/20 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3">
+              <div className="text-on-surface-variant flex items-center gap-2 text-xs">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <span>Draf Isian Tersimpan Otomatis (LocalStorage)</span>
+              </div>
+              <button
+                type="button"
+                onClick={onClearDraft}
+                className="text-error flex items-center gap-1 text-xs font-medium hover:underline"
+              >
+                <Icon name="delete" className="text-sm" /> Kosongkan Draf
+              </button>
+            </div>
+          ))}
 
         <form onSubmit={onSubmitStep} className="space-y-6" noValidate>
           {/* TEMPLATE BERITA SELECTOR */}
@@ -509,13 +518,15 @@ export function SubmitBeritaForm({
 
           {/* ACTION BUTTON */}
           <div className="border-outline-variant/20 flex justify-end border-t pt-4">
-            <button
-              type="submit"
-              className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 sm:w-auto"
-            >
-              <Icon name="visibility" className="text-lg" />
-              <span>Pratinjau Berita</span>
-            </button>
+            {submitButton ?? (
+              <button
+                type="submit"
+                className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 sm:w-auto"
+              >
+                <Icon name="visibility" className="text-lg" />
+                <span>Pratinjau Berita</span>
+              </button>
+            )}
           </div>
         </form>
       </div>
