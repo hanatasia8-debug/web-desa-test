@@ -76,16 +76,15 @@
   --color-admin-surface: #f8fafc;
 
   /* ---- Typography: font-family utilities (font-headline-lg, font-body-base, dst) ----
-     Reference next/font's generated variables (set in layout.tsx) so the
-     self-hosted, optimized fonts are actually used. */
-  --font-display-hero: var(--font-hanken-grotesk), sans-serif;
-  --font-headline-lg: var(--font-hanken-grotesk), sans-serif;
-  --font-headline-lg-mobile: var(--font-hanken-grotesk), sans-serif;
-  --font-headline-md: var(--font-hanken-grotesk), sans-serif;
-  --font-body-lg: var(--font-inter), sans-serif;
-  --font-body-base: var(--font-inter), sans-serif;
-  --font-label-sm: var(--font-inter), sans-serif;
-  --font-badge-xs: var(--font-inter), sans-serif;
+     Use local/system fallbacks so builds do not depend on remote font fetching. */
+  --font-display-hero: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
+  --font-headline-lg: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
+  --font-headline-lg-mobile: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
+  --font-headline-md: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
+  --font-body-lg: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-body-base: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-label-sm: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-badge-xs: "Inter", "Segoe UI", Arial, sans-serif;
 
   /* ---- Typography: text-size utilities (text-headline-lg, text-body-base, dst) ---- */
   --text-display-hero: 48px;

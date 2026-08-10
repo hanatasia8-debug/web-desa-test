@@ -74,6 +74,29 @@ export function Footer() {
       });
   }, []);
 
+  const socialLinks = [
+    {
+      key: "facebook",
+      url: settings.socialFacebook,
+      icon: "facebook" as const,
+    },
+    {
+      key: "instagram",
+      url: settings.socialInstagram,
+      icon: "photo_camera" as const,
+    },
+    {
+      key: "youtube",
+      url: settings.socialYoutube,
+      icon: "smart_display" as const,
+    },
+    {
+      key: "tiktok",
+      url: settings.socialTiktok,
+      icon: "music_note" as const,
+    },
+  ].filter((s) => s.url.trim() !== "");
+
   return (
     <footer
       className={cn(
@@ -168,6 +191,22 @@ export function Footer() {
           <p className="font-label-sm text-on-surface-variant text-center md:text-left">
             © {new Date().getFullYear()} Pemerintah Desa Pringgodani. Seluruh Hak Cipta Dilindungi.
           </p>
+          {socialLinks.length > 0 && (
+            <div className="flex gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.key}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Kunjungi ${social.key} resmi Desa Pringgodani`}
+                  className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+                >
+                  <Icon name={social.icon} className="text-lg" />
+                </a>
+              ))}
+            </div>
+          )}
           <div className="flex gap-6">
             <a
               className="font-label-sm text-on-surface-variant hover:text-primary underline"

@@ -63,6 +63,11 @@ export const AdminSettingsService = {
     return stored;
   },
 
+  // Bug fix: same fake-success pattern as the other admin services - on
+  // API failure this used to fall through to the local mock success path.
+  // Directly explains UAT #200: "Nama web, email, nomor telephone hingga
+  // link instagram tidak dapat terupdate pada footer web" - the toast
+  // said success even when the real save failed.
   async updateSettings(
     payload: AdminSettingsPayload,
   ): Promise<{ success: boolean; message: string }> {
@@ -76,6 +81,10 @@ export const AdminSettingsService = {
         };
       } catch (err) {
         console.error("Gagal menyimpan pengaturan admin ke API:", err);
+        return {
+          success: false,
+          message: "Gagal menyimpan pengaturan. Silakan coba lagi.",
+        };
       }
     }
 

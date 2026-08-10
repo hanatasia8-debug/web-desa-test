@@ -161,9 +161,11 @@ export const MOCK_ADMIN_SETTINGS: AdminSettingsPayload = {
   contact_email: "info@pringgodani.desa.id",
   contact_phone: "081234567890",
   address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
-  social_facebook: "https://facebook.com/desapringgodani",
-  social_instagram: "https://instagram.com/desapringgodani",
-  social_youtube: "https://youtube.com/@desapringgodani",
-  social_tiktok: "https://tiktok.com/@desapringgodani",
+  // Empty, not guessed — see settings.service.ts for why. Admin fills
+  // these in via /admin/settings once the real accounts exist.
+  social_facebook: "",
+  social_instagram: "",
+  social_youtube: "",
+  social_tiktok: "",
   jumlah_dusun: 4,
 };

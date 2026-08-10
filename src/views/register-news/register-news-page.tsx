@@ -18,7 +18,8 @@ import { SubmitBeritaForm } from "@/views/submit-berita/submit-berita-form";
 import { SubmitBeritaPreview } from "@/views/submit-berita-preview/submit-berita-preview";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
-import axios from "axios";
+import { apiClient } from "@/shared/api/axios-instance";
+import type { ApiSuccessBody } from "@/shared/api/response";
 
 interface RegisterNewsPageProps {
   categories: NewsCategoryDto[];
@@ -47,12 +48,13 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
   const uploadSingleFile = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
-    const { data } = await axios.post<any>(uploadUrl, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    // See admin-berita-editor.tsx for why this goes through apiClient's
+    // relative "/api" path instead of `${hostname}:3000`.
+    const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
+      "/uploads",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
     return data.data.url;
   };
 

@@ -7,8 +7,9 @@ import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
-import axios from "axios";
 import type { ApiSuccessBody } from "@/shared/api/response";
+import { apiClient } from "@/shared/api/axios-instance";
+import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 
 interface ProductInput {
   name: string;
@@ -44,12 +45,11 @@ export function AdminUmkmEditor({
     const formData = new FormData();
     formData.append("file", file);
 
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
-
-    const { data } = await axios.post<ApiSuccessBody<{ url: string }>>(
-      uploadUrl,
+    // See admin-berita-editor.tsx for why this goes through apiClient's
+    // relative "/api" path (routed by next.config.ts rewrites) instead of
+    // manually building a `${hostname}:3000` URL.
+    const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
+      "/uploads",
       formData,
       {
         headers: {
@@ -96,16 +96,9 @@ export function AdminUmkmEditor({
   }, [isNew]);
 
   useEffect(() => {
-    console.log(
-      "DEBUG FRONTEND: AdminUmkmEditor mounted. umkmId =",
-      umkmId,
-      "isNew =",
-      isNew,
-    );
     if (umkmId && !isNew) {
       AdminUmkmService.getUmkmById(umkmId)
         .then((data) => {
-          console.log("DEBUG FRONTEND: getUmkmById response data =", data);
           if (data) {
             setTimeout(() => {
               setName(data.name || "");
@@ -138,7 +131,7 @@ export function AdminUmkmEditor({
           }
         })
         .catch((err) => {
-          console.error("DEBUG FRONTEND: Failed to getUmkmById API call:", err);
+          console.error(`Gagal memuat data UMKM ${umkmId}:`, err);
         });
     }
   }, [umkmId, isNew]);
@@ -228,12 +221,15 @@ export function AdminUmkmEditor({
           >[0],
         );
       } else if (umkmId) {
-        await AdminUmkmService.updateUmkm(
+        const { success } = await AdminUmkmService.updateUmkm(
           umkmId,
           payload as unknown as Parameters<
             typeof AdminUmkmService.updateUmkm
           >[1],
         );
+        if (!success) {
+          throw new Error("Gagal menyimpan perubahan UMKM ke server.");
+        }
       }
       clearDraft();
       router.push("/admin/umkm");

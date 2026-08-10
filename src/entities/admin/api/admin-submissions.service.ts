@@ -109,11 +109,19 @@ export const AdminSubmissionsService = {
     reason?: string,
   ): Promise<{ success: boolean }> {
     if (IS_API_CONNECTED) {
+      // Bug fix: this used to log the error then fall through to
+      // `return { success: true }` regardless of whether the API call
+      // actually succeeded - the admin would see "berhasil" and the item
+      // would vanish from their local list, but the backend never
+      // actually approved/rejected it (fake success - forbidden per the
+      // frontend/backend boundary rules). Now correctly reports failure
+      // and leaves the pending list alone so a refetch shows the truth.
       try {
         await apiClient.patch(`/admin/news/${id}/status`, { status, reason });
         return { success: true };
       } catch (err) {
         console.error(`Gagal mengubah status berita ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -127,11 +135,13 @@ export const AdminSubmissionsService = {
     reason?: string,
   ): Promise<{ success: boolean }> {
     if (IS_API_CONNECTED) {
+      // See updateNewsStatus above - same fake-success bug fixed here.
       try {
         await apiClient.patch(`/admin/umkm/${id}/status`, { status, reason });
         return { success: true };
       } catch (err) {
         console.error(`Gagal mengubah status UMKM ${id}:`, err);
+        return { success: false };
       }
     }
 

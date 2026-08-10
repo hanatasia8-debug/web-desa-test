@@ -10,10 +10,14 @@ const DEFAULT_SETTINGS: SettingsResponse = {
     contact_email: "info@pringgodani.desa.id",
     contact_phone: "081234567890",
     address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
-    social_facebook: "https://facebook.com/desapringgodani",
-    social_instagram: "https://instagram.com/desapringgodani",
-    social_youtube: "https://youtube.com/@desapringgodani",
-    social_tiktok: "https://tiktok.com/@desapringgodani",
+    // Empty, not guessed — the village's real accounts must come from the
+    // backend/admin settings. Never invent official social media URLs (the
+    // Footer widget hides each icon when its URL is empty, rather than
+    // linking to a made-up profile).
+    social_facebook: "",
+    social_instagram: "",
+    social_youtube: "",
+    social_tiktok: "",
     jumlah_dusun: 4,
   },
 };

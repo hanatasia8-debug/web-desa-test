@@ -16,6 +16,9 @@ export function AdminProfilPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<"success" | "error">(
+    "success",
+  );
 
   // Form State Profil & Visi Misi
   const [headName, setHeadName] = useState("");
@@ -81,8 +84,9 @@ export function AdminProfilPage() {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, variant: "success" | "error" = "success") => {
     setToastMessage(msg);
+    setToastVariant(variant);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
@@ -107,7 +111,7 @@ export function AdminProfilPage() {
     setIsSaving(true);
 
     try {
-      await AdminProfilService.updateProfil({
+      const { success } = await AdminProfilService.updateProfil({
         headName,
         headPosition,
         headPhoto,
@@ -117,9 +121,15 @@ export function AdminProfilPage() {
         missions,
         structureImageUrl,
       });
-      showToast("Profil desa & Visi Misi berhasil diperbarui.");
+      showToast(
+        success
+          ? "Profil desa & Visi Misi berhasil diperbarui."
+          : "Gagal menyimpan profil desa. Silakan coba lagi.",
+        success ? "success" : "error",
+      );
     } catch (err) {
       console.error("Gagal menyimpan profil desa:", err);
+      showToast("Gagal menyimpan profil desa. Silakan coba lagi.", "error");
     } finally {
       setIsSaving(false);
     }
@@ -186,8 +196,13 @@ export function AdminProfilPage() {
         `Apakah Anda yakin ingin menghapus data perangkat desa "${name}"?`,
       )
     ) {
-      await AdminProfilService.deleteOfficial(id);
-      showToast(`Data perangkat desa "${name}" telah dihapus.`);
+      const { success } = await AdminProfilService.deleteOfficial(id);
+      showToast(
+        success
+          ? `Data perangkat desa "${name}" telah dihapus.`
+          : `Gagal menghapus perangkat desa "${name}". Silakan coba lagi.`,
+        success ? "success" : "error",
+      );
       loadData();
     }
   };
@@ -195,8 +210,17 @@ export function AdminProfilPage() {
   return (
     <div className="space-y-8">
       {toastMessage && (
-        <div className="bg-primary text-on-primary animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl">
-          <Icon name="check_circle" className="text-xl" />
+        <div
+          className={`animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl ${
+            toastVariant === "success"
+              ? "bg-primary text-on-primary"
+              : "bg-error text-on-error"
+          }`}
+        >
+          <Icon
+            name={toastVariant === "success" ? "check_circle" : "error"}
+            className="text-xl"
+          />
           <span>{toastMessage}</span>
         </div>
       )}

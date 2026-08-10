@@ -209,10 +209,10 @@ export function AdminUmkmList() {
                       )}
                       <Link
                         href={`/admin/umkm/${item.id}/edit`}
-                        className="bg-secondary/10 text-secondary hover:bg-secondary hover:text-on-secondary inline-block rounded-xl px-3 py-1.5 align-middle text-xs font-bold transition"
+                        className="bg-secondary/10 text-secondary hover:bg-secondary hover:text-on-secondary inline-flex items-center gap-1 rounded-xl px-3 py-1.5 align-middle text-xs font-bold transition"
                         title="Sunting UMKM"
                       >
-                        Sunting
+                        <Icon name="edit" className="text-sm" /> Sunting
                       </Link>
                       <button
                         onClick={() => handleDelete(item.id, item.name)}

@@ -182,21 +182,25 @@ export function AdminBeritaList() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {(() => {
                         const statusUpper = (item.status || "").toUpperCase();
+                        // Use the site's actual design tokens (globals.css)
+                        // instead of raw Tailwind palette (slate/emerald/sky/
+                        // amber/red) so admin badges stay visually consistent
+                        // with the rest of the app if the palette ever changes.
                         let badgeClasses =
-                          "bg-slate-100 text-slate-700 border border-slate-200/50";
+                          "bg-surface-container-high text-on-surface-variant border-outline-variant/50 border";
 
                         if (statusUpper === "PUBLISHED") {
                           badgeClasses =
-                            "bg-emerald-50 text-emerald-700 border border-emerald-200/50";
+                            "bg-status-verified/10 text-status-verified border-status-verified/30 border";
                         } else if (statusUpper === "PENDING") {
                           badgeClasses =
-                            "bg-sky-50 text-sky-700 border border-sky-200/50";
+                            "bg-status-pending/10 text-status-pending border-status-pending/30 border";
                         } else if (statusUpper === "DRAFT") {
                           badgeClasses =
-                            "bg-amber-50 text-amber-700 border border-amber-200/50";
+                            "bg-secondary/10 text-secondary border-secondary/30 border";
                         } else if (statusUpper === "REJECTED") {
                           badgeClasses =
-                            "bg-red-50 text-red-700 border border-red-200/50";
+                            "bg-error-container text-on-error-container border-error/30 border";
                         }
 
                         return (

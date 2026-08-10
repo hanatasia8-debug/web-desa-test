@@ -16,7 +16,8 @@ import {
 import { useRegisterUmkmDraft } from "@/features/register-umkm/model/use-register-umkm-draft";
 import { SubmitUmkmForm } from "@/views/submit-umkm/submit-umkm-form";
 import { SubmitUmkmPreview } from "@/views/submit-umkm-preview/submit-umkm-preview";
-import axios from "axios";
+import { apiClient } from "@/shared/api/axios-instance";
+import type { ApiSuccessBody } from "@/shared/api/response";
 
 import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
 
@@ -47,12 +48,13 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   const uploadSingleFile = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
-    const { data } = await axios.post<any>(uploadUrl, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    // See admin-berita-editor.tsx for why this goes through apiClient's
+    // relative "/api" path instead of `${hostname}:3000`.
+    const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
+      "/uploads",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
     return data.data.url;
   };
 

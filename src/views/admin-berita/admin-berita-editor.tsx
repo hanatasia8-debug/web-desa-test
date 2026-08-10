@@ -9,8 +9,7 @@ import { AdminNewsService } from "@/entities/admin/api/admin-news.service";
 import type { NewsStatus } from "@/entities/admin/model/admin.types";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 import type { ApiSuccessBody } from "@/shared/api/response";
-
-import axios from "axios";
+import { apiClient } from "@/shared/api/axios-instance";
 
 interface ContentBlockInput {
   subHeading: string;
@@ -68,12 +67,15 @@ export function AdminBeritaEditor({
     const formData = new FormData();
     formData.append("file", file);
 
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const uploadUrl = `${protocol}//${hostname}:3000/api/uploads`;
-
-    const { data } = await axios.post<ApiSuccessBody<{ url: string }>>(
-      uploadUrl,
+    // Go through apiClient (relative "/api", routed by next.config.ts
+    // rewrites) instead of manually building
+    // `${window.location.hostname}:3000/api/...` — that hardcoded the
+    // backend port onto whatever host the browser happened to be on,
+    // breaking in Docker/production where the backend isn't reachable at
+    // "<frontend-host>:3000". Same underlying issue as the next.config.ts
+    // rewrite bug fixed earlier, just reintroduced here in app code.
+    const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
+      "/uploads",
       formData,
       {
         headers: {
@@ -96,10 +98,8 @@ export function AdminBeritaEditor({
   };
 
   useEffect(() => {
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    axios
-      .get(`${protocol}//${hostname}:3000/api/public/news/categories`)
+    apiClient
+      .get("/public/news/categories")
       .then(({ data }) => {
         if (data?.data?.items) {
           setCategories(data.data.items);
@@ -256,12 +256,15 @@ export function AdminBeritaEditor({
           >[0],
         );
       } else if (newsId) {
-        await AdminNewsService.updateNews(
+        const { success } = await AdminNewsService.updateNews(
           newsId,
           payload as unknown as Parameters<
             typeof AdminNewsService.updateNews
           >[1],
         );
+        if (!success) {
+          throw new Error("Gagal menyimpan perubahan berita ke server.");
+        }
       }
       clearDraft();
       router.push("/admin/berita");

@@ -70,11 +70,16 @@ export const AdminNewsService = {
     payload: Partial<AdminNewsItem>,
   ): Promise<{ success: boolean }> {
     if (IS_API_CONNECTED) {
+      // Bug fix: same fake-success pattern as the other admin services -
+      // used to fall through to local-mock success on a real API failure.
+      // Directly explains UAT #135: "TDK BISA DI EDIT" (edit appeared to
+      // save but never actually persisted).
       try {
         await apiClient.put(`/admin/news/${id}`, payload);
         return { success: true };
       } catch (err) {
         console.error(`Gagal merubah berita ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -95,6 +100,7 @@ export const AdminNewsService = {
         return { success: true };
       } catch (err) {
         console.error(`Gagal merubah status berita ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -112,6 +118,7 @@ export const AdminNewsService = {
         return { success: true };
       } catch (err) {
         console.error(`Gagal menghapus berita ${id}:`, err);
+        return { success: false };
       }
     }
 

@@ -55,11 +55,15 @@ export const AdminUmkmService = {
     status: UmkmStatus,
   ): Promise<{ success: boolean }> {
     if (IS_API_CONNECTED) {
+      // Bug fix: same fake-success pattern as admin-news.service.ts /
+      // admin-submissions.service.ts - used to fall through to local-mock
+      // success on a real API failure.
       try {
         await apiClient.patch(`/admin/umkm/${id}/status`, { status });
         return { success: true };
       } catch (err) {
         console.error(`Gagal merubah status UMKM ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -77,6 +81,7 @@ export const AdminUmkmService = {
         return { success: true };
       } catch (err) {
         console.error(`Gagal menghapus UMKM ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -108,6 +113,7 @@ export const AdminUmkmService = {
         return { success: true };
       } catch (err) {
         console.error(`Gagal memperbarui UMKM ${id}:`, err);
+        return { success: false };
       }
     }
 

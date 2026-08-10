@@ -15,6 +15,9 @@ export function AdminPengajuanPage() {
   const [pendingUmkm, setPendingUmkm] = useState<PendingUmkmSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<"success" | "error">(
+    "success",
+  );
 
   const [selectedReviewItem, setSelectedReviewItem] = useState<{
     type: "NEWS" | "UMKM";
@@ -48,36 +51,72 @@ export function AdminPengajuanPage() {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, variant: "success" | "error" = "success") => {
     setToastMessage(msg);
+    setToastVariant(variant);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Bug fix: these previously ignored the { success } result entirely and
+  // always showed a "berhasil" toast, even when the API call actually
+  // failed (see AdminSubmissionsService.updateNewsStatus/updateUmkmStatus -
+  // that layer had its own matching bug, also fixed). An admin approving/
+  // rejecting a submission needs to know if it genuinely went through.
   const handleApproveNews = async (id: string) => {
-    await AdminSubmissionsService.updateNewsStatus(id, "PUBLISHED");
+    const { success } = await AdminSubmissionsService.updateNewsStatus(
+      id,
+      "PUBLISHED",
+    );
     showToast(
-      "Pengajuan berita berhasil disetujui dan terbit di halaman publik.",
+      success
+        ? "Pengajuan berita berhasil disetujui dan terbit di halaman publik."
+        : "Gagal menyetujui pengajuan berita. Silakan coba lagi.",
+      success ? "success" : "error",
     );
     loadData();
   };
 
   const handleRejectNews = async (id: string, reason: string) => {
-    await AdminSubmissionsService.updateNewsStatus(id, "REJECTED", reason);
-    showToast("Pengajuan berita telah ditolak.");
+    const { success } = await AdminSubmissionsService.updateNewsStatus(
+      id,
+      "REJECTED",
+      reason,
+    );
+    showToast(
+      success
+        ? "Pengajuan berita telah ditolak."
+        : "Gagal menolak pengajuan berita. Silakan coba lagi.",
+      success ? "success" : "error",
+    );
     loadData();
   };
 
   const handleApproveUmkm = async (id: string) => {
-    await AdminSubmissionsService.updateUmkmStatus(id, "APPROVED");
+    const { success } = await AdminSubmissionsService.updateUmkmStatus(
+      id,
+      "APPROVED",
+    );
     showToast(
-      "Pendaftaran UMKM berhasil disetujui dan tampil di katalog desa.",
+      success
+        ? "Pendaftaran UMKM berhasil disetujui dan tampil di katalog desa."
+        : "Gagal menyetujui pendaftaran UMKM. Silakan coba lagi.",
+      success ? "success" : "error",
     );
     loadData();
   };
 
   const handleRejectUmkm = async (id: string, reason: string) => {
-    await AdminSubmissionsService.updateUmkmStatus(id, "REJECTED", reason);
-    showToast("Pendaftaran UMKM telah ditolak.");
+    const { success } = await AdminSubmissionsService.updateUmkmStatus(
+      id,
+      "REJECTED",
+      reason,
+    );
+    showToast(
+      success
+        ? "Pendaftaran UMKM telah ditolak."
+        : "Gagal menolak pendaftaran UMKM. Silakan coba lagi.",
+      success ? "success" : "error",
+    );
     loadData();
   };
 
@@ -85,8 +124,17 @@ export function AdminPengajuanPage() {
     <div className="space-y-8">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="bg-primary text-on-primary animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl">
-          <Icon name="check_circle" className="text-xl" />
+        <div
+          className={`animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl ${
+            toastVariant === "success"
+              ? "bg-primary text-on-primary"
+              : "bg-error text-on-error"
+          }`}
+        >
+          <Icon
+            name={toastVariant === "success" ? "check_circle" : "error"}
+            className="text-xl"
+          />
           <span>{toastMessage}</span>
         </div>
       )}

@@ -45,6 +45,11 @@ export const AdminProfilService = {
     return getStoredVillageProfile();
   },
 
+  // Bug fix (same pattern as admin-submissions.service.ts): these used to
+  // log the error then silently fall through to the local-mock success
+  // path even when IS_API_CONNECTED and the real API call failed - admin
+  // would see "berhasil diperbarui" but nothing was actually saved to the
+  // backend (confirmed by UAT: "sambutan tidak dapat diperbaharui").
   async updateProfil(
     payload: Partial<AdminProfilPayload>,
   ): Promise<{ success: boolean }> {
@@ -53,6 +58,7 @@ export const AdminProfilService = {
         await apiClient.put("/admin/profil", payload);
       } catch (err) {
         console.error("Gagal memperbarui profil desa ke API:", err);
+        return { success: false };
       }
     }
 
@@ -62,15 +68,17 @@ export const AdminProfilService = {
 
   async addOfficial(
     official: Omit<AdminOfficialItem, "id">,
-  ): Promise<AdminOfficialItem> {
+  ): Promise<AdminOfficialItem | null> {
     if (IS_API_CONNECTED) {
       try {
         const { data } = await apiClient.post<
           ApiSuccessBody<AdminOfficialItem>
         >("/admin/officials", official);
         if (data?.data) return data.data;
+        return null;
       } catch (err) {
         console.error("Gagal menambah perangkat desa ke API:", err);
+        return null;
       }
     }
 
@@ -93,6 +101,7 @@ export const AdminProfilService = {
         await apiClient.put(`/admin/officials/${id}`, official);
       } catch (err) {
         console.error(`Gagal merubah perangkat desa ${id}:`, err);
+        return { success: false };
       }
     }
 
@@ -110,6 +119,7 @@ export const AdminProfilService = {
         await apiClient.delete(`/admin/officials/${id}`);
       } catch (err) {
         console.error(`Gagal menghapus perangkat desa ${id}:`, err);
+        return { success: false };
       }
     }
 

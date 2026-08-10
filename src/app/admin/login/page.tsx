@@ -7,8 +7,8 @@ import { AdminAuthService } from "@/shared/lib/auth/admin-auth.service";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("admin@pringgodani.desa.id");
-  const [password, setPassword] = useState("admin123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,32 +146,6 @@ export default function AdminLoginPage() {
             )}
           </button>
         </form>
-
-        <div className="bg-primary-container/40 text-on-primary-container border-primary/20 mt-8 rounded-2xl border p-4 text-sm">
-          <div className="flex items-center gap-2 font-bold">
-            <Icon name="key" className="text-primary text-lg" />
-            Kredensial Default Admin:
-          </div>
-          <ul className="mt-2 space-y-1 text-xs opacity-90">
-            <li>
-              • Username:{" "}
-              <code className="rounded bg-white/80 px-1.5 py-0.5 font-mono font-bold">
-                admin@pringgodani.desa.id
-              </code>{" "}
-              (atau{" "}
-              <code className="rounded bg-white/80 px-1.5 py-0.5 font-mono font-bold">
-                admin
-              </code>
-              )
-            </li>
-            <li>
-              • Password:{" "}
-              <code className="rounded bg-white/80 px-1.5 py-0.5 font-mono font-bold">
-                admin123
-              </code>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   );

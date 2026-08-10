@@ -15,16 +15,21 @@ export function AdminSettingsPage() {
     contact_email: "info@pringgodani.desa.id",
     contact_phone: "081234567890",
     address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
-    social_facebook: "https://facebook.com/desapringgodani",
-    social_instagram: "https://instagram.com/desapringgodani",
-    social_youtube: "https://youtube.com/@desapringgodani",
-    social_tiktok: "https://tiktok.com/@desapringgodani",
+    // Empty, not guessed, until getSettings() below resolves with the
+    // real values — never fabricate the village's official accounts.
+    social_facebook: "",
+    social_instagram: "",
+    social_youtube: "",
+    social_tiktok: "",
     jumlah_dusun: 4,
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<"success" | "error">(
+    "success",
+  );
   const [customBannerUrl, setCustomBannerUrl] = useState("");
 
   useEffect(() => {
@@ -63,10 +68,14 @@ export function AdminSettingsPage() {
       } catch (e) {
         console.error("Gagal menyimpan custom banner ke IndexedDB:", e);
       }
+      setToastVariant("success");
       setToastMessage(res.message || "Pengaturan berhasil disimpan.");
       setTimeout(() => setToastMessage(null), 4000);
     } catch (err) {
       console.error("Gagal menyimpan pengaturan:", err);
+      setToastVariant("error");
+      setToastMessage("Gagal menyimpan pengaturan. Silakan coba lagi.");
+      setTimeout(() => setToastMessage(null), 4000);
     } finally {
       setIsSaving(false);
     }
@@ -75,8 +84,17 @@ export function AdminSettingsPage() {
   return (
     <div className="space-y-8">
       {toastMessage && (
-        <div className="bg-primary text-on-primary animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl">
-          <Icon name="check_circle" className="text-xl" />
+        <div
+          className={`animate-fade-in fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-semibold shadow-2xl ${
+            toastVariant === "success"
+              ? "bg-primary text-on-primary"
+              : "bg-error text-on-error"
+          }`}
+        >
+          <Icon
+            name={toastVariant === "success" ? "check_circle" : "error"}
+            className="text-xl"
+          />
           <span>{toastMessage}</span>
         </div>
       )}
