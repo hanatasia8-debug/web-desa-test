@@ -5,6 +5,7 @@ import { apiClient } from "@/shared/api/axios-instance";
  */
 
 const SESSION_KEY = "pringgodani_admin_session";
+const TOKEN_KEY = "pringgodani_admin_access_token";
 
 export interface AdminUser {
   name: string;
@@ -39,19 +40,24 @@ export const AdminAuthService = {
       });
 
       if (data?.success && data?.data) {
-        const backendUser = data.data;
+        const backendData = data.data;
         const user: AdminUser = {
           name:
-            backendUser.user_metadata?.name || backendUser.name || "Admin Desa",
-          email: backendUser.email,
+            backendData.user_metadata?.name || backendData.name || "Admin Desa",
+          email: backendData.email,
           role: "ADMIN",
         };
 
         if (typeof window !== "undefined") {
-          // Store serialized user inside cookie strictly with 3-hour limit (10800 seconds)
+          // Store access_token in localStorage
+          if (backendData.access_token) {
+            localStorage.setItem(TOKEN_KEY, backendData.access_token);
+          }
+
+          // Store serialized user inside cookie with max-age
           const serialized = encodeURIComponent(JSON.stringify(user));
           const isSecure = window.location.protocol === "https:";
-          const sameSite = isSecure ? "Lax" : "Lax";
+          const sameSite = isSecure ? "None" : "Lax";
           document.cookie = `${SESSION_KEY}=${serialized}; path=/; max-age=10800; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
         }
 
@@ -68,7 +74,6 @@ export const AdminAuthService = {
         response?: { status?: number; data?: { message?: string } };
       };
 
-      // Determine error message based on response status/message
       const rawMessage = axiosError.response?.data?.message || "";
       const status = axiosError.response?.status;
 
@@ -102,14 +107,20 @@ export const AdminAuthService = {
       console.error("Logout API error:", err);
     } finally {
       if (typeof window !== "undefined") {
+        localStorage.removeItem(TOKEN_KEY);
         document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       }
     }
   },
 
+  getToken(): string | null {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
   isAuthenticated(): boolean {
     if (typeof window === "undefined") return true;
-    return !!getCookie(SESSION_KEY);
+    return !!getCookie(SESSION_KEY) || !!localStorage.getItem(TOKEN_KEY);
   },
 
   getAdminUser(): AdminUser | null {

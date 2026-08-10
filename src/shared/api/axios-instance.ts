@@ -33,6 +33,17 @@ export const apiClient = axios.create({
   },
 });
 
+// Request interceptor to attach Authorization Bearer token
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("pringgodani_admin_access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 // Interceptor to handle unauthorized access (401)
 apiClient.interceptors.response.use(
   (response) => response,
@@ -40,11 +51,16 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
         const SESSION_KEY = "pringgodani_admin_session";
+        const TOKEN_KEY = "pringgodani_admin_access_token";
+        localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(SESSION_KEY);
         document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 
-        // Only redirect if we are not already on the login page
-        if (!window.location.pathname.startsWith("/admin/login")) {
+        // Only redirect if we are inside /admin routes and not already on /admin/login
+        if (
+          window.location.pathname.startsWith("/admin") &&
+          !window.location.pathname.startsWith("/admin/login")
+        ) {
           window.location.href = "/admin/login";
         }
       }
