@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
     setIsSubmitting(false);
 
     if (isSuccess) {
-      router.push("/admin/dashboard");
+      router.replace("/admin/dashboard");
     } else {
       setErrorMsg(loginMessage);
     }
