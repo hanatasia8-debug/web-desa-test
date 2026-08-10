@@ -53,45 +53,60 @@ export const AdminSettingsService = {
           "/admin/settings",
         );
       if (data?.data) {
-        const raw = data.data;
+        const raw = data.data as Record<string, string | number | undefined>;
         const mapped: AdminSettingsPayload = {
-          website_name:
+          website_name: String(
             raw.website_name || raw.websiteName || stored.website_name,
-          logo_url: raw.logo_url || raw.logoUrl || stored.logo_url,
-          favicon_url: raw.favicon_url || raw.faviconUrl || stored.favicon_url,
-          contact_email:
+          ),
+          logo_url: String(raw.logo_url || raw.logoUrl || stored.logo_url),
+          favicon_url: String(
+            raw.favicon_url || raw.faviconUrl || stored.favicon_url,
+          ),
+          contact_email: String(
             raw.contact_email ||
-            raw.contactEmail ||
-            raw.email ||
-            stored.contact_email,
-          contact_phone:
+              raw.contactEmail ||
+              raw.email ||
+              stored.contact_email,
+          ),
+          contact_phone: String(
             raw.contact_phone ||
-            raw.contactPhone ||
-            raw.phone ||
-            stored.contact_phone,
-          address: raw.address || stored.address,
-          social_facebook:
+              raw.contactPhone ||
+              raw.phone ||
+              stored.contact_phone,
+          ),
+          address: String(raw.address || stored.address),
+          social_facebook: String(
             raw.social_facebook ||
-            raw.socialFacebook ||
-            raw.facebook ||
-            stored.social_facebook,
-          social_instagram:
+              raw.socialFacebook ||
+              raw.facebook ||
+              stored.social_facebook ||
+              "",
+          ),
+          social_instagram: String(
             raw.social_instagram ||
-            raw.socialInstagram ||
-            raw.instagram ||
-            stored.social_instagram,
-          social_youtube:
+              raw.socialInstagram ||
+              raw.instagram ||
+              stored.social_instagram ||
+              "",
+          ),
+          social_youtube: String(
             raw.social_youtube ||
-            raw.socialYoutube ||
-            raw.youtube ||
-            stored.social_youtube,
-          social_tiktok:
+              raw.socialYoutube ||
+              raw.youtube ||
+              stored.social_youtube ||
+              "",
+          ),
+          social_tiktok: String(
             raw.social_tiktok ||
-            raw.socialTiktok ||
-            raw.tiktok ||
-            stored.social_tiktok,
+              raw.socialTiktok ||
+              raw.tiktok ||
+              stored.social_tiktok ||
+              "",
+          ),
           jumlah_dusun:
-            raw.jumlah_dusun || raw.jumlahDusun || stored.jumlah_dusun || 4,
+            Number(raw.jumlah_dusun || raw.jumlahDusun) ||
+            stored.jumlah_dusun ||
+            4,
         };
         saveStoredAdminSettings(mapped);
         return mapped;

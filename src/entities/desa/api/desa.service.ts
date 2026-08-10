@@ -58,12 +58,12 @@ export const DesaService = {
           : apiProfile?.missions || [],
       officials:
         stored.officials?.length > 0
-          ? stored.officials.map((o: Record<string, unknown>) => ({
-              name: o.name,
-              position: o.position,
-              photo: o.photoUrl,
-              greeting: o.greeting,
-              email: o.email,
+          ? stored.officials.map((o) => ({
+              name: String(o.name || ""),
+              position: String(o.position || ""),
+              photo: String(o.photoUrl || ""),
+              greeting: o.greeting ? String(o.greeting) : undefined,
+              email: o.email ? String(o.email) : undefined,
             }))
           : apiProfile?.officials || [],
       structureImageUrl:
