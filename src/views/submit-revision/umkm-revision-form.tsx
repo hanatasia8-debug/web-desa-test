@@ -187,7 +187,6 @@ export function UmkmRevisionForm({
       formData={formData}
       categories={categories}
       errors={errors}
-      pendingSubmission={null}
       onChange={handleChange}
       onAddProduct={handleAddProduct}
       onRemoveProduct={handleRemoveProduct}

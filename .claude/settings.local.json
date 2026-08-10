@@ -64,7 +64,14 @@
       "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --disable-gpu --hide-scrollbars --window-size=430,600 --virtual-time-budget=8000 --screenshot=/tmp/shot-home-mobile.png http://localhost:3100/)",
       "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --disable-gpu --hide-scrollbars --window-size=430,600 --virtual-time-budget=8000 --screenshot=/tmp/shot-berita-mobile.png http://localhost:3100/berita)",
       "Bash(python3 -c \"import json;print\\(json.load\\(open\\('package.json'\\)\\)['scripts']\\)\")",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(git config *)",
+      "Bash(rm -rf .husky)",
+      "Bash(npm uninstall *)",
+      "Bash(npx eslint *)"
+    ],
+    "additionalDirectories": [
+      "/Users/aria/Documents/pringgodani-website-tahap4-home"
     ]
   }
 }

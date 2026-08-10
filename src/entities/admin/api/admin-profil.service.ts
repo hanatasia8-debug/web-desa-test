@@ -39,7 +39,10 @@ export const AdminProfilService = {
           return data.data;
         }
       } catch (err) {
-        console.error("Gagal memuat profil desa dari API, menggunakan draf lokal:", err);
+        console.error(
+          "Gagal memuat profil desa dari API, menggunakan draf lokal:",
+          err,
+        );
       }
     }
     return getStoredVillageProfile();

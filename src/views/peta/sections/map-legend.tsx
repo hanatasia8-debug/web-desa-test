@@ -13,7 +13,7 @@ export function MapLegend({ categories, selectedCategoryIds }: MapLegendProps) {
   if (activeCategories.length === 0) return null;
 
   return (
-    <div className="glass-panel border-outline-variant/30 absolute bottom-6 left-1/2 z-20 hidden md:flex max-w-[90vw] -translate-x-1/2 flex-wrap items-center justify-center gap-6 rounded-full border px-6 py-3 shadow-xl">
+    <div className="glass-panel border-outline-variant/30 absolute bottom-6 left-1/2 z-20 hidden max-w-[90vw] -translate-x-1/2 flex-wrap items-center justify-center gap-6 rounded-full border px-6 py-3 shadow-xl md:flex">
       {activeCategories.map((cat) => (
         <div key={cat.id} className="flex items-center gap-2">
           <div

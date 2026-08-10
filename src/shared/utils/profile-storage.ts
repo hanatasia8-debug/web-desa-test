@@ -35,13 +35,35 @@ export const DEFAULT_PROFIL_DATA: AdminProfilPayload = {
   })),
 };
 
+const listeners = new Set<() => void>();
+
+/** Last parsed profile, kept so repeated reads of an unchanged entry return the
+ *  same object identity — required by `useSyncExternalStore` consumers. */
+let snapshotRaw: string | null = null;
+let snapshot: AdminProfilPayload = DEFAULT_PROFIL_DATA;
+
+/** Subscribes to profile changes, for reading the stored profile during render
+ *  via `useSyncExternalStore`. */
+export function subscribeStoredVillageProfile(onStoreChange: () => void) {
+  listeners.add(onStoreChange);
+  // Keeps other tabs in sync.
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    listeners.delete(onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
 export function getStoredVillageProfile(): AdminProfilPayload {
   if (typeof window === "undefined") return DEFAULT_PROFIL_DATA;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PROFIL_DATA;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_PROFIL_DATA, ...parsed };
+    if (raw !== snapshotRaw) {
+      snapshotRaw = raw;
+      snapshot = { ...DEFAULT_PROFIL_DATA, ...JSON.parse(raw) };
+    }
+    return snapshot;
   } catch {
     return DEFAULT_PROFIL_DATA;
   }
@@ -54,7 +76,11 @@ export function saveStoredVillageProfile(
   try {
     const current = getStoredVillageProfile();
     const merged = { ...current, ...updated };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    const raw = JSON.stringify(merged);
+    localStorage.setItem(STORAGE_KEY, raw);
+    snapshotRaw = raw;
+    snapshot = merged;
+    listeners.forEach((listener) => listener());
     return merged;
   } catch {
     return DEFAULT_PROFIL_DATA;

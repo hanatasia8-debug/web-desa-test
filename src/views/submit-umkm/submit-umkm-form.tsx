@@ -1,19 +1,17 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Icon } from "@/shared/ui/icon";
 import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 import type { RegisterUmkmDTO } from "@/entities/umkm/model/register-umkm.schema";
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
 import { PendingStatusCard } from "@/features/submission-tracker/ui/pending-status-card";
-import type { PendingSubmissionState } from "@/features/submission-tracker/model/use-submission-tracker";
 
 interface SubmitUmkmFormProps {
   formData: Partial<RegisterUmkmDTO>;
   categories: UmkmCategoryDto[];
   errors: Record<string, string>;
-  pendingSubmission?: PendingSubmissionState | null;
   onChange: (field: keyof RegisterUmkmDTO, value: any) => void;
   onAddProduct: () => void;
   onRemoveProduct: (index: number) => void;
@@ -41,7 +39,6 @@ export function SubmitUmkmForm({
   formData,
   categories,
   errors,
-  pendingSubmission,
   onChange,
   onAddProduct,
   onRemoveProduct,
@@ -55,18 +52,6 @@ export function SubmitUmkmForm({
   submitButton,
 }: SubmitUmkmFormProps) {
   const coverFileInputRef = useRef<HTMLInputElement>(null);
-  const [localSubmitting, setLocalSubmitting] = useState(false);
-
-  const handleLocalSubmit = (e: React.FormEvent) => {
-    if (localSubmitting) return;
-    setLocalSubmitting(true);
-    try {
-      onSubmitStep(e);
-    } finally {
-      // release lock shortly after; if the component unmounts it's fine
-      setTimeout(() => setLocalSubmitting(false), 600);
-    }
-  };
 
   // Helper to scroll and focus field
   const scrollToField = (fieldId: string) => {
@@ -164,7 +149,7 @@ export function SubmitUmkmForm({
 
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-7">
-          <form onSubmit={handleLocalSubmit} className="space-y-8" noValidate>
+          <form onSubmit={onSubmitStep} className="space-y-8" noValidate>
             {/* SEKSI 1: IDENTITAS USAHA */}
             <div>
               <h3 className="font-headline-md text-headline-md text-primary border-outline-variant/20 mb-4 flex items-center gap-2 border-b pb-2">
@@ -713,25 +698,18 @@ export function SubmitUmkmForm({
               )}
             </div>
 
-            {/* ACTION BUTTON */}
-            <div className="border-outline-variant/30 flex justify-end gap-4 border-t pt-6">
+            {/* ACTION BUTTON — sticky to the bottom of the viewport while
+            scrolling the form, so it's always reachable without scrolling
+            all the way down (UX #211: previously only sat at the natural
+            end of the form, easy to lose track of on a long form). */}
+            <div className="bg-surface-container-lowest/95 border-outline-variant/30 sticky bottom-0 z-10 -mx-6 flex justify-end gap-4 border-t px-6 py-4 backdrop-blur-sm md:-mx-8 md:px-8">
               {submitButton ?? (
                 <button
                   type="submit"
-                  disabled={localSubmitting}
-                  className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+                  className="bg-primary text-on-primary flex items-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95"
                 >
-                  {localSubmitting ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      <span>Mengecek...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Lihat Pratinjau Tampilan</span>
-                      <Icon name="arrow_forward" className="text-lg" />
-                    </>
-                  )}
+                  <span>Lihat Pratinjau Tampilan</span>
+                  <Icon name="arrow_forward" className="text-lg" />
                 </button>
               )}
             </div>

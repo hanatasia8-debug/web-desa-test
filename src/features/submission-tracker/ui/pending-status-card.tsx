@@ -23,7 +23,7 @@ export function PendingStatusCard({ type = "NEWS" }: PendingStatusCardProps) {
             Status Pengajuan Pending ({isUmkm ? "UMKM" : "Berita"})
           </h3>
         </div>
-        <span className="bg-amber-100 text-amber-900 rounded-full px-2.5 py-0.5 text-[10px] font-bold">
+        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-900">
           {items.length} Pending
         </span>
       </div>
@@ -48,14 +48,15 @@ export function PendingStatusCard({ type = "NEWS" }: PendingStatusCardProps) {
                 </p>
               </div>
 
-              <span className="bg-amber-100 text-amber-800 shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide">
+              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-extrabold tracking-wide text-amber-800 uppercase">
                 PENDING
               </span>
             </div>
           ))}
 
           <p className="text-on-surface-variant/80 text-[11px] leading-relaxed italic">
-            ⏳ Seluruh pengajuan di atas sedang dalam proses verifikasi oleh Admin Desa Pringgodani (Maks 24 Jam).
+            ⏳ Seluruh pengajuan di atas sedang dalam proses verifikasi oleh
+            Admin Desa Pringgodani (Maks 24 Jam).
           </p>
         </div>
       ) : (
@@ -70,13 +71,14 @@ export function PendingStatusCard({ type = "NEWS" }: PendingStatusCardProps) {
               </p>
             </div>
 
-            <span className="bg-slate-100 text-slate-600 shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-slate-600 uppercase">
               NIHIL
             </span>
           </div>
 
           <p className="text-on-surface-variant/70 text-[11px] leading-relaxed italic">
-            Isi formulir di sebelah kiri untuk mengajukan {isUmkm ? "UMKM" : "berita"} baru ke portal desa.
+            Isi formulir di sebelah kiri untuk mengajukan{" "}
+            {isUmkm ? "UMKM" : "berita"} baru ke portal desa.
           </p>
         </div>
       )}

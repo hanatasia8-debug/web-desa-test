@@ -79,7 +79,8 @@
      Use local/system fallbacks so builds do not depend on remote font fetching. */
   --font-display-hero: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
   --font-headline-lg: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
-  --font-headline-lg-mobile: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
+  --font-headline-lg-mobile:
+    "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
   --font-headline-md: "Hanken Grotesk", "Trebuchet MS", Arial, sans-serif;
   --font-body-lg: "Inter", "Segoe UI", Arial, sans-serif;
   --font-body-base: "Inter", "Segoe UI", Arial, sans-serif;

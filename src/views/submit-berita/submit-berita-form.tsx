@@ -7,13 +7,11 @@ import type { NewsCategoryDto } from "@/entities/berita/model/types";
 import type { RegisterNewsDTO } from "@/entities/berita/model/register-news.schema";
 
 import { PendingStatusCard } from "@/features/submission-tracker/ui/pending-status-card";
-import type { PendingSubmissionState } from "@/features/submission-tracker/model/use-submission-tracker";
 
 interface SubmitBeritaFormProps {
   formData: Partial<RegisterNewsDTO>;
   categories: NewsCategoryDto[];
   errors: Record<string, string>;
-  pendingSubmission?: PendingSubmissionState | null;
   onChange: (field: keyof RegisterNewsDTO, value: any) => void;
   onAddBlock: () => void;
   onRemoveBlock: (index: number) => void;
@@ -37,7 +35,6 @@ export function SubmitBeritaForm({
   formData,
   categories,
   errors,
-  pendingSubmission,
   onChange,
   onAddBlock,
   onRemoveBlock,
@@ -57,7 +54,6 @@ export function SubmitBeritaForm({
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   const [isMounted, setIsMounted] = useState(false);
-  const [localSubmitting, setLocalSubmitting] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     return () => clearTimeout(timer);
@@ -152,19 +148,7 @@ export function SubmitBeritaForm({
             </div>
           ))}
 
-        <form
-          onSubmit={(e) => {
-            if (localSubmitting) return;
-            setLocalSubmitting(true);
-            try {
-              onSubmitStep(e);
-            } finally {
-              setTimeout(() => setLocalSubmitting(false), 600);
-            }
-          }}
-          className="space-y-6"
-          noValidate
-        >
+        <form onSubmit={onSubmitStep} className="space-y-6" noValidate>
           {/* TEMPLATE BERITA SELECTOR */}
           <div className="space-y-1.5">
             <label className="font-label-sm text-label-sm text-on-surface block">
@@ -529,25 +513,17 @@ export function SubmitBeritaForm({
             </div>
           )}
 
-          {/* ACTION BUTTON */}
-          <div className="border-outline-variant/20 flex justify-end border-t pt-4">
+          {/* ACTION BUTTON — sticky to the bottom of the viewport while
+              scrolling the form (see submit-umkm-form.tsx for the same
+              #211 fix). */}
+          <div className="bg-surface-container-lowest/95 border-outline-variant/20 sticky bottom-0 z-10 -mx-6 flex justify-end border-t px-6 py-4 backdrop-blur-sm md:-mx-8 md:px-8">
             {submitButton ?? (
               <button
                 type="submit"
-                disabled={localSubmitting}
-                className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 sm:w-auto"
+                className="bg-primary text-on-primary flex w-full items-center justify-center gap-2 rounded-full px-8 py-3 font-bold shadow-lg transition-all hover:opacity-90 active:scale-95 sm:w-auto"
               >
-                {localSubmitting ? (
-                  <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Mengecek...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="visibility" className="text-lg" />
-                    <span>Pratinjau Berita</span>
-                  </>
-                )}
+                <Icon name="visibility" className="text-lg" />
+                <span>Pratinjau Berita</span>
               </button>
             )}
           </div>

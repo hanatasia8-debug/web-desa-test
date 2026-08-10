@@ -139,8 +139,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Info Banner Utama Beranda */}
-      <div className="border-secondary/20 bg-secondary/5 rounded-3xl border p-6 flex gap-4 items-start">
-        <div className="bg-secondary/10 text-secondary p-3 rounded-2xl flex items-center justify-center">
+      <div className="border-secondary/20 bg-secondary/5 flex items-start gap-4 rounded-3xl border p-6">
+        <div className="bg-secondary/10 text-secondary flex items-center justify-center rounded-2xl p-3">
           <Icon name="info" className="text-2xl" />
         </div>
         <div>
@@ -148,7 +148,11 @@ export default function AdminDashboardPage() {
             Informasi Pengelolaan Banner Utama Beranda
           </h4>
           <p className="text-on-surface-variant mt-2 text-sm leading-relaxed">
-            Gambar banner utama di halaman beranda depan diambil secara otomatis dari cover gambar berita terbaru yang berstatus <strong>PUBLISHED</strong>. Untuk mengubah gambar banner beranda, Anda cukup membuat/menerbitkan Berita Baru dengan gambar sampul (cover image) yang Anda inginkan.
+            Gambar banner utama di halaman beranda depan diambil secara otomatis
+            dari cover gambar berita terbaru yang berstatus{" "}
+            <strong>PUBLISHED</strong>. Untuk mengubah gambar banner beranda,
+            Anda cukup membuat/menerbitkan Berita Baru dengan gambar sampul
+            (cover image) yang Anda inginkan.
           </p>
         </div>
       </div>
@@ -254,7 +258,8 @@ export default function AdminDashboardPage() {
               Profil & Perangkat Desa
             </h4>
             <p className="text-on-surface-variant mt-2 text-xs leading-relaxed">
-              Kelola sejarah, visi misi desa, serta jajaran perangkat desa dan struktur organisasi resmi.
+              Kelola sejarah, visi misi desa, serta jajaran perangkat desa dan
+              struktur organisasi resmi.
             </p>
             <span className="text-primary mt-4 inline-flex items-center gap-1.5 text-xs font-bold group-hover:underline">
               Kelola Profil & Perangkat →

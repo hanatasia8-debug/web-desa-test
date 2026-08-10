@@ -11,7 +11,9 @@ const STORE_NAME = "draft_images";
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined" || !("indexedDB" in window)) {
-      return reject(new Error("IndexedDB is not supported in this environment"));
+      return reject(
+        new Error("IndexedDB is not supported in this environment"),
+      );
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -31,7 +33,10 @@ function openDB(): Promise<IDBDatabase> {
 /**
  * Save a binary File or Blob to IndexedDB under a unique key.
  */
-export async function saveDraftImage(key: string, file: File | Blob): Promise<void> {
+export async function saveDraftImage(
+  key: string,
+  file: File | Blob,
+): Promise<void> {
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -126,7 +131,7 @@ export async function clearDraftImages(prefix?: string): Promise<void> {
  */
 export async function syncArrayDraftImages(
   prefix: string,
-  files: (File | null)[]
+  files: (File | null)[],
 ): Promise<void> {
   await clearDraftImages(prefix);
   for (let i = 0; i < files.length; i++) {

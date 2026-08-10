@@ -36,7 +36,7 @@ export function BeritaCategoryFilter({
     `${pathname}${buildQueryString(searchParams, { kategori: slug, halaman: null })}`;
 
   return (
-    <div className="flex w-full overflow-x-auto gap-3 pb-2 md:pb-0 md:flex-wrap md:w-auto scrollbar-hide snap-x snap-mandatory whitespace-nowrap">
+    <div className="scrollbar-hide flex w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-2 whitespace-nowrap md:w-auto md:flex-wrap md:pb-0">
       <Link
         href={hrefFor(null)}
         className={cn(chipClass(!activeSlug), "flex-shrink-0 snap-center")}
@@ -48,7 +48,10 @@ export function BeritaCategoryFilter({
         <Link
           key={category.id}
           href={hrefFor(category.slug)}
-          className={cn(chipClass(activeSlug === category.slug), "flex-shrink-0 snap-center")}
+          className={cn(
+            chipClass(activeSlug === category.slug),
+            "flex-shrink-0 snap-center",
+          )}
           scroll={false}
         >
           {category.name}

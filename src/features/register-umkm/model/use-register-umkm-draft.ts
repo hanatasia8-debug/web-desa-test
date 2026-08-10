@@ -37,12 +37,18 @@ export const DEFAULT_UMKM_FORM_DATA: Partial<RegisterUmkmDTO> = {
 };
 
 export function useRegisterUmkmDraft() {
-  const [formData, setFormData] = useState<Partial<RegisterUmkmDTO>>(DEFAULT_UMKM_FORM_DATA);
+  const [formData, setFormData] = useState<Partial<RegisterUmkmDTO>>(
+    DEFAULT_UMKM_FORM_DATA,
+  );
   const [isHydrated, setIsHydrated] = useState(false);
 
   const [coverFile, setCoverFileState] = useState<File | null>(null);
-  const [productFiles, setProductFilesState] = useState<Record<number, File>>({});
-  const [galleryFiles, setGalleryFilesState] = useState<Record<number, File>>({});
+  const [productFiles, setProductFilesState] = useState<Record<number, File>>(
+    {},
+  );
+  const [galleryFiles, setGalleryFilesState] = useState<Record<number, File>>(
+    {},
+  );
 
   // Restore text draft AND IndexedDB image files post-mount
   useEffect(() => {
@@ -82,7 +88,10 @@ export function useRegisterUmkmDraft() {
 
       for (let i = 0; i < (baseData.products || []).length; i++) {
         const p = updatedProducts[i];
-        if (p.imageUrl === DRAFT_IMAGE_MARKER || p.imageUrl?.startsWith("blob:")) {
+        if (
+          p.imageUrl === DRAFT_IMAGE_MARKER ||
+          p.imageUrl?.startsWith("blob:")
+        ) {
           const blob = await getDraftImage(`${PREFIX}product_${i}`);
           if (blob) {
             const file =
@@ -132,8 +141,10 @@ export function useRegisterUmkmDraft() {
       });
 
       if (restoredCoverFile) setCoverFileState(restoredCoverFile);
-      if (Object.keys(restoredProdFiles).length > 0) setProductFilesState(restoredProdFiles);
-      if (Object.keys(restoredGalFiles).length > 0) setGalleryFilesState(restoredGalFiles);
+      if (Object.keys(restoredProdFiles).length > 0)
+        setProductFilesState(restoredProdFiles);
+      if (Object.keys(restoredGalFiles).length > 0)
+        setGalleryFilesState(restoredGalFiles);
 
       setIsHydrated(true);
     }
@@ -147,10 +158,7 @@ export function useRegisterUmkmDraft() {
     try {
       const sanitizedData = {
         ...formData,
-        coverUrl:
-          coverFile || formData.coverUrl
-            ? DRAFT_IMAGE_MARKER
-            : "",
+        coverUrl: coverFile || formData.coverUrl ? DRAFT_IMAGE_MARKER : "",
         galleries: formData.galleries?.map((g, idx) =>
           galleryFiles[idx] || (g && g !== "") ? DRAFT_IMAGE_MARKER : "",
         ),
@@ -181,69 +189,77 @@ export function useRegisterUmkmDraft() {
     }
   }, []);
 
-  const setProductFile = useCallback(async (index: number, file: File | null) => {
-    setProductFilesState((prev) => {
-      const next = { ...prev };
-      if (file) next[index] = file;
-      else delete next[index];
+  const setProductFile = useCallback(
+    async (index: number, file: File | null) => {
+      setProductFilesState((prev) => {
+        const next = { ...prev };
+        if (file) next[index] = file;
+        else delete next[index];
 
-      const filesArray = Object.keys(next)
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map((k) => next[k]);
-      syncArrayDraftImages(`${PREFIX}product_`, filesArray);
+        const filesArray = Object.keys(next)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .map((k) => next[k]);
+        syncArrayDraftImages(`${PREFIX}product_`, filesArray);
 
-      return next;
-    });
-
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setFormData((prev) => {
-        const products = [...(prev.products || [])];
-        if (products[index]) products[index] = { ...products[index], imageUrl: previewUrl };
-        return { ...prev, products };
+        return next;
       });
-    } else {
-      setFormData((prev) => {
-        const products = [...(prev.products || [])];
-        if (products[index]) products[index] = { ...products[index], imageUrl: "" };
-        return { ...prev, products };
+
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setFormData((prev) => {
+          const products = [...(prev.products || [])];
+          if (products[index])
+            products[index] = { ...products[index], imageUrl: previewUrl };
+          return { ...prev, products };
+        });
+      } else {
+        setFormData((prev) => {
+          const products = [...(prev.products || [])];
+          if (products[index])
+            products[index] = { ...products[index], imageUrl: "" };
+          return { ...prev, products };
+        });
+        await deleteDraftImage(`${PREFIX}product_${index}`);
+      }
+    },
+    [],
+  );
+
+  const setGalleryFile = useCallback(
+    async (index: number, file: File | null) => {
+      setGalleryFilesState((prev) => {
+        const next = { ...prev };
+        if (file) next[index] = file;
+        else delete next[index];
+
+        const filesArray = Object.keys(next)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .map((k) => next[k]);
+        syncArrayDraftImages(`${PREFIX}gallery_`, filesArray);
+
+        return next;
       });
-      await deleteDraftImage(`${PREFIX}product_${index}`);
-    }
-  }, []);
 
-  const setGalleryFile = useCallback(async (index: number, file: File | null) => {
-    setGalleryFilesState((prev) => {
-      const next = { ...prev };
-      if (file) next[index] = file;
-      else delete next[index];
-
-      const filesArray = Object.keys(next)
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map((k) => next[k]);
-      syncArrayDraftImages(`${PREFIX}gallery_`, filesArray);
-
-      return next;
-    });
-
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setFormData((prev) => {
-        const galleries = [...(prev.galleries || [])];
-        galleries[index] = previewUrl;
-        return { ...prev, galleries };
-      });
-    } else {
-      setFormData((prev) => {
-        const galleries = [...(prev.galleries || [])];
-        galleries[index] = "";
-        return { ...prev, galleries };
-      });
-      await deleteDraftImage(`${PREFIX}gallery_${index}`);
-    }
-  }, []);
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setFormData((prev) => {
+          const galleries = [...(prev.galleries || [])];
+          galleries[index] = previewUrl;
+          return { ...prev, galleries };
+        });
+      } else {
+        setFormData((prev) => {
+          const galleries = [...(prev.galleries || [])];
+          galleries[index] = "";
+          return { ...prev, galleries };
+        });
+        await deleteDraftImage(`${PREFIX}gallery_${index}`);
+      }
+    },
+    [],
+  );
 
   const clearDraft = useCallback(async () => {
     try {

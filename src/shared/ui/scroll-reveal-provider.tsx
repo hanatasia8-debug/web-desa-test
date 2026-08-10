@@ -22,13 +22,15 @@ export function ScrollRevealProvider() {
           }
         });
       },
-      { threshold: 0.05, rootMargin: "0px 0px 150px 0px" }
+      { threshold: 0.05, rootMargin: "0px 0px 150px 0px" },
     );
 
     const observeAll = () => {
-      document.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
-        observer.observe(el);
-      });
+      document
+        .querySelectorAll(".scroll-reveal:not(.visible)")
+        .forEach((el) => {
+          observer.observe(el);
+        });
     };
 
     // Immediate check
@@ -38,9 +40,11 @@ export function ScrollRevealProvider() {
     const timer = setTimeout(() => {
       observeAll();
       // Ensure all elements become visible as safety fallback
-      document.querySelectorAll(".scroll-reveal:not(.visible)").forEach((el) => {
-        el.classList.add("visible");
-      });
+      document
+        .querySelectorAll(".scroll-reveal:not(.visible)")
+        .forEach((el) => {
+          el.classList.add("visible");
+        });
     }, 400);
 
     return () => {

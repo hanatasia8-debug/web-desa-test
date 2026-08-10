@@ -1,23 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import type { VillageProfileDto } from "@/entities/desa/model/types";
-import { getStoredVillageProfile } from "@/shared/utils/profile-storage";
+import {
+  getStoredVillageProfile,
+  subscribeStoredVillageProfile,
+} from "@/shared/utils/profile-storage";
 
 export function useVillageProfile(initialProfile: VillageProfileDto | null) {
-  const [profile, setProfile] = useState<VillageProfileDto | null>(initialProfile);
+  // The stored profile lives in localStorage, i.e. outside React, so it is read
+  // during render through the store rather than copied into state from an
+  // effect — no cascading re-render, and edits made elsewhere show up here.
+  const stored = useSyncExternalStore(
+    subscribeStoredVillageProfile,
+    getStoredVillageProfile,
+    getStoredVillageProfile,
+  );
 
-  useEffect(() => {
-    const stored = getStoredVillageProfile();
-    if (!stored) return;
+  return useMemo<VillageProfileDto>(() => {
+    const historyContent =
+      stored.historyText || initialProfile?.historyText || "";
 
-    const historyContent = stored.historyText || initialProfile?.historyText || "";
-    const historyExcerpt =
-      historyContent.length > 200
-        ? historyContent.substring(0, 200) + "..."
-        : historyContent;
-
-    setProfile({
+    return {
       villageName: initialProfile?.villageName || "Desa Pringgodani",
       headGreeting:
         stored.headGreeting ||
@@ -31,7 +35,10 @@ export function useVillageProfile(initialProfile: VillageProfileDto | null) {
       headPosition:
         stored.headPosition || initialProfile?.headPosition || "Kepala Desa",
       historyText: historyContent,
-      historyExcerpt: historyExcerpt,
+      historyExcerpt:
+        historyContent.length > 200
+          ? historyContent.substring(0, 200) + "..."
+          : historyContent,
       vision: stored.vision || initialProfile?.vision || "",
       missions:
         stored.missions?.length > 0
@@ -49,8 +56,6 @@ export function useVillageProfile(initialProfile: VillageProfileDto | null) {
           : initialProfile?.officials || [],
       structureImageUrl:
         stored.structureImageUrl || initialProfile?.structureImageUrl || "",
-    });
-  }, [initialProfile]);
-
-  return profile;
+    };
+  }, [stored, initialProfile]);
 }

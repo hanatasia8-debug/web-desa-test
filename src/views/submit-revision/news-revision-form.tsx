@@ -230,7 +230,6 @@ export function NewsRevisionForm({
       formData={formData}
       categories={categories}
       errors={errors}
-      pendingSubmission={null}
       onChange={handleChange}
       onAddBlock={handleAddBlock}
       onRemoveBlock={handleRemoveBlock}

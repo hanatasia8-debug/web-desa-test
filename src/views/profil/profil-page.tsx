@@ -32,7 +32,9 @@ function StatCard({
       <div className="bg-primary/10 text-primary mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
         <Icon name={icon} className="text-2xl" />
       </div>
-      <div className="font-display-hero text-on-surface text-3xl font-extrabold">{value}</div>
+      <div className="font-display-hero text-on-surface text-3xl font-extrabold">
+        {value}
+      </div>
       <div className="text-on-surface-variant mt-1 text-xs font-semibold tracking-wider uppercase">
         {label}
       </div>
@@ -55,14 +57,14 @@ function OfficialCard({
 }) {
   return (
     <div className="group border-outline-variant/20 bg-surface-container-lowest flex w-[280px] shrink-0 snap-center flex-col overflow-hidden rounded-[2rem] border shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto">
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-container">
+      <div className="bg-surface-container relative aspect-[3/4] w-full overflow-hidden">
         <FallbackImage
           src={photo}
           alt={name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
+        <div className="absolute right-4 bottom-4 left-4">
           <span className="bg-primary text-on-primary inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase shadow-md">
             <Icon name="assignment_ind" className="text-xs" />
             {position}
@@ -77,7 +79,7 @@ function OfficialCard({
           </h3>
 
           {greeting && (
-            <div className="bg-primary/[0.04] border-primary/20 text-on-surface-variant mt-3 rounded-2xl border p-3 text-xs italic leading-relaxed">
+            <div className="bg-primary/[0.04] border-primary/20 text-on-surface-variant mt-3 rounded-2xl border p-3 text-xs leading-relaxed italic">
               &ldquo;{greeting}&rdquo;
             </div>
           )}
@@ -108,12 +110,11 @@ export function ProfilPage({
   const [isStructureModalOpen, setIsStructureModalOpen] = useState(false);
 
   const heroPhoto = profile?.headPhoto ?? null;
-  const rawOfficials = profile?.officials ?? [];
   const missions = profile?.missions ?? [];
 
   // Always sort Kepala Desa at index 0 (top/front)
   const sortedOfficials = useMemo(() => {
-    const list = [...rawOfficials];
+    const list = [...(profile?.officials ?? [])];
     return list.sort((a, b) => {
       const isAKades =
         a.position.toLowerCase().includes("kepala desa") ||
@@ -125,7 +126,7 @@ export function ProfilPage({
       if (!isAKades && isBKades) return 1;
       return 0;
     });
-  }, [rawOfficials]);
+  }, [profile?.officials]);
 
   return (
     <div className="pb-section-padding pt-16">
@@ -144,44 +145,57 @@ export function ProfilPage({
           <h1 className="font-display-hero text-3xl font-extrabold sm:text-4xl lg:text-5xl">
             Mengenal Desa Pringgodani
           </h1>
-          <p className="font-body-lg text-on-primary/85 mt-4 max-w-2xl text-sm sm:text-base leading-relaxed">
-            Portal resmi selayang pandang, visi misi, bagan struktur organisasi, serta jajaran perangkat desa resmi Pemerintah Desa Pringgodani.
+          <p className="font-body-lg text-on-primary/85 mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
+            Portal resmi selayang pandang, visi misi, bagan struktur organisasi,
+            serta jajaran perangkat desa resmi Pemerintah Desa Pringgodani.
           </p>
 
           {/* Quick Counter Bar */}
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 max-w-4xl">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/15">
+          <div className="mt-10 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
               <div className="text-2xl font-bold text-white">4.850</div>
-              <div className="text-[11px] text-white/80 font-medium uppercase tracking-wider mt-0.5">Penduduk (Jiwa)</div>
+              <div className="mt-0.5 text-[11px] font-medium tracking-wider text-white/80 uppercase">
+                Penduduk (Jiwa)
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/15">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
               <div className="text-2xl font-bold text-white">1.420</div>
-              <div className="text-[11px] text-white/80 font-medium uppercase tracking-wider mt-0.5">Kepala Keluarga</div>
+              <div className="mt-0.5 text-[11px] font-medium tracking-wider text-white/80 uppercase">
+                Kepala Keluarga
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/15">
-              <div className="text-2xl font-bold text-white">{stats.umkmCount}</div>
-              <div className="text-[11px] text-white/80 font-medium uppercase tracking-wider mt-0.5">UMKM Terdaftar</div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
+              <div className="text-2xl font-bold text-white">
+                {stats.umkmCount}
+              </div>
+              <div className="mt-0.5 text-[11px] font-medium tracking-wider text-white/80 uppercase">
+                UMKM Terdaftar
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/15">
-              <div className="text-2xl font-bold text-white">{stats.dusunCount}</div>
-              <div className="text-[11px] text-white/80 font-medium uppercase tracking-wider mt-0.5">Wilayah Dusun</div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
+              <div className="text-2xl font-bold text-white">
+                {stats.dusunCount}
+              </div>
+              <div className="mt-0.5 text-[11px] font-medium tracking-wider text-white/80 uppercase">
+                Wilayah Dusun
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── 2. Sambutan Kepala Desa & Sejarah ── */}
-      <section id="sambutan-sejarah" className="py-16 scroll-mt-28">
+      <section id="sambutan-sejarah" className="scroll-mt-28 py-16">
         <div className="max-w-container-max px-gutter mx-auto grid gap-8 lg:grid-cols-[1fr_1.8fr]">
           {/* Card Kades */}
           <div className="border-outline-variant/20 bg-surface-container-lowest overflow-hidden rounded-[2.5rem] border p-6 shadow-md">
-            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-surface-container">
+            <div className="bg-surface-container relative aspect-[3/4] w-full overflow-hidden rounded-2xl">
               <FallbackImage
                 src={heroPhoto}
                 alt={profile?.headName ?? "Kepala Desa Pringgodani"}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute bottom-4 left-4 right-4">
+              <div className="absolute right-4 bottom-4 left-4">
                 <span className="bg-secondary-fixed text-on-secondary-fixed inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-extrabold uppercase shadow-lg">
                   <Icon name="user" className="text-sm" />
                   {profile?.headPosition || "Kepala Desa Pringgodani"}
@@ -199,12 +213,15 @@ export function ProfilPage({
           <div className="space-y-6">
             {/* Quote Card Sambutan */}
             <div className="border-primary/20 bg-primary/[0.03] relative overflow-hidden rounded-[2rem] border-l-4 p-8 shadow-sm">
-              <span className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase mb-4">
+              <span className="bg-primary/10 text-primary mb-4 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase">
                 <Icon name="info" className="text-sm" />
                 Sambutan Kepala Desa
               </span>
-              <blockquote className="font-body-lg text-on-surface text-base sm:text-lg leading-relaxed italic">
-                &ldquo;{profile?.headGreeting ?? "Selamat datang di website resmi Desa Pringgodani. Temukan informasi, agenda, dan pelayanan desa dalam satu tampilan modern."}&rdquo;
+              <blockquote className="font-body-lg text-on-surface text-base leading-relaxed italic sm:text-lg">
+                &ldquo;
+                {profile?.headGreeting ??
+                  "Selamat datang di website resmi Desa Pringgodani. Temukan informasi, agenda, dan pelayanan desa dalam satu tampilan modern."}
+                &rdquo;
               </blockquote>
             </div>
 
@@ -233,7 +250,10 @@ export function ProfilPage({
       </section>
 
       {/* ── 3. Visi & Misi Desa (Mobile Carousel + Desktop Grid) ── */}
-      <section id="visi-misi" className="bg-surface-container-low/50 py-16 border-y border-outline-variant/10 scroll-mt-28">
+      <section
+        id="visi-misi"
+        className="bg-surface-container-low/50 border-outline-variant/10 scroll-mt-28 border-y py-16"
+      >
         <div className="max-w-container-max px-gutter mx-auto space-y-10">
           <div className="text-center">
             <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase">
@@ -249,11 +269,14 @@ export function ProfilPage({
             <div className="text-primary/10 pointer-events-none absolute -top-4 -right-4">
               <Icon name="target" className="text-[120px]" />
             </div>
-            <span className="text-primary font-label-sm text-xs font-bold uppercase tracking-wider">
+            <span className="text-primary font-label-sm text-xs font-bold tracking-wider uppercase">
               Visi Utama Desa
             </span>
-            <blockquote className="font-headline-lg text-on-surface mt-3 text-xl font-bold leading-snug sm:text-2xl lg:max-w-[90%]">
-              &ldquo;{profile?.vision || "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera."}&rdquo;
+            <blockquote className="font-headline-lg text-on-surface mt-3 text-xl leading-snug font-bold sm:text-2xl lg:max-w-[90%]">
+              &ldquo;
+              {profile?.vision ||
+                "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera."}
+              &rdquo;
             </blockquote>
           </div>
 
@@ -267,7 +290,7 @@ export function ProfilPage({
                 Misi desa belum dikonfigurasi.
               </p>
             ) : (
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0">
+              <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0">
                 {missions.map((mission, idx) => (
                   <div
                     key={idx}
@@ -288,7 +311,7 @@ export function ProfilPage({
       </section>
 
       {/* ── 4. Bagan Struktur Organisasi (With Lightbox Zoom Modal) ── */}
-      <section id="struktur-organisasi" className="py-16 scroll-mt-28">
+      <section id="struktur-organisasi" className="scroll-mt-28 py-16">
         <div className="max-w-container-max px-gutter mx-auto">
           <div className="mb-10 text-center">
             <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase">
@@ -304,8 +327,8 @@ export function ProfilPage({
 
           <div className="mx-auto max-w-4xl">
             {profile?.structureImageUrl ? (
-              <div className="border-outline-variant/30 bg-surface-container-lowest rounded-[2.5rem] border p-4 shadow-lg text-center">
-                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface-container">
+              <div className="border-outline-variant/30 bg-surface-container-lowest rounded-[2.5rem] border p-4 text-center shadow-lg">
+                <div className="bg-surface-container relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
                   <FallbackImage
                     src={profile.structureImageUrl}
                     alt="Struktur Organisasi Desa Pringgodani"
@@ -335,7 +358,7 @@ export function ProfilPage({
       {isStructureModalOpen && profile?.structureImageUrl && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
           <div className="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white p-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b pb-3 mb-3">
+            <div className="mb-3 flex items-center justify-between border-b pb-3">
               <h3 className="font-headline-md text-primary text-base font-bold">
                 Bagan Struktur Organisasi Desa Pringgodani
               </h3>
@@ -358,7 +381,10 @@ export function ProfilPage({
       )}
 
       {/* ── 5. Direktori Perangkat Desa Bernyawa (Mobile Snap Carousel + Desktop Grid) ── */}
-      <section id="direktori-perangkat" className="bg-surface-container-low/40 py-16 border-t border-outline-variant/10 scroll-mt-28">
+      <section
+        id="direktori-perangkat"
+        className="bg-surface-container-low/40 border-outline-variant/10 scroll-mt-28 border-t py-16"
+      >
         <div className="max-w-container-max px-gutter mx-auto">
           <div className="mb-12 text-center">
             <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase">
@@ -367,8 +393,9 @@ export function ProfilPage({
             <h2 className="font-headline-lg text-primary mt-3 text-3xl font-bold">
               Direktori Perangkat Desa
             </h2>
-            <p className="text-on-surface-variant mt-2 text-xs sm:text-sm max-w-xl mx-auto">
-              Jajaran pengabdi balai desa yang siap memberikan pelayanan publik terbaik untuk warga Pringgodani.
+            <p className="text-on-surface-variant mx-auto mt-2 max-w-xl text-xs sm:text-sm">
+              Jajaran pengabdi balai desa yang siap memberikan pelayanan publik
+              terbaik untuk warga Pringgodani.
             </p>
           </div>
 
@@ -377,7 +404,7 @@ export function ProfilPage({
               Data perangkat desa belum dikonfigurasi.
             </p>
           ) : (
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
+            <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
               {sortedOfficials.map((official, idx) => (
                 <OfficialCard
                   key={idx}

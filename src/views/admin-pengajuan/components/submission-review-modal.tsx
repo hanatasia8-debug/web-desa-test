@@ -140,13 +140,21 @@ export function SubmissionReviewModal({
     setIsActionLoading(false);
 
     // Auto-open personal WhatsApp chat from Admin to submitter
-    const rawPhone = umkmData?.phone || (newsData as any)?.phone || "";
+    // News submissions may carry the submitter's phone number even though it
+    // is not part of the DTO.
+    const rawPhone =
+      umkmData?.phone ||
+      (newsData as (PendingNewsSubmission & { phone?: string }) | null)
+        ?.phone ||
+      "";
     const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
     const formattedPhone = cleanPhone.startsWith("0")
       ? `62${cleanPhone.slice(1)}`
       : cleanPhone;
     const title = isNews ? newsFormData.title : umkmFormData.name;
-    const submitterName = isNews ? newsFormData.authorName : umkmFormData.ownerName;
+    const submitterName = isNews
+      ? newsFormData.authorName
+      : umkmFormData.ownerName;
 
     if (formattedPhone) {
       const message = `Halo ${submitterName || "Warga"}, mohon maaf pengajuan ${
@@ -214,8 +222,8 @@ export function SubmissionReviewModal({
   };
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 md:p-6 backdrop-blur-sm">
-      <div className="border-outline-variant/30 bg-surface-container-lowest text-on-surface flex h-[94vh] w-full max-w-[96vw] 2xl:max-w-7xl flex-col overflow-hidden rounded-[2.5rem] border shadow-2xl">
+    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm md:p-6">
+      <div className="border-outline-variant/30 bg-surface-container-lowest text-on-surface flex h-[94vh] w-full max-w-[96vw] flex-col overflow-hidden rounded-[2.5rem] border shadow-2xl 2xl:max-w-7xl">
         {/* Header Modal */}
         <div className="bg-primary text-on-primary flex items-center justify-between px-8 py-4">
           <div className="flex items-center gap-3">

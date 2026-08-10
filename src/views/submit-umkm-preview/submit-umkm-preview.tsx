@@ -51,7 +51,9 @@ export function SubmitUmkmPreview({
       <div className="bg-surface-container-lowest border-outline-variant/20 overflow-hidden rounded-xl border shadow-sm">
         <UmkmHero umkm={previewDetailDto} />
 
-        <div className={`grid gap-8 p-6 md:p-8 ${readOnly ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"}`}>
+        <div
+          className={`grid gap-8 p-6 md:p-8 ${readOnly ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"}`}
+        >
           <div className={`space-y-8 ${readOnly ? "w-full" : "lg:col-span-2"}`}>
             <section>
               <h2 className="font-headline-md text-headline-md text-primary border-outline-variant/30 mb-4 border-b pb-3">

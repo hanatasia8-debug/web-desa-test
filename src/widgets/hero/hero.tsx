@@ -40,8 +40,6 @@ export function Hero() {
             src={bannerImage}
             alt="Desa Pringgodani"
             className="h-full w-full object-cover"
-            loading="eager"
-            priority
           />
         ) : (
           <div className="bg-primary-container h-full w-full" />

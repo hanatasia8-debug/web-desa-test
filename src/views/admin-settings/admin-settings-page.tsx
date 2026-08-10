@@ -5,7 +5,11 @@ import { Icon } from "@/shared/ui/icon";
 import { AdminSettingsService } from "@/entities/admin/api/admin-settings.service";
 import type { AdminSettingsPayload } from "@/entities/admin/model/admin.types";
 import { FileUploadWithPreview } from "@/shared/ui/file-upload-with-preview";
-import { getCustomBanner, setCustomBanner, removeCustomBanner } from "@/shared/utils/custom-banner-storage";
+import {
+  getCustomBanner,
+  setCustomBanner,
+  removeCustomBanner,
+} from "@/shared/utils/custom-banner-storage";
 
 export function AdminSettingsPage() {
   const [formData, setFormData] = useState<AdminSettingsPayload>({

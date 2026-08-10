@@ -27,7 +27,7 @@ interface RegisterUmkmPageProps {
 
 export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   const router = useRouter();
-  const { pendingSubmission, savePendingSubmission } = useSubmissionTracker("UMKM");
+  const { savePendingSubmission } = useSubmissionTracker("UMKM");
   const {
     formData,
     setFormData,
@@ -205,7 +205,10 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
 
       const result = await UmkmService.register(finalPayload as any);
       if (result?.id) {
-        savePendingSubmission(result.id, result.name || formData.name || "UMKM Baru");
+        savePendingSubmission(
+          result.id,
+          result.name || formData.name || "UMKM Baru",
+        );
       }
       clearDraft();
       setShowSuccessModal(true);
@@ -328,7 +331,6 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
           formData={formData}
           categories={categories}
           errors={errors}
-          pendingSubmission={pendingSubmission}
           onChange={handleChange}
           onAddProduct={handleAddProduct}
           onRemoveProduct={handleRemoveProduct}

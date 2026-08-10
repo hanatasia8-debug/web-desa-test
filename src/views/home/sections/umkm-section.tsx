@@ -33,9 +33,12 @@ export function UmkmSection({ items }: UmkmSectionProps) {
           Belum ada UMKM yang terdaftar.
         </p>
       ) : (
-        <div className="flex gap-8 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible md:pb-0 scrollbar-hide snap-x snap-mandatory">
+        <div className="scrollbar-hide flex snap-x snap-mandatory gap-8 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
           {items.map((umkm) => (
-            <div key={umkm.id} className="w-[85vw] flex-shrink-0 md:w-auto snap-center">
+            <div
+              key={umkm.id}
+              className="w-[85vw] flex-shrink-0 snap-center md:w-auto"
+            >
               <UmkmCard umkm={umkm} />
             </div>
           ))}

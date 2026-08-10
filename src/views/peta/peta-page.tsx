@@ -115,7 +115,7 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
   return (
     <div className="bg-surface-container-low relative h-[calc(100vh-64px)] w-full overflow-hidden pt-16 md:pt-0">
       {/* Overlay Atas Khusus Mobile (Search + Horizontal Chips Kategori) */}
-      <div className="absolute top-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b px-4 py-3 flex flex-col gap-3 md:hidden shadow-sm">
+      <div className="absolute top-16 right-0 left-0 z-20 flex flex-col gap-3 border-b bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm md:hidden">
         {/* Search Bar Mobile */}
         <div className="border-outline-variant/30 bg-surface flex items-center gap-2 rounded-full border px-4 py-2">
           <Icon name="search" className="text-on-surface-variant text-base" />
@@ -137,7 +137,7 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
         </div>
 
         {/* Horizontal Chips Kategori Mobile */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory whitespace-nowrap pb-1">
+        <div className="scrollbar-hide flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 whitespace-nowrap">
           {categories.map((cat) => {
             const isSelected = selectedCategoryIds.has(cat.id);
             const color = cat.color || "#006399";
@@ -146,13 +146,16 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
                 key={cat.id}
                 onClick={() => handleToggleCategory(cat.id)}
                 className={cn(
-                  "font-label-sm text-xs rounded-full px-3 py-1.5 flex items-center gap-1.5 border transition-all duration-200 snap-center flex-shrink-0",
+                  "font-label-sm flex flex-shrink-0 snap-center items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all duration-200",
                   isSelected
-                    ? "bg-primary text-on-primary font-semibold border-primary shadow-sm"
-                    : "bg-white text-on-surface-variant border-outline-variant hover:bg-surface-container-low"
+                    ? "bg-primary text-on-primary border-primary font-semibold shadow-sm"
+                    : "text-on-surface-variant border-outline-variant hover:bg-surface-container-low bg-white",
                 )}
               >
-                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                <div
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
                 {cat.name}
               </button>
             );

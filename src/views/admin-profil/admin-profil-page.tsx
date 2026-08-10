@@ -177,7 +177,9 @@ export function AdminProfilPage() {
         showToast(`Perangkat desa "${officialName}" berhasil diperbarui.`);
       } else {
         await AdminProfilService.addOfficial(payload);
-        showToast(`Perangkat desa baru "${officialName}" berhasil ditambahkan.`);
+        showToast(
+          `Perangkat desa baru "${officialName}" berhasil ditambahkan.`,
+        );
       }
 
       setIsOfficialModalOpen(false);

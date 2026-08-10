@@ -9,7 +9,6 @@ import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import { apiClient } from "@/shared/api/axios-instance";
-import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 
 interface ProductInput {
   name: string;
@@ -40,6 +39,7 @@ export function AdminUmkmEditor({
   const [longitude, setLongitude] = useState(112.5664);
 
   const [products, setProducts] = useState<ProductInput[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const uploadSingleFile = async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -186,8 +186,52 @@ export function AdminUmkmEditor({
     setProducts(products.filter((_, i) => i !== index));
   };
 
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  // Zero Trust Validation — mirrors the pattern used on the public
+  // pendaftaran form (`registerUmkmSchema` / SubmitUmkmForm's error
+  // banner). Previously this editor had no validation at all: the "Simpan"
+  // button in the header is wired directly via `onClick`, outside the
+  // <form>, so the `required` attributes on the inputs below never
+  // actually triggered browser validation — an incomplete save just went
+  // straight to the API call with no feedback (UAT #242).
+  const validateForm = (): boolean => {
+    const fieldErrors: Record<string, string> = {};
+    if (!name.trim()) fieldErrors.name = "Nama usaha wajib diisi";
+    if (!ownerName.trim()) fieldErrors.ownerName = "Nama pemilik wajib diisi";
+    if (!phone.trim()) fieldErrors.phone = "Nomor telepon/WhatsApp wajib diisi";
+    if (!address.trim()) fieldErrors.address = "Alamat usaha wajib diisi";
+    if (!description.trim())
+      fieldErrors.description = "Deskripsi usaha wajib diisi";
+    if (!coverUrl.trim())
+      fieldErrors.coverUrl = "Foto sampul/logo usaha wajib diunggah";
+
+    setErrors(fieldErrors);
+
+    const firstErrorField = Object.keys(fieldErrors)[0];
+    if (firstErrorField) {
+      setTimeout(() => {
+        const el = document.getElementById(`field-${firstErrorField}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (typeof el.focus === "function") el.focus();
+        }
+      }, 80);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setIsSubmitting(true);
 
     try {
@@ -236,7 +280,7 @@ export function AdminUmkmEditor({
     } catch (err) {
       console.error("Gagal menyimpan UMKM:", err);
       alert(
-        "Gagal menyimpan profil UMKM. Harap pastikan format berupa gambar dan ukuran di bawah 10MB.",
+        "Gagal menyimpan profil UMKM ke server. Periksa koneksi internet Anda, atau pastikan foto yang diunggah berformat gambar dan berukuran di bawah 10MB, lalu coba lagi.",
       );
     } finally {
       setIsSubmitting(false);
@@ -309,18 +353,62 @@ export function AdminUmkmEditor({
             </p>
           </div>
 
+          {/* ERROR SUMMARY BANNER (UAT #242) */}
+          {Object.keys(errors).length > 0 && (
+            <div className="animate-in fade-in slide-in-from-top-2 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-900 shadow-sm">
+              <Icon
+                name="error"
+                className="mt-0.5 shrink-0 text-xl text-red-600"
+              />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-red-800">
+                  Beberapa Kolom Wajib Belum Diisi dengan Benar:
+                </h4>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-red-700">
+                  {Object.entries(errors).map(([field, msg]) => (
+                    <li key={field}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById(`field-${field}`);
+                          el?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                          el?.focus();
+                        }}
+                        className="text-left font-bold text-red-800 hover:underline"
+                      >
+                        {msg} ↗
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
               Nama Usaha / Brand UMKM (Wajib)
             </label>
             <input
+              id="field-name"
               type="text"
               required
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-bold outline-none"
+              onChange={(e) => {
+                setName(e.target.value);
+                clearError("name");
+              }}
+              className={`bg-surface w-full rounded-2xl border p-3.5 text-sm font-bold outline-none ${errors.name ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
               placeholder="Masukkan nama UMKM..."
             />
+            {errors.name && (
+              <p className="text-error mt-1.5 text-xs font-semibold">
+                {errors.name}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -329,13 +417,22 @@ export function AdminUmkmEditor({
                 Nama Pemilik Usaha
               </label>
               <input
+                id="field-ownerName"
                 type="text"
                 required
                 value={ownerName}
-                onChange={(e) => setOwnerName(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
+                onChange={(e) => {
+                  setOwnerName(e.target.value);
+                  clearError("ownerName");
+                }}
+                className={`bg-surface w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none ${errors.ownerName ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
                 placeholder="Nama pemilik..."
               />
+              {errors.ownerName && (
+                <p className="text-error mt-1.5 text-xs font-semibold">
+                  {errors.ownerName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -365,13 +462,22 @@ export function AdminUmkmEditor({
                 No. Telepon / WhatsApp
               </label>
               <input
+                id="field-phone"
                 type="text"
                 required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 font-mono text-sm outline-none"
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  clearError("phone");
+                }}
+                className={`bg-surface w-full rounded-2xl border p-3.5 font-mono text-sm outline-none ${errors.phone ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
                 placeholder="081234567890"
               />
+              {errors.phone && (
+                <p className="text-error mt-1.5 text-xs font-semibold">
+                  {errors.phone}
+                </p>
+              )}
             </div>
 
             <div>
@@ -396,10 +502,14 @@ export function AdminUmkmEditor({
             </label>
             <div className="flex items-center gap-2">
               <input
+                id="field-coverUrl"
                 type="url"
                 value={coverUrl}
-                onChange={(e) => setCoverUrl(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary flex-1 rounded-2xl border p-3.5 text-xs outline-none"
+                onChange={(e) => {
+                  setCoverUrl(e.target.value);
+                  clearError("coverUrl");
+                }}
+                className={`bg-surface flex-1 rounded-2xl border p-3.5 text-xs outline-none ${errors.coverUrl ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
                 placeholder="https://..."
               />
               <label className="bg-primary text-on-primary hover:bg-primary/90 flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-4 text-xs font-bold whitespace-nowrap shadow-sm transition">
@@ -415,11 +525,17 @@ export function AdminUmkmEditor({
                       setCoverFile(file);
                       const localUrl = URL.createObjectURL(file);
                       setCoverUrl(localUrl);
+                      clearError("coverUrl");
                     }
                   }}
                 />
               </label>
             </div>
+            {errors.coverUrl && (
+              <p className="text-error mt-1.5 text-xs font-semibold">
+                {errors.coverUrl}
+              </p>
+            )}
           </div>
 
           <div>
@@ -427,12 +543,21 @@ export function AdminUmkmEditor({
               Alamat Lengkap Usaha
             </label>
             <input
+              id="field-address"
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
+              onChange={(e) => {
+                setAddress(e.target.value);
+                clearError("address");
+              }}
+              className={`bg-surface w-full rounded-2xl border p-3.5 text-sm outline-none ${errors.address ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
               placeholder="Alamat dusun / RT / RW..."
             />
+            {errors.address && (
+              <p className="text-error mt-1.5 text-xs font-semibold">
+                {errors.address}
+              </p>
+            )}
           </div>
 
           <div>
@@ -447,10 +572,14 @@ export function AdminUmkmEditor({
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 pl-10 text-sm outline-none"
                 placeholder="https://maps.app.goo.gl/..."
               />
-              <Icon name="link" className="text-on-surface-variant absolute top-3.5 left-3 text-lg" />
+              <Icon
+                name="link"
+                className="text-on-surface-variant absolute top-3.5 left-3 text-lg"
+              />
             </div>
             <p className="text-on-surface-variant/70 mt-1.5 text-[11px] italic">
-              Salin link lokasi dari Google Maps untuk memudahkan calon pembeli bernavigasi langsung via GPS HP.
+              Salin link lokasi dari Google Maps untuk memudahkan calon pembeli
+              bernavigasi langsung via GPS HP.
             </p>
           </div>
 
@@ -459,12 +588,21 @@ export function AdminUmkmEditor({
               Deskripsi Produk / Profil Singkat Usaha
             </label>
             <textarea
+              id="field-description"
               rows={3}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none"
+              onChange={(e) => {
+                setDescription(e.target.value);
+                clearError("description");
+              }}
+              className={`bg-surface w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none ${errors.description ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
               placeholder="Jelaskan produk unggulan & keunikan usaha..."
             />
+            {errors.description && (
+              <p className="text-error mt-1.5 text-xs font-semibold">
+                {errors.description}
+              </p>
+            )}
           </div>
 
           {/* Dinamis Produk List */}
@@ -594,7 +732,7 @@ export function AdminUmkmEditor({
                     <p className="text-on-surface-variant text-xs font-bold">
                       Lokasi Google Maps
                     </p>
-                    <p className="text-primary font-mono text-xs font-semibold truncate max-w-[200px]">
+                    <p className="text-primary max-w-[200px] truncate font-mono text-xs font-semibold">
                       {addressUrl}
                     </p>
                   </div>
@@ -602,7 +740,7 @@ export function AdminUmkmEditor({
                     href={addressUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-primary text-on-primary flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold shrink-0 hover:bg-primary/90 transition shadow-sm"
+                    className="bg-primary text-on-primary hover:bg-primary/90 flex shrink-0 items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold shadow-sm transition"
                   >
                     <Icon name="open_in_new" className="text-sm" /> Buka Maps
                   </a>

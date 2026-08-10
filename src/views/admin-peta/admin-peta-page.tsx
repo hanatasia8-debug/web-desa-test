@@ -104,9 +104,6 @@ export function AdminPetaPage() {
     e.preventDefault();
     const selectedCat = categories.find((c) => c.id === categoryId);
 
-    // Otomatis ekstrak koordinat dari link Google Maps tanpa perlu input lat/lng manual
-    const { lat, lng } = extractCoordinatesFromUrl(googleMapsUrl);
-
     const payload = {
       name,
       categoryId,

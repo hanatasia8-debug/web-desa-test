@@ -72,6 +72,16 @@ export function SearchBox({
     return () => clearTimeout(timer);
   }, [value, pathname, router, searchParams, paramKey]);
 
+  const handleClear = () => {
+    setValue("");
+    lastPushedRef.current = "";
+    const query = buildQueryString(searchParams, {
+      [paramKey]: null,
+      halaman: null,
+    });
+    router.replace(`${pathname}${query}`, { scroll: false });
+  };
+
   return (
     <div className={cn("relative w-full", className)}>
       <label htmlFor={id} className="sr-only">
@@ -89,9 +99,23 @@ export function SearchBox({
         placeholder={placeholder}
         className={cn(
           "border-outline-variant focus:ring-primary w-full rounded-lg border bg-white py-3 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2",
+          value && "pr-10",
           inputClassName,
         )}
       />
+      {/* Clear button (UX #230) — only shown once there's something to
+          clear, and bypasses the debounce so the URL/result list updates
+          immediately instead of waiting ~400ms. */}
+      {value && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Hapus kata kunci pencarian"
+          className="text-outline hover:text-on-surface hover:bg-surface-container-high absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1.5 transition-colors"
+        >
+          <Icon name="close" className="text-base" />
+        </button>
+      )}
     </div>
   );
 }

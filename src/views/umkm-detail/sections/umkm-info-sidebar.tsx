@@ -23,7 +23,7 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <Icon name="phone" className="text-secondary shrink-0 mt-0.5" />
+            <Icon name="phone" className="text-secondary mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="font-label-sm text-label-sm text-on-surface-variant">
                 WhatsApp
@@ -35,7 +35,10 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Icon name="location_on" className="text-secondary shrink-0 mt-0.5" />
+            <Icon
+              name="location_on"
+              className="text-secondary mt-0.5 shrink-0"
+            />
             <div className="min-w-0 flex-1">
               <p className="font-label-sm text-label-sm text-on-surface-variant">
                 Alamat Usaha

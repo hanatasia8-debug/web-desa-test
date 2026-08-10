@@ -1,5 +1,5 @@
 import { Icon } from "@/shared/ui/icon";
-import { buildDirectionsUrl, buildMapPlaceUrl } from "../model/maps-url";
+import { buildDirectionsUrl } from "../model/maps-url";
 
 interface LocationCardProps {
   latitude?: number | null;
@@ -30,7 +30,7 @@ export function LocationCard({
         href={directionsTargetUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-primary text-on-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2.5 rounded-xl py-3 text-xs font-bold transition-all shadow-md active:scale-95"
+        className="bg-primary text-on-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2.5 rounded-xl py-3 text-xs font-bold shadow-md transition-all active:scale-95"
       >
         <Icon name="directions" className="text-base" />
         Petunjuk Arah (GPS)

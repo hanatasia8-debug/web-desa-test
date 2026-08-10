@@ -30,12 +30,16 @@ export const DEFAULT_NEWS_FORM_DATA: Partial<RegisterNewsDTO> = {
 };
 
 export function useRegisterNewsDraft() {
-  const [formData, setFormData] = useState<Partial<RegisterNewsDTO>>(DEFAULT_NEWS_FORM_DATA);
+  const [formData, setFormData] = useState<Partial<RegisterNewsDTO>>(
+    DEFAULT_NEWS_FORM_DATA,
+  );
   const [isHydrated, setIsHydrated] = useState(false);
 
   const [coverFile, setCoverFileState] = useState<File | null>(null);
   const [blockFiles, setBlockFilesState] = useState<Record<number, File>>({});
-  const [galleryFiles, setGalleryFilesState] = useState<Record<number, File>>({});
+  const [galleryFiles, setGalleryFilesState] = useState<Record<number, File>>(
+    {},
+  );
 
   // Restore text draft AND IndexedDB image files post-mount
   useEffect(() => {
@@ -75,7 +79,10 @@ export function useRegisterNewsDraft() {
 
       for (let i = 0; i < (baseData.blocks || []).length; i++) {
         const b = updatedBlocks[i];
-        if (b.imageUrl === DRAFT_IMAGE_MARKER || b.imageUrl?.startsWith("blob:")) {
+        if (
+          b.imageUrl === DRAFT_IMAGE_MARKER ||
+          b.imageUrl?.startsWith("blob:")
+        ) {
           const blob = await getDraftImage(`${PREFIX}block_${i}`);
           if (blob) {
             const file =
@@ -95,17 +102,24 @@ export function useRegisterNewsDraft() {
 
       // Restore Gallery Images
       const restoredGalFiles: Record<number, File> = {};
-      const updatedGalleries = (baseData.galleryImages || []).map((g) => ({ ...g }));
+      const updatedGalleries = (baseData.galleryImages || []).map((g) => ({
+        ...g,
+      }));
 
       for (let i = 0; i < (baseData.galleryImages || []).length; i++) {
         const g = updatedGalleries[i];
-        if (g.imageUrl === DRAFT_IMAGE_MARKER || g.imageUrl?.startsWith("blob:")) {
+        if (
+          g.imageUrl === DRAFT_IMAGE_MARKER ||
+          g.imageUrl?.startsWith("blob:")
+        ) {
           const blob = await getDraftImage(`${PREFIX}gallery_${i}`);
           if (blob) {
             const file =
               blob instanceof File
                 ? blob
-                : new File([blob], `news_gallery_${i}.jpg`, { type: blob.type });
+                : new File([blob], `news_gallery_${i}.jpg`, {
+                    type: blob.type,
+                  });
             restoredGalFiles[i] = file;
             updatedGalleries[i].imageUrl = URL.createObjectURL(file);
           } else {
@@ -125,8 +139,10 @@ export function useRegisterNewsDraft() {
       });
 
       if (restoredCoverFile) setCoverFileState(restoredCoverFile);
-      if (Object.keys(restoredBlockFiles).length > 0) setBlockFilesState(restoredBlockFiles);
-      if (Object.keys(restoredGalFiles).length > 0) setGalleryFilesState(restoredGalFiles);
+      if (Object.keys(restoredBlockFiles).length > 0)
+        setBlockFilesState(restoredBlockFiles);
+      if (Object.keys(restoredGalFiles).length > 0)
+        setGalleryFilesState(restoredGalFiles);
 
       setIsHydrated(true);
     }
@@ -140,10 +156,7 @@ export function useRegisterNewsDraft() {
     try {
       const sanitizedData = {
         ...formData,
-        coverUrl:
-          coverFile || formData.coverUrl
-            ? DRAFT_IMAGE_MARKER
-            : "",
+        coverUrl: coverFile || formData.coverUrl ? DRAFT_IMAGE_MARKER : "",
         blocks: formData.blocks?.map((b, idx) => ({
           ...b,
           imageUrl:
@@ -197,7 +210,8 @@ export function useRegisterNewsDraft() {
       const previewUrl = URL.createObjectURL(file);
       setFormData((prev) => {
         const blocks = [...(prev.blocks || [])];
-        if (blocks[index]) blocks[index] = { ...blocks[index], imageUrl: previewUrl };
+        if (blocks[index])
+          blocks[index] = { ...blocks[index], imageUrl: previewUrl };
         return { ...prev, blocks };
       });
     } else {
@@ -210,37 +224,45 @@ export function useRegisterNewsDraft() {
     }
   }, []);
 
-  const setGalleryFile = useCallback(async (index: number, file: File | null) => {
-    setGalleryFilesState((prev) => {
-      const next = { ...prev };
-      if (file) next[index] = file;
-      else delete next[index];
+  const setGalleryFile = useCallback(
+    async (index: number, file: File | null) => {
+      setGalleryFilesState((prev) => {
+        const next = { ...prev };
+        if (file) next[index] = file;
+        else delete next[index];
 
-      const filesArray = Object.keys(next)
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map((k) => next[k]);
-      syncArrayDraftImages(`${PREFIX}gallery_`, filesArray);
+        const filesArray = Object.keys(next)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .map((k) => next[k]);
+        syncArrayDraftImages(`${PREFIX}gallery_`, filesArray);
 
-      return next;
-    });
-
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setFormData((prev) => {
-        const galleryImages = [...(prev.galleryImages || [])];
-        if (galleryImages[index]) galleryImages[index] = { ...galleryImages[index], imageUrl: previewUrl };
-        return { ...prev, galleryImages };
+        return next;
       });
-    } else {
-      setFormData((prev) => {
-        const galleryImages = [...(prev.galleryImages || [])];
-        if (galleryImages[index]) galleryImages[index] = { ...galleryImages[index], imageUrl: "" };
-        return { ...prev, galleryImages };
-      });
-      await deleteDraftImage(`${PREFIX}gallery_${index}`);
-    }
-  }, []);
+
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setFormData((prev) => {
+          const galleryImages = [...(prev.galleryImages || [])];
+          if (galleryImages[index])
+            galleryImages[index] = {
+              ...galleryImages[index],
+              imageUrl: previewUrl,
+            };
+          return { ...prev, galleryImages };
+        });
+      } else {
+        setFormData((prev) => {
+          const galleryImages = [...(prev.galleryImages || [])];
+          if (galleryImages[index])
+            galleryImages[index] = { ...galleryImages[index], imageUrl: "" };
+          return { ...prev, galleryImages };
+        });
+        await deleteDraftImage(`${PREFIX}gallery_${index}`);
+      }
+    },
+    [],
+  );
 
   const clearDraft = useCallback(async () => {
     try {

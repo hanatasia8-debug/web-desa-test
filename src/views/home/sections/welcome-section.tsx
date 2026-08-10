@@ -10,7 +10,9 @@ interface WelcomeSectionProps {
   profile: VillageProfileDto | null;
 }
 
-export function WelcomeSection({ profile: initialProfile }: WelcomeSectionProps) {
+export function WelcomeSection({
+  profile: initialProfile,
+}: WelcomeSectionProps) {
   const profile = useVillageProfile(initialProfile);
   if (!profile) {
     // Empty state — VillageProfile hasn't been filled in by an admin yet.

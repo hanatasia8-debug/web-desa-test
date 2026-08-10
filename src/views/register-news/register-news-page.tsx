@@ -27,7 +27,7 @@ interface RegisterNewsPageProps {
 
 export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
   const router = useRouter();
-  const { pendingSubmission, savePendingSubmission } = useSubmissionTracker("NEWS");
+  const { savePendingSubmission } = useSubmissionTracker("NEWS");
   const {
     formData,
     setFormData,
@@ -245,7 +245,10 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
 
       const result = await BeritaService.submit(finalPayload as any);
       if (result?.id) {
-        savePendingSubmission(result.id, result.title || formData.title || "Berita Baru");
+        savePendingSubmission(
+          result.id,
+          result.title || formData.title || "Berita Baru",
+        );
       }
       clearDraft();
       setShowSuccessModal(true);
@@ -372,7 +375,6 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           formData={formData}
           categories={categories}
           errors={errors}
-          pendingSubmission={pendingSubmission}
           onChange={handleChange}
           onAddBlock={handleAddBlock}
           onRemoveBlock={handleRemoveBlock}

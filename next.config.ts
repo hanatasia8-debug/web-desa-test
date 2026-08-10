@@ -14,8 +14,8 @@ import type { NextConfig } from "next";
  * for local dev without Docker.
  */
 const REWRITE_BACKEND_URL =
-  process.env.BACKEND_INTERNAL_URL ||
   process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:3000/api";
 
 const nextConfig: NextConfig = {

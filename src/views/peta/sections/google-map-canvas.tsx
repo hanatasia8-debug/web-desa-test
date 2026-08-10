@@ -190,7 +190,7 @@ export function GoogleMapCanvas({
           if (mapsLibrary?.Map && typeof mapsLibrary.Map === "function") {
             MapConstructor = mapsLibrary.Map;
           }
-        } catch (error) {
+        } catch {
           // Handled silently
         }
       }
