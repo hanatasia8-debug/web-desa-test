@@ -6,6 +6,7 @@ import type { MapLocationDto } from "@/entities/fasilitas/model/types";
 import { buildDirectionsUrl } from "@/features/google-maps-link/model/maps-url";
 import { loadGoogleMapsSDK } from "@/features/google-maps-link/model/google-maps-loader";
 import { Icon } from "@/shared/ui/icon";
+import { MapSkeletonLoader } from "./map-skeleton-loader";
 
 interface GoogleMapCanvasProps {
   locations: MapLocationDto[];
@@ -383,15 +384,8 @@ export function GoogleMapCanvas({
   return (
     <div className="relative h-full w-full">
       {!isLoaded && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-slate-900/90 backdrop-blur-md">
-          {/* Skeleton Animated Pulse Grid Background */}
-          <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-          <div className="bg-primary/20 text-primary relative z-10 flex h-14 w-14 animate-pulse items-center justify-center rounded-full shadow-xl">
-            <Icon name="map" className="animate-bounce text-3xl" />
-          </div>
-          <span className="font-label-sm text-label-sm relative z-10 font-bold tracking-wide text-slate-200">
-            Memuat Peta Desa Pringgodani...
-          </span>
+        <div className="absolute inset-0 z-30 transition-opacity duration-300">
+          <MapSkeletonLoader />
         </div>
       )}
       <div ref={mapRef} className="h-full w-full" />
