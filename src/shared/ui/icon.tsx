@@ -112,6 +112,7 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   keyboard_arrow_up: ChevronUp,
   open_in_new: ExternalLink,
   directions: Navigation,
+  navigation: Navigation,
 
   // Action & Edit
   edit: Edit3,
@@ -158,42 +159,68 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   location_on: MapPin,
   pin_drop: MapPin,
   place: MapPin,
+  location: MapPin,
+  pin: MapPin,
   map: MapIcon,
   storefront: Store,
   store: Store,
   layers: Layers,
   location_city: Landmark,
   account_balance: Landmark,
+  landmark: Landmark,
 
-  // Potensi Categories
+  // Medical & Health
+  kesehatan: HeartPulse,
+  medical_services: HeartPulse,
+  local_hospital: HeartPulse,
+  hospital: HeartPulse,
+  health_and_safety: HeartPulse,
+  healing: HeartPulse,
+  posyandu: HeartPulse,
+  puskesmas: HeartPulse,
+
+  // Education & School
+  pendidikan: GraduationCap,
+  school: GraduationCap,
+  local_library: GraduationCap,
+  menu_book: GraduationCap,
+  education: GraduationCap,
+  sekolah: GraduationCap,
+
+  // Religion & Government
+  ibadah: Building,
+  mosque: Building,
+  church: Building,
+  place_of_worship: Building,
+  kantor_desa: Building2,
+  pemerintahan: Building2,
+  balai_desa: Building2,
+  building: Building,
+
+  // Potensi & Agriculture
   agriculture: Sprout,
   pertanian: Sprout,
+  grass: Sprout,
   forest: Trees,
   perkebunan: Trees,
   park: Trees,
+  nature: Trees,
   pets: HeartPulse,
   peternakan: HeartPulse,
   set_meal: Fish,
   perikanan: Fish,
   landscape: Mountain,
   pariwisata: Mountain,
+  wisata: Sparkles,
+  attractions: Sparkles,
+  tourist_attraction: Sparkles,
   theater_comedy: Theater,
   kebudayaan: Theater,
   handyman: Wrench,
   kerajinan: Wrench,
+  build: Wrench,
   inventory_2: Package,
   shopping_bag: ShoppingBag,
-
-  // Categories & Buildings
-  ibadah: Building,
-  mosque: Building,
-  kantor_desa: Building2,
-  kesehatan: HeartPulse,
-  medical_services: HeartPulse,
-  pemerintahan: Building2,
-  pendidikan: GraduationCap,
-  school: GraduationCap,
-  wisata: Sparkles,
 
   // Info & Status
   info: Info,
@@ -246,7 +273,8 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
  * Replaces Material Symbols Webfont with lightweight inline SVGs.
  */
 export function Icon({ name, className, filled = false }: IconProps) {
-  const IconComponent = ICON_MAP[name] || HelpCircle;
+  const normalizedKey = (name || "").toLowerCase().trim().replace(/[- ]/g, "_");
+  const IconComponent = ICON_MAP[normalizedKey] || ICON_MAP[name] || Sparkles;
 
   return (
     <IconComponent
