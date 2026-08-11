@@ -6,11 +6,11 @@ const LOCAL_STORAGE_KEY = "app_admin_settings_v1";
 
 const DEFAULT_ADMIN_SETTINGS: AdminSettingsPayload = {
   website_name: "Desa Pringgodani",
-  logo_url: "/images/logo-desa.png",
+  logo_url: "",
   favicon_url: "/favicon.ico",
-  contact_email: "info@pringgodani.desa.id",
-  contact_phone: "081234567890",
-  address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
+  contact_email: "",
+  contact_phone: "",
+  address: "",
   social_facebook: "",
   social_instagram: "",
   social_youtube: "",

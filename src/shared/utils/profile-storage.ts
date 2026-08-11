@@ -3,16 +3,14 @@ import type { AdminProfilPayload } from "@/entities/admin/api/admin-profil.servi
 const STORAGE_KEY = "app_village_profile_v1";
 
 export const DEFAULT_PROFIL_DATA: AdminProfilPayload = {
-  headName: "Ki Suryo Pringgo",
-  headPosition: "Kepala Desa Pringgodani",
-  headPhoto:
-    "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1200&q=80",
-  headGreeting: "Selamat datang di website resmi Desa Pringgodani.",
-  historyText: "Desa Pringgodani berdiri sejak masa kolonial...",
-  vision: "Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera.",
-  missions: ["Meningkatkan kualitas pelayanan publik", "Mendorong UMKM desa"],
-  structureImageUrl:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=1200&q=80",
+  headName: "",
+  headPosition: "",
+  headPhoto: "",
+  headGreeting: "",
+  historyText: "",
+  vision: "",
+  missions: [],
+  structureImageUrl: "",
   officials: [],
 };
 

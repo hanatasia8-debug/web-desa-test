@@ -5,15 +5,11 @@ import type { SettingsResponse } from "../model/types";
 const DEFAULT_SETTINGS: SettingsResponse = {
   settings: {
     website_name: "Desa Pringgodani",
-    logo_url: "/images/logo-desa.png",
+    logo_url: "",
     favicon_url: "/favicon.ico",
-    contact_email: "info@pringgodani.desa.id",
-    contact_phone: "081234567890",
-    address: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kabupaten Malang",
-    // Empty, not guessed — the village's real accounts must come from the
-    // backend/admin settings. Never invent official social media URLs (the
-    // Footer widget hides each icon when its URL is empty, rather than
-    // linking to a made-up profile).
+    contact_email: "",
+    contact_phone: "",
+    address: "",
     social_facebook: "",
     social_instagram: "",
     social_youtube: "",

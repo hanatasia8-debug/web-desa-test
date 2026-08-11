@@ -2,8 +2,7 @@ export const PROFILE_HISTORY_STORAGE_KEY = "pringgodani-profile-history";
 export const PROFILE_HISTORY_CHANGE_EVENT =
   "pringgodani-profile-history-change";
 
-export const DEFAULT_PROFILE_HISTORY =
-  "Desa Pringgodani berdiri sejak masa kolonial dan berkembang menjadi desa agraris yang dikenal dengan hasil pertanian dan kerajinan warganya.";
+export const DEFAULT_PROFILE_HISTORY = "";
 
 export function getStoredProfileHistory(defaultValue = "") {
   if (typeof window === "undefined") {
