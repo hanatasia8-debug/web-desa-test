@@ -30,7 +30,10 @@ export const registerUmkmSchema = z
       (val) => (val === "" ? null : val),
       z.string().email("Format email tidak valid").nullable().optional(),
     ),
-    coverUrl: z.string().min(1, "Foto sampul / logo wajib diisi"),
+    coverUrl: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.string().nullable().optional(),
+    ),
     address: z.string().min(1, "Alamat fisik wajib diisi"),
     latitude: z.preprocess(
       (val) =>

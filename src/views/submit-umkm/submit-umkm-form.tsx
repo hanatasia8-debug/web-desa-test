@@ -515,8 +515,7 @@ export function SubmitUmkmForm({
                 {/* Foto Sampul Utama Upload Box */}
                 <div className="space-y-2">
                   <label className="font-label-sm text-on-surface-variant">
-                    Foto Sampul Utama / Logo Usaha{" "}
-                    <span className="text-error">*</span>
+                    Foto Sampul Utama / Logo Usaha (Opsional)
                   </label>
 
                   <input
@@ -580,10 +579,10 @@ export function SubmitUmkmForm({
                         <Icon name="add_a_photo" className="text-2xl" />
                       </div>
                       <p className="font-label-sm text-primary text-sm font-bold">
-                        Klik untuk Unggah Foto Sampul
+                        Klik untuk Unggah Foto Sampul (Opsional)
                       </p>
                       <p className="text-on-surface-variant/70 mt-1 text-xs">
-                        Format PNG, JPG, atau WEBP (Maks 5MB)
+                        Format PNG, JPG, atau WEBP. Jika dikosongkan, gambar default akan digunakan otomatis.
                       </p>
                     </div>
                   )}
