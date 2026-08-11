@@ -30,7 +30,7 @@ export const DesaService = {
       console.error("Gagal memuat profil desa dari API:", err);
     }
 
-    const historyContent = stored.historyText || apiProfile?.historyText || "";
+    const historyContent = apiProfile?.historyText || stored.historyText || "";
     const historyExcerpt =
       historyContent.length > 200
         ? historyContent.substring(0, 200) + "..."
@@ -39,25 +39,27 @@ export const DesaService = {
     const mergedProfile = {
       villageName: apiProfile?.villageName || "Desa Pringgodani",
       headGreeting:
-        stored.headGreeting ||
         apiProfile?.headGreeting ||
+        stored.headGreeting ||
         "Selamat datang di website resmi Desa Pringgodani.",
       headPhoto:
-        stored.headPhoto ||
         apiProfile?.headPhoto ||
-        "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1200&q=80",
-      headName: stored.headName || apiProfile?.headName || "Kepala Desa",
+        stored.headPhoto ||
+        "/images/kepala-desa.jpg",
+      headName: apiProfile?.headName || stored.headName || "Kepala Desa",
       headPosition:
-        stored.headPosition || apiProfile?.headPosition || "Kepala Desa",
+        apiProfile?.headPosition || stored.headPosition || "Kepala Desa",
       historyText: historyContent,
       historyExcerpt: historyExcerpt,
-      vision: stored.vision || apiProfile?.vision || "",
+      vision: apiProfile?.vision || stored.vision || "",
       missions:
-        stored.missions?.length > 0
-          ? stored.missions
-          : apiProfile?.missions || [],
+        apiProfile?.missions && apiProfile.missions.length > 0
+          ? apiProfile.missions
+          : stored.missions || [],
       officials:
-        stored.officials?.length > 0
+        apiProfile?.officials && apiProfile.officials.length > 0
+          ? apiProfile.officials
+          : stored.officials?.length > 0
           ? stored.officials.map((o) => ({
               name: String(o.name || ""),
               position: String(o.position || ""),
@@ -65,9 +67,9 @@ export const DesaService = {
               greeting: o.greeting ? String(o.greeting) : undefined,
               email: o.email ? String(o.email) : undefined,
             }))
-          : apiProfile?.officials || [],
+          : [],
       structureImageUrl:
-        stored.structureImageUrl || apiProfile?.structureImageUrl || "",
+        apiProfile?.structureImageUrl || stored.structureImageUrl || "",
     };
 
     return { profile: mergedProfile, stats };

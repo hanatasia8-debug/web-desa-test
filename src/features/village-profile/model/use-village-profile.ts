@@ -19,33 +19,35 @@ export function useVillageProfile(initialProfile: VillageProfileDto | null) {
 
   return useMemo<VillageProfileDto>(() => {
     const historyContent =
-      stored.historyText || initialProfile?.historyText || "";
+      initialProfile?.historyText || stored.historyText || "";
 
     return {
       villageName: initialProfile?.villageName || "Desa Pringgodani",
       headGreeting:
-        stored.headGreeting ||
         initialProfile?.headGreeting ||
+        stored.headGreeting ||
         "Selamat datang di website resmi Desa Pringgodani.",
       headPhoto:
-        stored.headPhoto ||
         initialProfile?.headPhoto ||
-        "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1200&q=80",
-      headName: stored.headName || initialProfile?.headName || "Kepala Desa",
+        stored.headPhoto ||
+        "/images/kepala-desa.jpg",
+      headName: initialProfile?.headName || stored.headName || "Kepala Desa",
       headPosition:
-        stored.headPosition || initialProfile?.headPosition || "Kepala Desa",
+        initialProfile?.headPosition || stored.headPosition || "Kepala Desa",
       historyText: historyContent,
       historyExcerpt:
         historyContent.length > 200
           ? historyContent.substring(0, 200) + "..."
           : historyContent,
-      vision: stored.vision || initialProfile?.vision || "",
+      vision: initialProfile?.vision || stored.vision || "",
       missions:
-        stored.missions?.length > 0
-          ? stored.missions
-          : initialProfile?.missions || [],
+        initialProfile?.missions && initialProfile.missions.length > 0
+          ? initialProfile.missions
+          : stored.missions || [],
       officials:
-        stored.officials?.length > 0
+        initialProfile?.officials && initialProfile.officials.length > 0
+          ? initialProfile.officials
+          : stored.officials?.length > 0
           ? stored.officials.map((o) => ({
               name: o.name,
               position: o.position,
@@ -53,9 +55,9 @@ export function useVillageProfile(initialProfile: VillageProfileDto | null) {
               greeting: o.greeting,
               email: o.email,
             }))
-          : initialProfile?.officials || [],
+          : [],
       structureImageUrl:
-        stored.structureImageUrl || initialProfile?.structureImageUrl || "",
+        initialProfile?.structureImageUrl || stored.structureImageUrl || "",
     };
   }, [stored, initialProfile]);
 }
