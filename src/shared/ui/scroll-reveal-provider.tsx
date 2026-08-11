@@ -27,8 +27,9 @@ export function ScrollRevealProvider() {
 
     const observeAll = () => {
       document
-        .querySelectorAll(".scroll-reveal:not(.visible)")
+        .querySelectorAll(".scroll-reveal")
         .forEach((el) => {
+          el.classList.add("visible");
           observer.observe(el);
         });
     };
@@ -39,13 +40,7 @@ export function ScrollRevealProvider() {
     // Secondary check after short delay to catch dynamic components
     const timer = setTimeout(() => {
       observeAll();
-      // Ensure all elements become visible as safety fallback
-      document
-        .querySelectorAll(".scroll-reveal:not(.visible)")
-        .forEach((el) => {
-          el.classList.add("visible");
-        });
-    }, 400);
+    }, 100);
 
     return () => {
       clearTimeout(timer);

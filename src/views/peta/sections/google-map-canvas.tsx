@@ -349,15 +349,33 @@ export function GoogleMapCanvas({
   if (loadError) {
     return (
       <div className="bg-surface-container flex h-full w-full flex-col items-center justify-center p-6 text-center">
-        <div className="bg-error/10 text-error mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <Icon name="error" className="text-3xl" />
+        <div className="bg-primary/10 text-primary mb-3 flex h-14 w-14 items-center justify-center rounded-full">
+          <Icon name="map" className="text-3xl" />
         </div>
         <h3 className="font-headline-md text-headline-md text-primary font-bold">
-          Peta Tidak Dapat Dimuat
+          Peta Fasilitas Desa Pringgodani
         </h3>
-        <p className="text-on-surface-variant mt-2 max-w-md text-sm">
-          {loadError}
+        <p className="text-on-surface-variant mt-1 max-w-md text-sm">
+          {locations.length > 0
+            ? `Terdapat ${locations.length} titik fasilitas desa terdaftar.`
+            : "Kecamatan Bantur, Kabupaten Malang, Jawa Timur."}
         </p>
+        {locations.length > 0 && (
+          <div className="mt-4 flex max-w-lg flex-wrap justify-center gap-2">
+            {locations.slice(0, 4).map((loc) => (
+              <a
+                key={loc.id}
+                href={loc.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-surface text-primary border-outline-variant/30 hover:bg-primary hover:text-on-primary inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold shadow-sm transition"
+              >
+                <Icon name="location_on" className="text-sm" />
+                {loc.name}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
