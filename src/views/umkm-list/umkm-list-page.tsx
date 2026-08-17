@@ -64,11 +64,10 @@ export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
         <div className="gap-gutter flex flex-col justify-between md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="font-headline-lg text-headline-lg text-primary mb-4">
-              Direktori UMKM Pringgodani
+              Direktori UMKM &amp; Hasil Bumi
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant">
-              Temukan berbagai produk lokal unggulan mulai dari kuliner
-              tradisional hingga kerajinan tangan khas Desa Pringgodani.
+              Jelajahi sentra usaha warga, produsen olahan makanan, pengrajin lokal, dan petani hasil bumi unggulan Desa Pringgodani.
             </p>
           </div>
           <div className="mt-4 md:mt-0">
@@ -142,7 +141,7 @@ async function UmkmResults({
 
   return (
     <>
-      <div className="gap-gutter grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
         {result.items.map((umkm) => (
           <UmkmCard key={umkm.id} umkm={umkm} variant="listing" />
         ))}

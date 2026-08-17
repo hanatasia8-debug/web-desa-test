@@ -43,12 +43,10 @@ export default function AdminDashboardPage() {
               Pemerintah Desa
             </span>
             <h2 className="font-headline-lg mt-4 text-3xl font-bold">
-              Selamat Datang, Admin Desa Pringgodani!
+              Selamat Datang di Panel Lokal Pringgodani!
             </h2>
             <p className="text-on-primary/80 mt-2 max-w-2xl text-sm leading-relaxed">
-              Kelola seluruh informasi desa, tinjau pengajuan berita dan UMKM
-              warga, persiapkan peta titik lokasi, serta perbarui pengaturan
-              website secara langsung dan mudah.
+              Kelola katalog produk, direktori UMKM &amp; hasil bumi, tinjau antrean pengajuan warga, kelola titik geospasial peta desa, serta perbarui pengaturan website secara langsung.
             </p>
           </div>
 

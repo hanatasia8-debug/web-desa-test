@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Icon } from "@/shared/ui/icon";
 import { AdminMapsService } from "@/entities/admin/api/admin-maps.service";
 import type {
@@ -10,23 +10,26 @@ import type {
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
 import { GoogleMapCanvas } from "@/views/peta/sections/google-map-canvas";
 import type { MapLocationDto } from "@/entities/fasilitas/model/types";
+import { FallbackImage } from "@/shared/ui/fallback-image";
 
 export function AdminPetaPage() {
   const [locations, setLocations] = useState<AdminMapLocation[]>([]);
   const [categories, setCategories] = useState<AdminMapCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCatFilter, setSelectedCatFilter] = useState("ALL");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
+  const [editingName, setEditingName] = useState("");
+  const [editingCategoryName, setEditingCategoryName] = useState("");
   const [address, setAddress] = useState("");
   const [googleMapsUrl, setGoogleMapsUrl] = useState("");
   const [latitude, setLatitude] = useState(-8.2811);
   const [longitude, setLongitude] = useState(112.5664);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedLocation, setSelectedLocation] =
     useState<MapLocationDto | null>(null);
 
@@ -39,9 +42,6 @@ export function AdminPetaPage() {
       .then(([locs, cats]) => {
         setLocations(locs);
         setCategories(cats);
-        if (cats.length > 0 && !categoryId) {
-          setCategoryId(cats[0].id);
-        }
       })
       .finally(() => setIsLoading(false));
   };
@@ -56,9 +56,6 @@ export function AdminPetaPage() {
         if (!ignore) {
           setLocations(locs);
           setCategories(cats);
-          if (cats.length > 0) {
-            setCategoryId((prev) => prev || cats[0].id);
-          }
         }
       })
       .finally(() => {
@@ -74,66 +71,59 @@ export function AdminPetaPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const openAddModal = () => {
-    setEditingId(null);
-    setName("");
-    setShortDescription("");
-    setAddress("Desa Pringgodani");
-    setGoogleMapsUrl("https://maps.app.goo.gl/pringgodani");
-    setLatitude(-8.2811);
-    setLongitude(112.5664);
-    setIsModalOpen(true);
-  };
-
   const openEditModal = (loc: AdminMapLocation) => {
     setEditingId(loc.id);
-    setName(loc.name);
-    setCategoryId(loc.categoryId);
-    setShortDescription(loc.shortDescription || "");
+    setEditingName(loc.name);
+    setEditingCategoryName(loc.categoryName || "UMKM");
     setAddress(loc.address || "");
-    setGoogleMapsUrl(
-      loc.googleMapsUrl ||
-        `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`,
-    );
-    setLatitude(loc.latitude);
-    setLongitude(loc.longitude);
+    setGoogleMapsUrl(loc.googleMapsUrl || loc.mapsUrl || "");
+    setLatitude(loc.latitude || -8.2811);
+    setLongitude(loc.longitude || 112.5664);
     setIsModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedCat = categories.find((c) => c.id === categoryId);
+    if (!editingId || isSaving) return;
+    setIsSaving(true);
 
-    const payload = {
-      name,
-      categoryId,
-      categoryName: selectedCat ? selectedCat.name : "Fasilitas Umum",
-      shortDescription,
-      address,
-      latitude,
-      longitude,
-      googleMapsUrl,
-    };
+    try {
+      const payload = {
+        name: editingName,
+        address,
+        latitude,
+        longitude,
+        googleMapsUrl,
+        mapsUrl: googleMapsUrl,
+      };
 
-    if (editingId) {
       await AdminMapsService.updateLocation(editingId, payload);
-      showToast(`Titik peta "${name}" berhasil diperbarui.`);
-    } else {
-      await AdminMapsService.createLocation(payload);
-      showToast(`Titik peta baru "${name}" berhasil ditambahkan.`);
-    }
-
-    setIsModalOpen(false);
-    loadData();
-  };
-
-  const handleDelete = async (id: string, locName: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus titik peta "${locName}"?`)) {
-      await AdminMapsService.deleteLocation(id);
-      showToast(`Titik peta "${locName}" telah dihapus.`);
+      showToast(`Titik koordinat UMKM "${editingName}" berhasil diperbarui.`);
+      setIsModalOpen(false);
       loadData();
+    } catch (err) {
+      console.error("Gagal memperbarui koordinat UMKM:", err);
+      showToast("Gagal memperbarui koordinat. Silakan coba lagi.");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  // Filter locations
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const matchSearch =
+        !searchQuery.trim() ||
+        loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (loc.address &&
+          loc.address.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchCat =
+        selectedCatFilter === "ALL" || loc.categoryId === selectedCatFilter;
+
+      return matchSearch && matchCat;
+    });
+  }, [locations, searchQuery, selectedCatFilter]);
 
   return (
     <div className="space-y-8">
@@ -145,97 +135,164 @@ export function AdminPetaPage() {
       )}
 
       {/* Header Halaman */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <span className="text-on-surface-variant font-label-sm text-xs font-bold tracking-wider uppercase">
-            Sistem Geospasial Desa
+            Sistem Geospasial UMKM Desa
           </span>
           <h2 className="font-headline-lg text-primary mt-1 text-3xl font-bold">
-            Kelola Titik Peta & Fasilitas Umum
+            Kelola Titik Geospasial UMKM
           </h2>
           <p className="text-on-surface-variant mt-1 text-sm">
-            Atur pin lokasi balai desa, sekolah, puskesmas, dan fasilitas
-            penting di peta interaktif warga cukup dengan menempelkan link
-            Google Maps.
+            Pantau sebaran toko UMKM di peta dan sesuaikan titik koordinat GPS (latitude & longitude) atau link Google Maps agar posisi pin di peta publik selalu presisi.
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="bg-primary text-on-primary hover:bg-primary/90 inline-flex items-center gap-2 self-start rounded-2xl px-6 py-3.5 text-xs font-bold shadow-md transition sm:self-auto"
-        >
-          <Icon name="add_location_alt" className="text-xl" /> Tambah Titik Peta
-          Baru
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/10 text-primary flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold">
+            <Icon name="storefront" className="text-lg" />
+            <span>{locations.length} UMKM Terdaftar</span>
+          </div>
+        </div>
       </div>
 
-      {/* Peta Interaktif Sebaran Fasilitas Desa */}
-      <div className="border-outline-variant/30 relative h-96 w-full overflow-hidden rounded-3xl border shadow-sm">
-        <GoogleMapCanvas
-          locations={locations.map((loc) => ({
-            id: loc.id,
-            name: loc.name,
-            mapCategoryId: loc.categoryId,
-            categoryName: loc.categoryName,
-            shortDescription: loc.shortDescription || null,
-            address: loc.address || null,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            googleMapsUrl: loc.googleMapsUrl || null,
-            imageUrl: null,
-            category: {
-              id: loc.categoryId,
-              name: loc.categoryName,
-              slug: loc.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-              icon: "place",
-              color: "#0284c7",
-            },
-          }))}
-          selectedLocation={selectedLocation}
-          onSelectLocation={(loc) => setSelectedLocation(loc)}
-        />
+      {/* Peta Interaktif Sebaran UMKM Desa */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-headline-md text-primary flex items-center gap-2 text-base font-bold">
+            <Icon name="map" className="text-lg" /> Pratinjau Peta Interaktif UMKM
+          </h3>
+          <span className="text-on-surface-variant text-xs font-medium">
+            Klik pin untuk melihat detail UMKM
+          </span>
+        </div>
+
+        <div className="border-outline-variant/30 relative h-96 w-full overflow-hidden rounded-3xl border shadow-sm">
+          <GoogleMapCanvas
+            locations={locations.map((loc) => ({
+              id: loc.id,
+              name: loc.name,
+              mapCategoryId: loc.categoryId,
+              categoryName: loc.categoryName,
+              shortDescription: loc.shortDescription || null,
+              address: loc.address || null,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              googleMapsUrl: loc.googleMapsUrl || null,
+              imageUrl: loc.imageUrl || null,
+              category: {
+                id: loc.categoryId,
+                name: loc.categoryName,
+                slug: loc.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                icon: "store",
+                color: "#16a34a",
+              },
+            }))}
+            selectedLocation={selectedLocation}
+            onSelectLocation={(loc) => setSelectedLocation(loc)}
+          />
+        </div>
       </div>
 
-      {/* Tabel Titik Peta */}
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <Icon
+            name="search"
+            className="text-on-surface-variant absolute top-1/2 left-4 -translate-y-1/2 text-lg"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari nama UMKM atau alamat..."
+            className="bg-surface-container-lowest border-outline-variant/40 text-on-surface focus:border-primary w-full rounded-2xl border py-3 pr-4 pl-11 text-sm outline-none shadow-sm"
+          />
+        </div>
+
+        {categories.length > 0 && (
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedCatFilter}
+              onChange={(e) => setSelectedCatFilter(e.target.value)}
+              className="bg-surface-container-lowest border-outline-variant/40 text-on-surface focus:border-primary rounded-2xl border px-4 py-3 text-xs font-semibold outline-none shadow-sm"
+            >
+              <option value="ALL">Semua Kategori ({locations.length})</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name} ({cat.count || 0})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Tabel Titik Peta UMKM */}
       <div className="border-outline-variant/30 bg-surface-container-lowest overflow-hidden rounded-3xl border shadow-sm">
         {isLoading ? (
           <div className="text-on-surface-variant py-12 text-center text-sm font-medium">
-            Memuat titik peta geospasial...
+            <Icon name="sync" className="animate-spin text-2xl mx-auto mb-2 text-primary" />
+            Memuat data geospasial UMKM...
           </div>
-        ) : locations.length === 0 ? (
+        ) : filteredLocations.length === 0 ? (
           <div className="text-on-surface-variant space-y-2 py-12 text-center text-sm font-medium">
-            <Icon name="map" className="text-primary/40 mx-auto text-4xl" />
-            <p>Belum ada titik peta yang ditambahkan.</p>
+            <Icon name="storefront" className="text-primary/40 mx-auto text-4xl" />
+            <p>Tidak ada data UMKM yang cocok dengan pencarian.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-surface-container-highest text-on-surface-variant border-b text-xs font-bold uppercase">
                 <tr>
-                  <th className="px-6 py-4">Nama Fasilitas & Deskripsi</th>
+                  <th className="px-6 py-4">Nama UMKM & Alamat</th>
                   <th className="px-6 py-4">Kategori</th>
+                  <th className="px-6 py-4">Koordinat GPS</th>
                   <th className="px-6 py-4">Tautan Google Maps</th>
                   <th className="px-6 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-outline-variant/20 divide-y">
-                {locations.map((item) => (
+                {filteredLocations.map((item) => (
                   <tr
                     key={item.id}
                     className="hover:bg-surface-container-low transition"
                   >
                     <td className="px-6 py-4">
-                      <p className="text-primary text-base font-bold">
-                        {item.name}
-                      </p>
-                      <p className="text-on-surface-variant mt-0.5 text-xs">
-                        {item.shortDescription || item.address}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="border-outline-variant bg-surface-container h-10 w-10 shrink-0 overflow-hidden rounded-xl border">
+                          <FallbackImage
+                            src={item.imageUrl || "/images/placeholder-umkm.jpg"}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                            fallbackIcon="store"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-primary text-base font-bold">
+                            {item.name}
+                          </p>
+                          <p className="text-on-surface-variant mt-0.5 text-xs">
+                            {item.address || "Desa Pringgodani"}
+                          </p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="bg-secondary-container text-on-secondary-container rounded-full px-3 py-1 text-xs font-bold">
-                        {item.categoryName}
+                        {item.categoryName || "UMKM"}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-xs">
+                      {item.latitude && item.longitude ? (
+                        <span className="text-primary font-bold">
+                          {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)}
+                        </span>
+                      ) : (
+                        <span className="text-error font-semibold">
+                          Belum ditentukan
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {item.googleMapsUrl ? (
@@ -249,24 +306,18 @@ export function AdminPetaPage() {
                           Google Maps
                         </a>
                       ) : (
-                        <span className="text-on-surface-variant font-mono text-xs">
-                          {item.latitude.toFixed(4)},{" "}
-                          {item.longitude.toFixed(4)}
+                        <span className="text-on-surface-variant/50 text-xs italic">
+                          -
                         </span>
                       )}
                     </td>
-                    <td className="space-x-2 px-6 py-4 text-right whitespace-nowrap">
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
                       <button
                         onClick={() => openEditModal(item)}
-                        className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary rounded-xl px-3 py-1.5 text-xs font-bold transition"
+                        className="bg-surface border-outline-variant text-on-surface hover:text-primary hover:border-primary inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold shadow-sm transition"
                       >
-                        Sunting
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id, item.name)}
-                        className="bg-error/10 text-error hover:bg-error hover:text-on-error rounded-xl px-3 py-1.5 text-xs font-bold transition"
-                      >
-                        Hapus
+                        <Icon name="edit_location_alt" className="text-sm" />
+                        <span>Sunting Koordinat</span>
                       </button>
                     </td>
                   </tr>
@@ -277,14 +328,19 @@ export function AdminPetaPage() {
         )}
       </div>
 
-      {/* Modal Form Tambah/Edit Titik Peta (Tanpa input Lat/Lng Manual!) */}
+      {/* Modal Form Edit Titik Koordinat UMKM */}
       {isModalOpen && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
           <div className="border-outline-variant/30 bg-surface-container-lowest text-on-surface w-full max-w-xl space-y-6 rounded-[2.5rem] border p-8 shadow-2xl">
             <div className="flex items-center justify-between border-b pb-4">
-              <h3 className="font-headline-md text-primary text-xl font-bold">
-                {editingId ? "Sunting Titik Peta" : "Tambah Titik Peta Baru"}
-              </h3>
+              <div>
+                <span className="text-on-surface-variant text-[11px] font-bold uppercase">
+                  {editingCategoryName}
+                </span>
+                <h3 className="font-headline-md text-primary text-xl font-bold">
+                  Sunting Koordinat: {editingName}
+                </h3>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-on-surface-variant hover:text-on-surface"
@@ -296,25 +352,10 @@ export function AdminPetaPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Nama Fasilitas / Landmark (Wajib)
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-bold outline-none"
-                  placeholder="Contoh: Balai Desa Pringgodani"
-                />
-              </div>
-
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Link / Tautan Google Maps (Wajib)
+                  Link / Tautan Google Maps
                 </label>
                 <input
                   type="url"
-                  required
                   value={googleMapsUrl}
                   onChange={(e) => {
                     const url = e.target.value;
@@ -326,12 +367,13 @@ export function AdminPetaPage() {
                     }
                   }}
                   className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-xs outline-none"
-                  placeholder="Tempelkan link lokasi dari Google Maps (cth: https://maps.app.goo.gl/...)"
+                  placeholder="Tempelkan link share Google Maps (cth: https://maps.app.goo.gl/...)"
                 />
                 <p className="text-on-surface-variant mt-1.5 flex items-center gap-1 text-[11px]">
-                  <Icon name="info" className="text-primary text-sm" />
-                  Koordinat lokasi akan otomatis dideteksi dari link Google Maps
-                  yang Anda tempelkan, atau Anda dapat mengeklik peta di bawah.
+                  <Icon name="info" className="text-primary text-sm shrink-0" />
+                  <span>
+                    Koordinat otomatis terdeteksi saat link Google Maps ditempelkan, atau Anda dapat mengeklik posisi di peta bawah.
+                  </span>
                 </p>
               </div>
 
@@ -344,20 +386,19 @@ export function AdminPetaPage() {
                     locations={[
                       {
                         id: "temp-pin",
-                        mapCategoryId: categoryId || "cat-1",
-                        name: name || "Lokasi Baru",
-                        shortDescription:
-                          shortDescription || address || "Desa Pringgodani",
+                        mapCategoryId: "cat-umkm",
+                        name: editingName || "Lokasi UMKM",
+                        shortDescription: address || "Desa Pringgodani",
                         latitude,
                         longitude,
                         address: address || null,
                         imageUrl: null,
                         category: {
-                          id: categoryId || "cat-1",
-                          name: "Fasilitas",
-                          slug: "facility",
-                          icon: "place",
-                          color: "#0284c7",
+                          id: "cat-umkm",
+                          name: editingCategoryName || "UMKM",
+                          slug: "umkm",
+                          icon: "store",
+                          color: "#16a34a",
                         },
                       },
                     ]}
@@ -366,9 +407,6 @@ export function AdminPetaPage() {
                     onMapClick={(lat: number, lng: number) => {
                       setLatitude(lat);
                       setLongitude(lng);
-                      setGoogleMapsUrl(
-                        `https://www.google.com/maps?q=${lat},${lng}`,
-                      );
                     }}
                   />
                 </div>
@@ -380,15 +418,13 @@ export function AdminPetaPage() {
                     <input
                       type="number"
                       step="any"
+                      required
                       value={latitude}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setLatitude(val);
-                        setGoogleMapsUrl(
-                          `https://www.google.com/maps?q=${val},${longitude}`,
-                        );
                       }}
-                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 font-mono text-xs outline-none"
                     />
                   </div>
                   <div>
@@ -398,15 +434,13 @@ export function AdminPetaPage() {
                     <input
                       type="number"
                       step="any"
+                      required
                       value={longitude}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setLongitude(val);
-                        setGoogleMapsUrl(
-                          `https://www.google.com/maps?q=${latitude},${val}`,
-                        );
                       }}
-                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 text-xs outline-none"
+                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 font-mono text-xs outline-none"
                     />
                   </div>
                 </div>
@@ -414,60 +448,39 @@ export function AdminPetaPage() {
 
               <div>
                 <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Kategori Peta
-                </label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Deskripsi Singkat
-                </label>
-                <input
-                  type="text"
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
-                  placeholder="Kantor pusat pelayanan publik kependudukan desa..."
-                />
-              </div>
-
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Alamat Lengkap
+                  Alamat Lengkap Toko / Usaha
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
-                  placeholder="Jl. Raya Desa Pringgodani No. 1..."
+                  placeholder="Jl. Raya Desa Pringgodani..."
                 />
               </div>
 
               <div className="flex justify-end gap-3 border-t pt-4">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setIsModalOpen(false)}
-                  className="bg-surface border-outline-variant text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold"
+                  className="bg-surface border-outline-variant text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="bg-primary text-on-primary hover:bg-primary/90 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition"
+                  disabled={isSaving}
+                  className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition disabled:opacity-50"
                 >
-                  Simpan Titik Peta
+                  {isSaving ? (
+                    <>
+                      <Icon name="sync" className="animate-spin text-base" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Koordinat</span>
+                  )}
                 </button>
               </div>
             </form>

@@ -16,24 +16,24 @@ function getBaseURL(): string {
     return (
       process.env.INTERNAL_API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3001/api"
+      "http://localhost:3000/api"
     );
   }
 
-  // Client-side: use relative path /api to route through nextConfig rewrites (same-origin, preserving cookies)
-  return "/api";
+  // Client-side (Browser): directly connect to backend API URL or localhost:3000
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 }
 
 export const apiClient = axios.create({
   baseURL: getBaseURL(),
   withCredentials: true,
-  timeout: 8000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to attach Authorization Bearer token
+// Request interceptor to attach Authorization Bearer token and handle FormData
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("pringgodani_admin_access_token");
@@ -41,6 +41,12 @@ apiClient.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
   }
+
+  // When sending FormData, delete default Content-Type so browser/axios sets multipart/form-data with boundary
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+
   return config;
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import type { VillageProfileDto } from "@/entities/desa/model/types";
@@ -15,10 +16,9 @@ export function WelcomeSection({
 }: WelcomeSectionProps) {
   const profile = useVillageProfile(initialProfile);
   if (!profile) {
-    // Empty state — VillageProfile hasn't been filled in by an admin yet.
     return (
-      <section className="max-w-container-max px-gutter py-section-padding mx-auto text-center">
-        <p className="text-on-surface-variant font-body-base">
+      <section className="max-w-container-max px-gutter py-16 mx-auto text-center">
+        <p className="text-on-surface-variant text-sm">
           Profil desa belum tersedia.
         </p>
       </section>
@@ -26,54 +26,72 @@ export function WelcomeSection({
   }
 
   return (
-    <section className="max-w-container-max gap-gutter py-section-padding px-gutter mx-auto grid grid-cols-1 items-center md:grid-cols-12">
-      <div className="scroll-reveal group relative md:col-span-5">
-        <div className="bg-primary/10 absolute -top-4 -left-4 -z-10 h-24 w-24 rounded-full transition-transform group-hover:scale-110" />
-        <div className="border-outline-variant/20 overflow-hidden rounded-2xl border shadow-2xl">
-          <FallbackImage
-            src={profile.headPhoto}
-            alt={profile.headName ?? "Kepala Desa"}
-            className="aspect-[4/5] w-full object-cover"
-            fallbackIcon="person"
-          />
-        </div>
-        {profile.headName && (
-          <div className="bg-surface border-outline-variant/10 absolute -right-6 bottom-6 rounded-xl border p-6 shadow-xl">
-            <p className="font-headline-md text-headline-md text-primary m-0">
-              {profile.headName}
-            </p>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">
-              {profile.headPosition ?? "Kepala Desa"}
-            </p>
+    <section className="max-w-container-max px-gutter mx-auto py-20">
+      <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-12">
+        {/* Photo Card with subtle elevation */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="md:col-span-5"
+        >
+          <div className="relative overflow-hidden rounded-3xl border border-outline-variant/30 shadow-xl bg-surface-container">
+            <FallbackImage
+              src={profile.headPhoto}
+              alt={profile.headName ?? "Kepala Desa"}
+              className="aspect-[4/5] w-full object-cover"
+              fallbackIcon="person"
+            />
+            {profile.headName && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
+                <p className="font-headline-md text-lg font-bold">
+                  {profile.headName}
+                </p>
+                <p className="text-xs text-white/80 mt-0.5">
+                  {profile.headPosition ?? "Kepala Desa Pringgodani"}
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </motion.div>
 
-      <div className="stack-md scroll-reveal space-y-stack-md md:col-span-7">
-        <span className="bg-primary/10 text-primary font-badge-xs text-badge-xs rounded-full px-4 py-1.5 tracking-widest uppercase">
-          Sambutan Kepala Desa
-        </span>
-        <h2 className="font-headline-lg text-headline-lg text-primary">
-          Membangun Pringgodani Menuju Kemandirian Digital
-        </h2>
-        <p className="font-body-base text-body-base text-on-surface-variant leading-relaxed">
-          &ldquo;{profile.headGreeting}&rdquo;
-        </p>
-        <div className="border-outline-variant/30 mt-stack-md pt-stack-md border-t">
-          <h3 className="font-headline-md text-headline-md mb-2">
-            Sekilas Sejarah
-          </h3>
-          <p className="font-body-base text-body-base text-on-surface-variant mb-6 italic">
-            {profile.historyExcerpt}
+        {/* Greeting & Narrative */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="md:col-span-7 space-y-6"
+        >
+          <div>
+            <span className="bg-primary/10 text-primary mb-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold">
+              <Icon name="verified" className="text-sm" />
+              Pemerintah Desa Pringgodani
+            </span>
+            <h2 className="font-headline-lg text-2xl md:text-3xl lg:text-4xl font-bold text-primary leading-tight">
+              Membangun Kemandirian Ekonomi &amp; Wirausaha Warga
+            </h2>
+          </div>
+
+          <blockquote className="border-l-4 border-primary bg-surface-container-low rounded-r-2xl p-5 text-on-surface leading-relaxed italic text-sm md:text-base">
+            &ldquo;{profile.headGreeting}&rdquo;
+          </blockquote>
+
+          <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">
+            Platform <strong>Lokal Pringgodani</strong> hadir sebagai wadah resmi promosi produk olahan, sentra kerajinan, dan hasil bumi warga desa agar semakin dikenal dan terhubung langsung ke pembeli.
           </p>
-          <Link
-            href="/profil/sejarah"
-            className="text-primary font-label-sm group flex items-center gap-2 font-bold transition-all hover:gap-4"
-          >
-            Baca Selengkapnya
-            <Icon name="arrow_forward" className="text-lg" />
-          </Link>
-        </div>
+
+          <div>
+            <Link
+              href="/profil"
+              className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:underline"
+            >
+              <span>Profil Desa &amp; Perangkat Lengkap</span>
+              <Icon name="arrow_forward" className="text-sm" />
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -9,11 +9,17 @@ import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import type { UmkmStatus } from "@/entities/admin/model/admin.types";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import { apiClient } from "@/shared/api/axios-instance";
+import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
+import {
+  compressImage,
+  type ImagePreset,
+} from "@/shared/utils/image-compression";
 
-interface ProductInput {
+export interface ProductInput {
   name: string;
   price: number;
   description: string;
+  imageUrl?: string;
 }
 
 export function AdminUmkmEditor({
@@ -32,33 +38,44 @@ export function AdminUmkmEditor({
   const [addressUrl, setAddressUrl] = useState("");
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
-  const [status, setStatus] = useState<UmkmStatus>("APPROVED");
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<UmkmStatus>("APPROVED");
+  const [since, setSince] = useState<number | undefined>(
+    new Date().getFullYear(),
+  );
+  const [openDay, setOpenDay] = useState("Senin - Sabtu");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("17:00");
+
   const [latitude, setLatitude] = useState(-8.2811);
   const [longitude, setLongitude] = useState(112.5664);
 
+  const [galleries, setGalleries] = useState<string[]>([]);
+  const [galleryFiles, setGalleryFiles] = useState<Record<number, File>>({});
+
   const [products, setProducts] = useState<ProductInput[]>([]);
+  const [productFiles, setProductFiles] = useState<Record<number, File>>({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const uploadSingleFile = async (file: File): Promise<string> => {
+  const uploadSingleFile = async (
+    file: File,
+    preset: ImagePreset = "banner",
+  ): Promise<string> => {
+    const compressed = await compressImage(file, preset);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", compressed);
+    formData.append("category", "umkm");
 
-    // See admin-berita-editor.tsx for why this goes through apiClient's
-    // relative "/api" path (routed by next.config.ts rewrites) instead of
-    // manually building a `${hostname}:3000` URL.
     const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
-      "/uploads",
+      "/uploads?category=umkm",
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
+      { timeout: 60000 },
     );
     if (!data?.data?.url) {
-      throw new Error("Gagal mengunggah gambar");
+      throw new Error("Gagal mengunggah berkas gambar");
     }
     return data.data.url;
   };
@@ -71,6 +88,7 @@ export function AdminUmkmEditor({
     }
   };
 
+  // Restore draft when creating new
   useEffect(() => {
     if (typeof window !== "undefined" && isNew) {
       try {
@@ -83,9 +101,15 @@ export function AdminUmkmEditor({
             if (parsed.categoryName) setCategoryName(parsed.categoryName);
             if (parsed.phone) setPhone(parsed.phone);
             if (parsed.address) setAddress(parsed.address);
+            if (parsed.addressUrl) setAddressUrl(parsed.addressUrl);
             if (parsed.description) setDescription(parsed.description);
             if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
             if (parsed.status) setStatus(parsed.status);
+            if (parsed.since) setSince(parsed.since);
+            if (parsed.openDay) setOpenDay(parsed.openDay);
+            if (parsed.startTime) setStartTime(parsed.startTime);
+            if (parsed.endTime) setEndTime(parsed.endTime);
+            if (parsed.galleries) setGalleries(parsed.galleries);
             if (parsed.products) setProducts(parsed.products);
           }, 0);
         }
@@ -95,6 +119,7 @@ export function AdminUmkmEditor({
     }
   }, [isNew]);
 
+  // Load existing data when editing
   useEffect(() => {
     if (umkmId && !isNew) {
       AdminUmkmService.getUmkmById(umkmId)
@@ -106,25 +131,32 @@ export function AdminUmkmEditor({
               setCategoryName(data.categoryName || "Kuliner");
               setPhone(data.phone || "");
               setAddress(data.address || "");
-              setDescription(
-                ((data as unknown as Record<string, unknown>)
-                  .description as string) || "",
-              );
+              setAddressUrl(data.mapsUrl || data.addressUrl || "");
+              setDescription(data.description || "");
               setCoverUrl(data.coverUrl || "");
               setStatus(data.status || "APPROVED");
-              setLatitude(
-                Number((data as unknown as Record<string, unknown>).latitude) ||
-                  -8.2811,
-              );
-              setLongitude(
-                Number(
-                  (data as unknown as Record<string, unknown>).longitude,
-                ) || 112.5664,
-              );
-              if ((data as unknown as Record<string, unknown>).products) {
+              setSince(data.since || undefined);
+              setOpenDay(data.openDay || "Senin - Sabtu");
+              setStartTime(data.startTime || "08:00");
+              setEndTime(data.endTime || "17:00");
+              setLatitude(Number(data.latitude) || -8.2811);
+              setLongitude(Number(data.longitude) || 112.5664);
+
+              if (data.galleries && Array.isArray(data.galleries)) {
+                setGalleries(
+                  data.galleries.map((g) =>
+                    typeof g === "string" ? g : g.imageUrl,
+                  ),
+                );
+              }
+              if (data.products && Array.isArray(data.products)) {
                 setProducts(
-                  (data as unknown as Record<string, unknown>)
-                    .products as ProductInput[],
+                  data.products.map((p) => ({
+                    name: p.name || "",
+                    price: p.price || 0,
+                    description: p.description || "",
+                    imageUrl: p.imageUrl || "",
+                  })),
                 );
               }
             }, 0);
@@ -136,6 +168,7 @@ export function AdminUmkmEditor({
     }
   }, [umkmId, isNew]);
 
+  // Save to draft when creating new
   useEffect(() => {
     if (typeof window !== "undefined" && isNew) {
       try {
@@ -145,10 +178,19 @@ export function AdminUmkmEditor({
           categoryName,
           phone,
           address,
+          addressUrl,
           description,
-          coverUrl,
+          coverUrl: coverFile ? "" : coverUrl,
           status,
-          products,
+          since,
+          openDay,
+          startTime,
+          endTime,
+          galleries: galleries.map((g, idx) => (galleryFiles[idx] ? "" : g)),
+          products: products.map((p, idx) => ({
+            ...p,
+            imageUrl: productFiles[idx] ? "" : p.imageUrl,
+          })),
         };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       } catch (e) {
@@ -161,15 +203,65 @@ export function AdminUmkmEditor({
     categoryName,
     phone,
     address,
+    addressUrl,
     description,
     coverUrl,
+    coverFile,
     status,
+    since,
+    openDay,
+    startTime,
+    endTime,
+    galleries,
+    galleryFiles,
     products,
+    productFiles,
     isNew,
   ]);
 
+  // Gallery Handlers
+  const addGallery = () => {
+    setGalleries([...galleries, ""]);
+  };
+
+  const updateGalleryUrl = (index: number, url: string) => {
+    const next = [...galleries];
+    next[index] = url;
+    setGalleries(next);
+  };
+
+  const handleGalleryFileSelect = async (index: number, file: File | null) => {
+    setGalleryFiles((prev) => {
+      const next = { ...prev };
+      if (file) next[index] = file;
+      else delete next[index];
+      return next;
+    });
+
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      updateGalleryUrl(index, previewUrl);
+    }
+  };
+
+  const removeGallery = (index: number) => {
+    if (galleries[index]?.startsWith("blob:")) {
+      URL.revokeObjectURL(galleries[index]);
+    }
+    setGalleries(galleries.filter((_, i) => i !== index));
+    setGalleryFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
+  // Product Handlers
   const addProduct = () => {
-    setProducts([...products, { name: "", price: 0, description: "" }]);
+    setProducts([
+      ...products,
+      { name: "", price: 0, description: "", imageUrl: "" },
+    ]);
   };
 
   const updateProduct = (
@@ -182,8 +274,42 @@ export function AdminUmkmEditor({
     setProducts(next);
   };
 
+  const handleProductFileSelect = async (index: number, file: File | null) => {
+    setProductFiles((prev) => {
+      const next = { ...prev };
+      if (file) next[index] = file;
+      else delete next[index];
+      return next;
+    });
+
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      updateProduct(index, "imageUrl", previewUrl);
+    }
+  };
+
+  const removeProductImage = (index: number) => {
+    if (products[index]?.imageUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(products[index].imageUrl!);
+    }
+    updateProduct(index, "imageUrl", "");
+    setProductFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
   const removeProduct = (index: number) => {
+    if (products[index]?.imageUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(products[index].imageUrl!);
+    }
     setProducts(products.filter((_, i) => i !== index));
+    setProductFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const clearError = (field: string) => {
@@ -195,13 +321,6 @@ export function AdminUmkmEditor({
     });
   };
 
-  // Zero Trust Validation — mirrors the pattern used on the public
-  // pendaftaran form (`registerUmkmSchema` / SubmitUmkmForm's error
-  // banner). Previously this editor had no validation at all: the "Simpan"
-  // button in the header is wired directly via `onClick`, outside the
-  // <form>, so the `required` attributes on the inputs below never
-  // actually triggered browser validation — an incomplete save just went
-  // straight to the API call with no feedback (UAT #242).
   const validateForm = (): boolean => {
     const fieldErrors: Record<string, string> = {};
     if (!name.trim()) fieldErrors.name = "Nama usaha wajib diisi";
@@ -210,7 +329,7 @@ export function AdminUmkmEditor({
     if (!address.trim()) fieldErrors.address = "Alamat usaha wajib diisi";
     if (!description.trim())
       fieldErrors.description = "Deskripsi usaha wajib diisi";
-    if (!coverUrl.trim())
+    if (!coverUrl.trim() && !coverFile)
       fieldErrors.coverUrl = "Foto sampul/logo usaha wajib diunggah";
 
     setErrors(fieldErrors);
@@ -233,15 +352,71 @@ export function AdminUmkmEditor({
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+    setUploadProgressText("Mempersiapkan berkas...");
 
     try {
+      // 1. Upload cover
       let finalCoverUrl = coverUrl;
       if (coverFile) {
-        finalCoverUrl = await uploadSingleFile(coverFile);
+        setUploadProgressText("Mengunggah foto sampul utama...");
+        finalCoverUrl = await uploadSingleFile(coverFile, "banner");
         if (coverUrl.startsWith("blob:")) {
           URL.revokeObjectURL(coverUrl);
         }
       }
+
+      // 2. Upload products
+      const finalProducts: ProductInput[] = [];
+      for (let idx = 0; idx < products.length; idx++) {
+        const prod = products[idx];
+        let finalProdImg = prod.imageUrl || "";
+        const localProdFile = productFiles[idx];
+        if (localProdFile) {
+          setUploadProgressText(
+            `Mengunggah foto produk ${idx + 1} dari ${products.length}...`,
+          );
+          try {
+            finalProdImg = await uploadSingleFile(localProdFile, "product");
+            if (prod.imageUrl?.startsWith("blob:")) {
+              URL.revokeObjectURL(prod.imageUrl);
+            }
+          } catch (err) {
+            console.warn(`Gagal mengunggah foto produk #${idx + 1}:`, err);
+          }
+        }
+        finalProducts.push({
+          name: prod.name,
+          price: Number(prod.price) || 0,
+          description: prod.description || "",
+          imageUrl: finalProdImg || undefined,
+        });
+      }
+
+      // 3. Upload galleries
+      const finalGalleries: string[] = [];
+      for (let idx = 0; idx < galleries.length; idx++) {
+        const galUrl = galleries[idx];
+        let finalGalImg = galUrl;
+        const localGalFile = galleryFiles[idx];
+        if (localGalFile) {
+          setUploadProgressText(
+            `Mengunggah foto galeri ${idx + 1} dari ${galleries.length}...`,
+          );
+          try {
+            finalGalImg = await uploadSingleFile(localGalFile, "gallery");
+            if (galUrl.startsWith("blob:")) {
+              URL.revokeObjectURL(galUrl);
+            }
+          } catch (err) {
+            console.warn(`Gagal mengunggah foto galeri #${idx + 1}:`, err);
+          }
+        }
+        if (finalGalImg && finalGalImg.trim()) {
+          finalGalleries.push(finalGalImg);
+        }
+      }
+
+      setUploadProgressText("Menyimpan profil UMKM ke database...");
 
       const payload = {
         name,
@@ -250,9 +425,15 @@ export function AdminUmkmEditor({
         phone,
         address,
         addressUrl,
+        mapsUrl: addressUrl,
         coverUrl: finalCoverUrl,
         status,
-        products,
+        since: since ? Number(since) : undefined,
+        openDay,
+        startTime,
+        endTime,
+        products: finalProducts,
+        galleries: finalGalleries,
         description,
         latitude,
         longitude,
@@ -277,10 +458,10 @@ export function AdminUmkmEditor({
       }
       clearDraft();
       router.push("/admin/umkm");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Gagal menyimpan UMKM:", err);
       alert(
-        "Gagal menyimpan profil UMKM ke server. Periksa koneksi internet Anda, atau pastikan foto yang diunggah berformat gambar dan berukuran di bawah 10MB, lalu coba lagi.",
+        "Gagal menyimpan profil UMKM ke server. Periksa koneksi internet Anda, atau pastikan berkas foto berformat gambar dan berukuran di bawah 15MB.",
       );
     } finally {
       setIsSubmitting(false);
@@ -301,9 +482,7 @@ export function AdminUmkmEditor({
             UMKM
           </Link>
           <h2 className="font-headline-lg text-primary text-3xl font-bold">
-            {isNew
-              ? "Tambah & Edit UMKM Baru (Live Split-View)"
-              : "Sunting Profil UMKM"}
+            {isNew ? "Tambah UMKM Baru" : "Sunting Profil UMKM"}
           </h2>
         </div>
 
@@ -319,12 +498,12 @@ export function AdminUmkmEditor({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition"
+            className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition disabled:opacity-60"
           >
             {isSubmitting ? (
               <>
                 <Icon name="sync" className="animate-spin text-base" />
-                Menyimpan...
+                {uploadProgressText || "Menyimpan..."}
               </>
             ) : (
               <>
@@ -348,12 +527,12 @@ export function AdminUmkmEditor({
               <Icon name="edit" className="text-xl" /> Informasi Profil UMKM
             </h3>
             <p className="text-on-surface-variant mt-1 text-xs">
-              Setiap perubahan pada input ini langsung memperbarui pratinjau
-              profil di sebelah kanan.
+              Setiap perubahan pada formulir ini langsung memperbarui pratinjau
+              profil di sebelah kanan secara real-time.
             </p>
           </div>
 
-          {/* ERROR SUMMARY BANNER (UAT #242) */}
+          {/* ERROR SUMMARY BANNER */}
           {Object.keys(errors).length > 0 && (
             <div className="animate-in fade-in slide-in-from-top-2 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-900 shadow-sm">
               <Icon
@@ -362,7 +541,7 @@ export function AdminUmkmEditor({
               />
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-red-800">
-                  Beberapa Kolom Wajib Belum Diisi dengan Benar:
+                  Beberapa Kolom Wajib Belum Diisi:
                 </h4>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-red-700">
                   {Object.entries(errors).map(([field, msg]) => (
@@ -496,41 +675,126 @@ export function AdminUmkmEditor({
             </div>
           </div>
 
-          <div>
-            <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-              Foto Sampul / Logo Usaha
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="field-coverUrl"
-                type="url"
-                value={coverUrl}
-                onChange={(e) => {
-                  setCoverUrl(e.target.value);
-                  clearError("coverUrl");
-                }}
-                className={`bg-surface flex-1 rounded-2xl border p-3.5 text-xs outline-none ${errors.coverUrl ? "border-error focus:border-error" : "border-outline-variant text-on-surface focus:border-primary"}`}
-                placeholder="https://..."
-              />
-              <label className="bg-primary text-on-primary hover:bg-primary/90 flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-4 text-xs font-bold whitespace-nowrap shadow-sm transition">
-                <Icon name="image" className="text-base" />
-                Pilih Foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setCoverFile(file);
-                      const localUrl = URL.createObjectURL(file);
-                      setCoverUrl(localUrl);
-                      clearError("coverUrl");
-                    }
-                  }}
-                />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+                Tahun Berdiri
               </label>
+              <input
+                type="number"
+                value={since || ""}
+                onChange={(e) =>
+                  setSince(
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                placeholder="2020"
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3 text-sm outline-none"
+              />
             </div>
+            <div>
+              <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+                Jam Buka
+              </label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3 text-sm outline-none"
+              />
+            </div>
+            <div>
+              <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+                Jam Tutup
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          {/* FOTO SAMPUL / LOGO UTAMA */}
+          <div className="border-outline-variant/30 rounded-2xl border p-4">
+            <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
+              Foto Sampul / Logo Usaha (Wajib)
+            </label>
+
+            {coverUrl ? (
+              <div className="space-y-3">
+                <div className="bg-surface-container relative aspect-[16/9] w-full overflow-hidden rounded-xl border">
+                  <FallbackImage
+                    src={coverUrl}
+                    alt={name || "Sampul UMKM"}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="bg-secondary/10 text-secondary hover:bg-secondary/20 flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition">
+                    <Icon name="upload" className="text-base" /> Ganti Foto
+                    Sampul
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setCoverFile(file);
+                          const localUrl = URL.createObjectURL(file);
+                          setCoverUrl(localUrl);
+                          clearError("coverUrl");
+                        }
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (coverUrl.startsWith("blob:")) {
+                        URL.revokeObjectURL(coverUrl);
+                      }
+                      setCoverUrl("");
+                      setCoverFile(null);
+                    }}
+                    className="text-error hover:bg-error/10 flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold transition"
+                  >
+                    <Icon name="delete" className="text-base" /> Hapus Foto
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-surface-container-low border-outline-variant/40 flex flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center">
+                <Icon
+                  name="add_photo_alternate"
+                  className="text-on-surface-variant/50 mb-2 text-3xl"
+                />
+                <p className="text-on-surface-variant text-xs">
+                  Belum ada foto sampul yang dipilih
+                </p>
+                <label className="bg-primary text-on-primary hover:bg-primary/90 mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold shadow-sm transition">
+                  <Icon name="upload" className="text-base" /> Unggah Foto
+                  Sampul
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setCoverFile(file);
+                        const localUrl = URL.createObjectURL(file);
+                        setCoverUrl(localUrl);
+                        clearError("coverUrl");
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+
             {errors.coverUrl && (
               <p className="text-error mt-1.5 text-xs font-semibold">
                 {errors.coverUrl}
@@ -568,7 +832,15 @@ export function AdminUmkmEditor({
               <input
                 type="url"
                 value={addressUrl}
-                onChange={(e) => setAddressUrl(e.target.value)}
+                onChange={(e) => {
+                  const url = e.target.value;
+                  setAddressUrl(url);
+                  const { lat, lng } = extractCoordinatesFromUrl(url);
+                  if (lat !== -8.2811 && lng !== 112.5664) {
+                    setLatitude(lat);
+                    setLongitude(lng);
+                  }
+                }}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 pl-10 text-sm outline-none"
                 placeholder="https://maps.app.goo.gl/..."
               />
@@ -577,10 +849,6 @@ export function AdminUmkmEditor({
                 className="text-on-surface-variant absolute top-3.5 left-3 text-lg"
               />
             </div>
-            <p className="text-on-surface-variant/70 mt-1.5 text-[11px] italic">
-              Salin link lokasi dari Google Maps untuk memudahkan calon pembeli
-              bernavigasi langsung via GPS HP.
-            </p>
           </div>
 
           <div>
@@ -605,12 +873,93 @@ export function AdminUmkmEditor({
             )}
           </div>
 
-          {/* Dinamis Produk List */}
+          {/* SEKSI: MEDIA GALERI FOTO USAHA */}
           <div className="space-y-4 border-t pt-6">
             <div className="flex items-center justify-between">
-              <h4 className="text-primary text-sm font-bold tracking-wider uppercase">
-                Katalog Produk Unggulan
-              </h4>
+              <div>
+                <h4 className="text-primary text-sm font-bold tracking-wider uppercase">
+                  Galeri Foto Tempat & Aktivitas Usaha
+                </h4>
+                <p className="text-on-surface-variant text-xs">
+                  Foto tempat produksi, stan, sertifikat, atau aktivitas usaha.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addGallery}
+                className="bg-secondary/10 text-secondary hover:bg-secondary/20 flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition"
+              >
+                <Icon name="add_photo_alternate" className="text-sm" /> Tambah
+                Foto Galeri
+              </button>
+            </div>
+
+            {galleries.length === 0 ? (
+              <div className="bg-surface-container-low border-outline-variant/40 rounded-xl border border-dashed p-4 text-center">
+                <p className="text-on-surface-variant text-xs">
+                  Belum ada foto galeri tambahan.
+                </p>
+                <button
+                  type="button"
+                  onClick={addGallery}
+                  className="text-primary mt-2 text-xs font-bold hover:underline"
+                >
+                  + Tambah Foto Galeri Pertama
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {galleries.map((url, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-surface border-outline-variant/30 relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3"
+                  >
+                    <div className="bg-surface-container mb-2 aspect-video w-full overflow-hidden rounded-xl border">
+                      <FallbackImage
+                        src={url}
+                        alt={`Galeri ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                        fallbackIcon="photo"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="bg-primary/10 text-primary hover:bg-primary/20 flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-xl py-1.5 text-xs font-bold transition">
+                        <Icon name="upload" className="text-sm" /> Unggah Foto
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleGalleryFileSelect(idx, file);
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => removeGallery(idx)}
+                        className="text-error hover:bg-error/10 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold transition"
+                      >
+                        <Icon name="delete" className="text-sm" /> Hapus
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SEKSI: KATALOG PRODUK DINAMIS DENGAN FOTO */}
+          <div className="space-y-4 border-t pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-primary text-sm font-bold tracking-wider uppercase">
+                  Katalog Produk Unggulan
+                </h4>
+                <p className="text-on-surface-variant text-xs">
+                  Tambahkan nama, harga, dan foto produk jualan Anda.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={addProduct}
@@ -620,56 +969,111 @@ export function AdminUmkmEditor({
               </button>
             </div>
 
-            {products.map((p, idx) => (
-              <div
-                key={idx}
-                className="bg-surface border-outline-variant/30 relative space-y-3 rounded-2xl border p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-primary text-xs font-bold">
-                    Produk #{idx + 1}
-                  </span>
-                  {products.length > 1 && (
+            {products.length === 0 ? (
+              <div className="bg-surface-container-low border-outline-variant/40 rounded-xl border border-dashed p-4 text-center">
+                <p className="text-on-surface-variant text-xs">
+                  Belum ada produk yang ditambahkan.
+                </p>
+                <button
+                  type="button"
+                  onClick={addProduct}
+                  className="text-primary mt-2 text-xs font-bold hover:underline"
+                >
+                  + Tambah Produk Pertama
+                </button>
+              </div>
+            ) : (
+              products.map((p, idx) => (
+                <div
+                  key={idx}
+                  className="bg-surface border-outline-variant/30 relative space-y-3 rounded-2xl border p-4"
+                >
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-primary text-xs font-bold">
+                      Produk #{idx + 1}
+                    </span>
                     <button
                       type="button"
                       onClick={() => removeProduct(idx)}
                       className="text-error text-xs font-bold hover:underline"
                     >
-                      Hapus
+                      Hapus Produk Ini
                     </button>
-                  )}
-                </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                  {/* Foto Produk */}
+                  <div className="flex items-center gap-3">
+                    <div className="bg-surface-container relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border">
+                      <FallbackImage
+                        src={p.imageUrl || ""}
+                        alt={p.name || "Foto Produk"}
+                        className="h-full w-full object-cover"
+                        fallbackIcon="shopping_bag"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-wrap items-center gap-2">
+                      <label className="bg-secondary/10 text-secondary hover:bg-secondary/20 flex cursor-pointer items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition">
+                        <Icon name="upload" className="text-sm" />
+                        {p.imageUrl ? "Ganti Foto" : "Pilih Foto Produk"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleProductFileSelect(idx, file);
+                          }}
+                        />
+                      </label>
+                      {p.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => removeProductImage(idx)}
+                          className="text-error hover:bg-error/10 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold transition"
+                        >
+                          <Icon name="delete" className="text-sm" /> Hapus Foto
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={p.name}
+                      onChange={(e) =>
+                        updateProduct(idx, "name", e.target.value)
+                      }
+                      placeholder="Nama produk..."
+                      className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs font-bold outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={p.price || ""}
+                      onChange={(e) =>
+                        updateProduct(
+                          idx,
+                          "price",
+                          e.target.value ? Number(e.target.value) : 0,
+                        )
+                      }
+                      placeholder="Harga (Rp)..."
+                      className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 font-mono text-xs font-bold outline-none"
+                    />
+                  </div>
+
                   <input
                     type="text"
-                    value={p.name}
-                    onChange={(e) => updateProduct(idx, "name", e.target.value)}
-                    placeholder="Nama produk..."
-                    className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs font-bold outline-none"
-                  />
-                  <input
-                    type="number"
-                    value={p.price}
+                    value={p.description}
                     onChange={(e) =>
-                      updateProduct(idx, "price", Number(e.target.value))
+                      updateProduct(idx, "description", e.target.value)
                     }
-                    placeholder="Harga (Rp)..."
-                    className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 font-mono text-xs font-bold outline-none"
+                    placeholder="Keterangan singkat produk..."
+                    className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs outline-none"
                   />
                 </div>
-
-                <input
-                  type="text"
-                  value={p.description}
-                  onChange={(e) =>
-                    updateProduct(idx, "description", e.target.value)
-                  }
-                  placeholder="Keterangan singkat produk..."
-                  className="bg-surface-container-lowest border-outline-variant text-on-surface w-full rounded-xl border p-2.5 text-xs outline-none"
-                />
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </form>
 
@@ -708,8 +1112,14 @@ export function AdminUmkmEditor({
                   <span className="text-primary font-semibold">
                     {ownerName || "Pemilik"}
                   </span>{" "}
-                  • {address}
+                  • {address || "Alamat usaha"}
                 </p>
+                {since && (
+                  <p className="text-on-surface-variant/80 mt-1 text-xs font-medium">
+                    Berdiri sejak Tahun {since} • Jam Buka: {startTime} -{" "}
+                    {endTime} ({openDay})
+                  </p>
+                )}
               </div>
 
               <div className="bg-primary-container/30 border-primary/20 flex items-center justify-between rounded-2xl border p-4">
@@ -718,7 +1128,7 @@ export function AdminUmkmEditor({
                     Pesan via WhatsApp
                   </p>
                   <p className="text-primary font-mono text-sm font-bold">
-                    {phone}
+                    {phone || "Belum ada nomor"}
                   </p>
                 </div>
                 <span className="bg-primary text-on-primary flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold">
@@ -751,6 +1161,30 @@ export function AdminUmkmEditor({
                 {description || "Deskripsi usaha belum diisi..."}
               </div>
 
+              {/* Pratinjau Galeri Foto */}
+              {galleries.filter(Boolean).length > 0 && (
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="text-primary text-sm font-bold">
+                    Galeri Foto Usaha:
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {galleries.filter(Boolean).map((g, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-surface-container aspect-square overflow-hidden rounded-xl border"
+                      >
+                        <FallbackImage
+                          src={g}
+                          alt={`Galeri ${idx + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pratinjau Katalog Produk */}
               {products.length > 0 && (
                 <div className="space-y-3 border-t pt-4">
                   <h4 className="text-primary text-sm font-bold">
@@ -762,13 +1196,24 @@ export function AdminUmkmEditor({
                         key={idx}
                         className="bg-surface flex items-center justify-between rounded-xl border p-3"
                       >
-                        <div>
-                          <p className="text-xs font-bold">
-                            {p.name || "Nama Produk"}
-                          </p>
-                          <p className="text-on-surface-variant text-xs">
-                            {p.description}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          {p.imageUrl && (
+                            <div className="bg-surface-container h-10 w-10 shrink-0 overflow-hidden rounded-lg border">
+                              <FallbackImage
+                                src={p.imageUrl}
+                                alt={p.name}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-bold">
+                              {p.name || "Nama Produk"}
+                            </p>
+                            <p className="text-on-surface-variant text-xs">
+                              {p.description}
+                            </p>
+                          </div>
                         </div>
                         <span className="text-primary font-mono text-xs font-bold">
                           Rp {(p.price || 0).toLocaleString("id-ID")}

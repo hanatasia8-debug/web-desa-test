@@ -9,6 +9,7 @@ import {
   clearDraftImages,
   syncArrayDraftImages,
 } from "@/shared/lib/db/draft-image-db";
+import { compressImage } from "@/shared/utils/image-compression";
 
 const DRAFT_KEY = "register_umkm_draft_v1";
 const PREFIX = "umkm_draft_";
@@ -28,6 +29,9 @@ export const DEFAULT_UMKM_FORM_DATA: Partial<RegisterUmkmDTO> = {
   latitude: -8.2811,
   longitude: 112.5664,
   googlePlaceId: "",
+  mapsUrl: "",
+  addressUrl: "",
+  googleMapsUrl: "",
   since: new Date().getFullYear(),
   openDay: "Senin - Sabtu",
   startTime: "08:00",
@@ -176,8 +180,9 @@ export function useRegisterUmkmDraft() {
     }
   }, [formData, coverFile, productFiles, galleryFiles, isHydrated]);
 
-  // Setters with clean sync
-  const setCoverFile = useCallback(async (file: File | null) => {
+  // Setters with clean sync and client-side compression
+  const setCoverFile = useCallback(async (rawFile: File | null) => {
+    const file = rawFile ? await compressImage(rawFile, "banner") : null;
     setCoverFileState(file);
     if (file) {
       const previewUrl = URL.createObjectURL(file);
@@ -190,7 +195,8 @@ export function useRegisterUmkmDraft() {
   }, []);
 
   const setProductFile = useCallback(
-    async (index: number, file: File | null) => {
+    async (index: number, rawFile: File | null) => {
+      const file = rawFile ? await compressImage(rawFile, "product") : null;
       setProductFilesState((prev) => {
         const next = { ...prev };
         if (file) next[index] = file;
@@ -227,7 +233,8 @@ export function useRegisterUmkmDraft() {
   );
 
   const setGalleryFile = useCallback(
-    async (index: number, file: File | null) => {
+    async (index: number, rawFile: File | null) => {
+      const file = rawFile ? await compressImage(rawFile, "gallery") : null;
       setGalleryFilesState((prev) => {
         const next = { ...prev };
         if (file) next[index] = file;

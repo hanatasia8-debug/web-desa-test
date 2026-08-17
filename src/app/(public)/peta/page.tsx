@@ -3,9 +3,9 @@ import { FasilitasService } from "@/entities/fasilitas/api/fasilitas.service";
 import { PetaPage } from "@/views/peta/peta-page";
 
 export const metadata: Metadata = {
-  title: "Peta Interaktif — Desa Pringgodani",
+  title: "Peta Interaktif UMKM — Desa Pringgodani",
   description:
-    "Peta interaktif wilayah Desa Pringgodani. Temukan kantor desa, sekolah, tempat ibadah, fasilitas kesehatan, dan destinasi wisata.",
+    "Peta interaktif persebaran lokasi UMKM, gerai produk olahan, dan sentra kerajinan Desa Pringgodani.",
 };
 
 export default async function PetaRoutePage() {

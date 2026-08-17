@@ -20,6 +20,7 @@ import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
+import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
 
 interface RegisterNewsPageProps {
   categories: NewsCategoryDto[];
@@ -45,15 +46,19 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const uploadSingleFile = async (file: File): Promise<string> => {
+  const uploadSingleFile = async (
+    file: File,
+    preset: ImagePreset = "banner",
+  ): Promise<string> => {
+    const compressedFile = await compressImage(file, preset);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", compressedFile);
     // See admin-berita-editor.tsx for why this goes through apiClient's
     // relative "/api" path instead of `${hostname}:3000`.
     const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
-      "/uploads",
+      "/uploads?category=news",
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      { timeout: 60000 },
     );
     return data.data.url;
   };
@@ -196,7 +201,7 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       // 1. Upload cover
       let finalCoverUrl = formData.coverUrl;
       if (coverFile) {
-        finalCoverUrl = await uploadSingleFile(coverFile);
+        finalCoverUrl = await uploadSingleFile(coverFile, "banner");
         if (formData.coverUrl?.startsWith("blob:")) {
           URL.revokeObjectURL(formData.coverUrl);
         }
@@ -208,7 +213,10 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           let finalBlockImgUrl = block.imageUrl;
           const localBlockFile = blockFiles[idx];
           if (localBlockFile) {
-            finalBlockImgUrl = await uploadSingleFile(localBlockFile);
+            finalBlockImgUrl = await uploadSingleFile(
+              localBlockFile,
+              "gallery",
+            );
             if (block.imageUrl?.startsWith("blob:")) {
               URL.revokeObjectURL(block.imageUrl);
             }
@@ -223,7 +231,10 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
           let finalGalleryImgUrl = img.imageUrl;
           const localGalleryFile = galleryFiles[idx];
           if (localGalleryFile) {
-            finalGalleryImgUrl = await uploadSingleFile(localGalleryFile);
+            finalGalleryImgUrl = await uploadSingleFile(
+              localGalleryFile,
+              "gallery",
+            );
             if (img.imageUrl?.startsWith("blob:")) {
               URL.revokeObjectURL(img.imageUrl);
             }

@@ -18,10 +18,10 @@ const BADGE_PALETTE = [
 ] as const;
 
 const KNOWN_CATEGORY_BADGE: Record<string, string> = {
-  pemerintahan: "bg-primary-container text-on-primary",
-  "kegiatan-warga": "bg-status-pending text-white",
-  pembangunan: "bg-secondary text-on-secondary",
-  pengumuman: "bg-tertiary-container text-on-tertiary",
+  "kabar-umkm": "bg-primary-container text-on-primary",
+  "event-pelatihan": "bg-secondary text-on-secondary",
+  "pengembangan-potensi": "bg-nature-green text-white",
+  "kemitraan-investasi": "bg-status-verified text-white",
 };
 
 export function getNewsCategoryBadgeClass(categorySlug: string): string {

@@ -18,6 +18,7 @@ import { SubmitUmkmForm } from "@/views/submit-umkm/submit-umkm-form";
 import { SubmitUmkmPreview } from "@/views/submit-umkm-preview/submit-umkm-preview";
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
+import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
 
 import { useSubmissionTracker } from "@/features/submission-tracker/model/use-submission-tracker";
 
@@ -43,18 +44,31 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
   const [activeStep, setActiveStep] = useState<1 | 2>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const uploadSingleFile = async (file: File): Promise<string> => {
+  const uploadSingleFile = async (
+    file: File,
+    preset: ImagePreset = "default",
+  ): Promise<string> => {
+    // Compress image client-side based on context
+    const compressedFile = await compressImage(file, preset);
+
     const formData = new FormData();
-    formData.append("file", file);
-    // See admin-berita-editor.tsx for why this goes through apiClient's
-    // relative "/api" path instead of `${hostname}:3000`.
+    formData.append("file", compressedFile);
+    formData.append("category", "umkm");
+
+    // Do not pass manual Content-Type header so Axios/browser sets boundary automatically
     const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
-      "/uploads",
+      "/uploads?category=umkm",
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      {
+        timeout: 60000,
+      },
     );
+    if (!data?.data?.url) {
+      throw new Error("Gagal mengunggah berkas gambar");
+    }
     return data.data.url;
   };
 
@@ -156,51 +170,88 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     }
 
     setIsSubmitting(true);
+    setUploadProgressText("Mempersiapkan berkas...");
     try {
       // 1. Upload cover
       let finalCoverUrl = formData.coverUrl;
       if (coverFile) {
-        finalCoverUrl = await uploadSingleFile(coverFile);
+        setUploadProgressText("Mengunggah foto sampul utama...");
+        finalCoverUrl = await uploadSingleFile(coverFile, "banner");
         if (formData.coverUrl?.startsWith("blob:")) {
           URL.revokeObjectURL(formData.coverUrl);
         }
       }
 
-      // 2. Upload products
-      const finalProducts = await Promise.all(
-        (formData.products || []).map(async (prod, idx) => {
-          let finalProdImgUrl = prod.imageUrl;
-          const localProdFile = productFiles[idx];
-          if (localProdFile) {
-            finalProdImgUrl = await uploadSingleFile(localProdFile);
+      // 2. Upload products sequentially
+      const finalProducts = [];
+      const currentProds = formData.products || [];
+      for (let idx = 0; idx < currentProds.length; idx++) {
+        const prod = currentProds[idx];
+        let finalProdImgUrl = prod.imageUrl;
+        const localProdFile = productFiles[idx];
+        if (localProdFile) {
+          setUploadProgressText(
+            `Mengunggah foto produk ${idx + 1} dari ${currentProds.length}...`,
+          );
+          try {
+            finalProdImgUrl = await uploadSingleFile(localProdFile, "product");
             if (prod.imageUrl?.startsWith("blob:")) {
               URL.revokeObjectURL(prod.imageUrl);
             }
+          } catch (e) {
+            console.warn(
+              `Upload foto produk ${idx + 1} gagal, tetap dilanjutkan:`,
+              e,
+            );
           }
-          return { ...prod, imageUrl: finalProdImgUrl };
-        }),
-      );
+        }
+        finalProducts.push({ ...prod, imageUrl: finalProdImgUrl });
+      }
 
-      // 3. Upload galleries
-      const finalGalleries = await Promise.all(
-        (formData.galleries || []).map(async (url, idx) => {
-          let finalGalImgUrl = url;
-          const localGalFile = galleryFiles[idx];
-          if (localGalFile) {
-            finalGalImgUrl = await uploadSingleFile(localGalFile);
+      // 3. Upload galleries sequentially
+      const finalGalleries = [];
+      const currentGals = formData.galleries || [];
+      for (let idx = 0; idx < currentGals.length; idx++) {
+        const url = currentGals[idx];
+        let finalGalImgUrl = url;
+        const localGalFile = galleryFiles[idx];
+        if (localGalFile) {
+          setUploadProgressText(
+            `Mengunggah foto galeri ${idx + 1} dari ${currentGals.length}...`,
+          );
+          try {
+            finalGalImgUrl = await uploadSingleFile(localGalFile, "gallery");
             if (url.startsWith("blob:")) {
               URL.revokeObjectURL(url);
             }
+          } catch (e) {
+            console.warn(
+              `Upload foto galeri ${idx + 1} gagal, tetap dilanjutkan:`,
+              e,
+            );
           }
-          return finalGalImgUrl;
-        }),
-      );
+        }
+        if (finalGalImgUrl && !finalGalImgUrl.startsWith("blob:")) {
+          finalGalleries.push(finalGalImgUrl);
+        }
+      }
 
+      setUploadProgressText("Menyimpan data pendaftaran UMKM...");
       const finalPayload = {
         ...formData,
         coverUrl: finalCoverUrl,
         products: finalProducts,
         galleries: finalGalleries,
+        mapsUrl:
+          formData.mapsUrl ||
+          formData.addressUrl ||
+          formData.googlePlaceId ||
+          null,
+        addressUrl:
+          formData.mapsUrl ||
+          formData.addressUrl ||
+          formData.googlePlaceId ||
+          null,
       };
 
       const result = await UmkmService.register(finalPayload as any);
@@ -217,6 +268,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
       alert(err.message || "Terjadi kesalahan saat memproses pendaftaran.");
     } finally {
       setIsSubmitting(false);
+      setUploadProgressText("");
     }
   };
 
@@ -236,6 +288,13 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     Boolean(g && g.trim()),
   );
 
+  const previewMapsUrl =
+    formData.mapsUrl ||
+    formData.addressUrl ||
+    formData.googlePlaceId ||
+    formData.googleMapsUrl ||
+    null;
+
   const previewDetailDto: UmkmDetailDto = {
     id: "preview-umkm-id",
     name: formData.name || "Nama Usaha Anda",
@@ -243,16 +302,20 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     category: previewCategoryLabel.toUpperCase().replace(/\s+/g, "_"),
     description: formData.description || "Deskripsi usaha akan muncul di sini.",
     logo: formData.coverUrl || "",
+    coverUrl: formData.coverUrl || "",
     whatsappNumber: formData.phone || "628123456789",
     address: formData.address || "Dusun Krajan, Desa Pringgodani",
+    mapsUrl: previewMapsUrl,
+    addressUrl: previewMapsUrl,
+    since: formData.since ? Number(formData.since) : null,
+    openDay: formData.openDay || null,
+    startTime: formData.startTime || null,
+    endTime: formData.endTime || null,
     ownerName: formData.ownerName || "Nama Pemilik",
     publishedAt: new Date().toISOString(),
     latitude: Number(formData.latitude) || -8.2811,
     longitude: Number(formData.longitude) || 112.5664,
-    gallery:
-      validGalleries.length > 0
-        ? validGalleries
-        : [formData.coverUrl || ""].filter(Boolean),
+    gallery: validGalleries,
     products: (formData.products || []).map((p, idx) => ({
       id: `preview-p-${idx}`,
       productName: p.name || "Nama Produk",
@@ -348,6 +411,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
         <SubmitUmkmPreview
           previewDetailDto={previewDetailDto}
           isSubmitting={isSubmitting}
+          submittingText={uploadProgressText}
           onBackToEdit={() => {
             setActiveStep(1);
             window.scrollTo({ top: 0, behavior: "smooth" });

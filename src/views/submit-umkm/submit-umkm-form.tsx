@@ -7,6 +7,7 @@ import type { UmkmCategoryDto } from "@/entities/umkm/model/types";
 import type { RegisterUmkmDTO } from "@/entities/umkm/model/register-umkm.schema";
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
 import { PendingStatusCard } from "@/features/submission-tracker/ui/pending-status-card";
+import { compressImage } from "@/shared/utils/image-compression";
 
 interface SubmitUmkmFormProps {
   formData: Partial<RegisterUmkmDTO>;
@@ -62,19 +63,21 @@ export function SubmitUmkmForm({
     }
   };
 
-  // Helper to read file to Data URL
-  const handleFileChange = (
+  // Helper to compress & read file to Data URL
+  const handleFileChange = async (
     file: File | undefined,
     onSuccess: (dataUrl: string) => void,
+    preset: "banner" | "product" | "gallery" | "avatar" | "default" = "default",
   ) => {
     if (!file) return;
+    const compressed = await compressImage(file, preset);
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
         onSuccess(e.target.result as string);
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(compressed);
   };
 
   const handleAddGallery = () => {
@@ -478,10 +481,18 @@ export function SubmitUmkmForm({
                   <div className="relative">
                     <input
                       type="url"
-                      value={formData.googlePlaceId || ""}
+                      value={
+                        formData.mapsUrl ||
+                        formData.addressUrl ||
+                        formData.googlePlaceId ||
+                        ""
+                      }
                       onChange={(e) => {
                         const url = e.target.value;
+                        onChange("mapsUrl", url);
+                        onChange("addressUrl", url);
                         onChange("googlePlaceId", url);
+                        onChange("googleMapsUrl", url);
                         const { lat, lng } = extractCoordinatesFromUrl(url);
                         if (lat) onChange("latitude", lat);
                         if (lng) onChange("longitude", lng);
@@ -498,7 +509,7 @@ export function SubmitUmkmForm({
                     💡 <strong>Cara mudah mendapatkan link:</strong> Buka
                     aplikasi Google Maps di HP &rarr; Cari toko/lokasi Anda
                     &rarr; Tekan tombol <strong>Bagikan (Share)</strong> &rarr;
-                    Salin Link lalu tempelkan di sini.
+                    Salin Link lalu tempelkan di sini. Tautan asli akan tersimpan untuk navigasi langsung.
                   </p>
                 </div>
               </div>

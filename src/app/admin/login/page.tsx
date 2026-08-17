@@ -50,11 +50,10 @@ export default function AdminLoginPage() {
           </div>
           <div>
             <h2 className="font-headline-md text-headline-md text-primary font-bold">
-              Panel Admin Pringgodani
+              Panel Admin Lokal Pringgodani
             </h2>
             <p className="font-body-base text-on-surface-variant mt-2 text-sm">
-              Masuk untuk mengelola berita, UMKM, peta geospasial, dan pengajuan
-              warga desa.
+              Masuk untuk mengelola produk &amp; direktori UMKM, hasil bumi, peta geospasial, dan pengajuan warga.
             </p>
           </div>
         </div>

@@ -96,7 +96,7 @@ export function GoogleMapCanvas({
     const directionsUrl = buildDirectionsUrl(
       loc.latitude,
       loc.longitude,
-      loc.googleMapsUrl,
+      loc.googleMapsUrl || (loc as any).mapsUrl,
     );
     const imageUrl = loc.imageUrl
       ? loc.imageUrl.startsWith("http")
@@ -125,9 +125,16 @@ export function GoogleMapCanvas({
         }
 
         <div style="display: flex; gap: 8px; margin-top: 12px;">
-          <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background-color: ${color}; color: white; padding: 9px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px ${color}40;">
+          <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background-color: ${color}; color: white; padding: 9px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px ${color}40;">
             Petunjuk Arah ↗
           </a>
+          ${
+            loc.slug
+              ? `<a href="/umkm/${loc.slug}" style="flex: 1; text-align: center; background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 9px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-block;">
+                  Profil UMKM →
+                </a>`
+              : ""
+          }
         </div>
       </div>
     `;

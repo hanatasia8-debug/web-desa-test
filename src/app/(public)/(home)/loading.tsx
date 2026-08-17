@@ -30,12 +30,12 @@ export default function Loading() {
       </div>
 
       {/* Stats strip */}
-      <div className="bg-surface-container-low px-gutter py-stack-lg">
-        <div className="max-w-container-max mx-auto grid grid-cols-2 gap-6 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+      <div className="bg-surface-container-low px-gutter py-12 md:py-16">
+        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4 sm:gap-8 md:gap-12">
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="space-y-2 text-center">
-              <div className="bg-surface-container mx-auto h-8 w-16 rounded" />
-              <div className="bg-surface-container mx-auto h-3 w-20 rounded" />
+              <div className="bg-surface-container mx-auto h-10 w-16 rounded-xl" />
+              <div className="bg-surface-container mx-auto h-3 w-24 rounded" />
             </div>
           ))}
         </div>

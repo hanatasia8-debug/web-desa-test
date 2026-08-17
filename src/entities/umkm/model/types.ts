@@ -1,15 +1,42 @@
+export interface UmkmProductDto {
+  id: string;
+  name?: string;
+  productName?: string;
+  price: number | null;
+  imageUrl?: string | null;
+  productPhoto?: string | null;
+  description?: string | null;
+}
+
+export interface UmkmPotentialSummaryDto {
+  id: string;
+  name?: string;
+  title?: string;
+  slug: string;
+  category?: string;
+}
+
 export interface UmkmListItemDto {
   id: string;
   name: string;
   slug: string;
   category: string;
+  categorySlug?: string;
   description: string;
   logo: string;
+  coverUrl?: string | null;
+  phone?: string;
   whatsappNumber: string;
-  /** `Umkm.address` — shown as the location line on the directory card. */
   address: string;
   addressUrl?: string | null;
+  mapsUrl?: string | null;
   ownerName: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  openDay?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  since?: number | null;
   publishedAt: string; // ISO string over the wire
 }
 
@@ -18,50 +45,25 @@ export interface UmkmListResponse {
   total: number;
 }
 
-/**
- * One row of `UmkmProduct` (`prd_2.txt §6.2`). Note the schema has no
- * description column for a product — the prototype's per-product blurb is
- * therefore not rendered rather than invented.
- */
-export interface UmkmProductDto {
-  id: string;
-  productName: string;
-  /** `Int?` in the schema — a product may be listed without a price. */
-  price: number | null;
-  productPhoto: string | null;
-}
-
-/** The `VillagePotential` an UMKM belongs to ("Potensi Terkait" card). */
-export interface UmkmPotentialSummaryDto {
-  id: string;
-  title: string;
-  slug: string;
-  category: string;
-}
-
 export interface UmkmDetailDto extends UmkmListItemDto {
-  latitude: number;
-  longitude: number;
-  /** `Umkm.gallery` (`Json`) — array of storage keys, may be empty. */
+  latitude: number | null;
+  longitude: number | null;
   gallery: string[];
+  galleries?: string[];
   products: UmkmProductDto[];
   potential: UmkmPotentialSummaryDto | null;
 }
 
-/**
- * A selectable category chip. Unlike news categories (a real `NewsCategory`
- * table), UMKM categories are the fixed `UmkmCategory` enum from the schema,
- * so the chip list is derived from the enum — not hardcoded from the
- * prototype's sample chips.
- */
 export interface UmkmCategoryDto {
+  id?: string;
   value: string;
   slug: string;
   label: string;
-  /** Number of published UMKM in this category. */
+  name?: string;
   umkmCount: number;
 }
 
 export interface UmkmCategoryListResponse {
   items: UmkmCategoryDto[];
 }
+

@@ -29,7 +29,6 @@ export default async function Page() {
     <ProfilPage
       profile={profile}
       stats={stats}
-      topUmkmCategories={topUmkmCategories}
     />
   );
 }

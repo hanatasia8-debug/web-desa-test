@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icon } from "@/shared/ui/icon";
 import type {
   PendingNewsSubmission,
@@ -46,6 +46,14 @@ interface UmkmFormState {
   phone: string;
   address: string;
   coverUrl: string;
+  mapsUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  since?: number;
+  openDay?: string;
+  startTime?: string;
+  endTime?: string;
+  galleries?: string[];
   products: Array<{
     name: string;
     price: number;
@@ -119,10 +127,69 @@ export function SubmissionReviewModal({
     coverUrl:
       umkmData?.coverUrl ||
       "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80",
+    mapsUrl: umkmData?.mapsUrl,
+    latitude: umkmData?.latitude,
+    longitude: umkmData?.longitude,
+    since: umkmData?.since,
+    openDay: umkmData?.openDay,
+    startTime: umkmData?.startTime,
+    endTime: umkmData?.endTime,
+    galleries: umkmData?.galleries || [],
     products: umkmData?.products || [
       { name: "Produk Olahan", price: 15000, description: "Kripik & Camilan" },
     ],
   });
+
+  useEffect(() => {
+    if (!data) return;
+    if (type === "NEWS") {
+      const n = data as PendingNewsSubmission;
+      setNewsFormData({
+        title: n.title || "",
+        categorySlug: "kegiatan-desa",
+        excerpt: n.excerpt || "",
+        coverUrl:
+          n.coverUrl ||
+          "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80",
+        authorName: n.authorName || "Warga Desa",
+        blocks: n.contentBlocks || [
+          {
+            subHeading: "Uraian Berita",
+            content: n.excerpt || "Uraian berita pengajuan warga.",
+            imageUrl: "",
+          },
+        ],
+      });
+    } else {
+      const u = data as PendingUmkmSubmission;
+      setUmkmFormData({
+        name: u.name || "",
+        ownerName: u.ownerName || "",
+        categorySlug: "kuliner",
+        description: u.description || "",
+        phone: u.phone || "081234567890",
+        address: u.address || "Desa Pringgodani",
+        coverUrl:
+          u.coverUrl ||
+          "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80",
+        mapsUrl: u.mapsUrl,
+        latitude: u.latitude,
+        longitude: u.longitude,
+        since: u.since,
+        openDay: u.openDay,
+        startTime: u.startTime,
+        endTime: u.endTime,
+        galleries: u.galleries || [],
+        products: u.products || [
+          {
+            name: "Produk Olahan",
+            price: 15000,
+            description: "Kripik & Camilan",
+          },
+        ],
+      });
+    }
+  }, [data, type]);
 
   if (!data) return null;
 
@@ -193,6 +260,13 @@ export function SubmissionReviewModal({
     })),
   };
 
+  const previewUmkmGalleries =
+    umkmFormData.galleries && umkmFormData.galleries.length > 0
+      ? umkmFormData.galleries
+      : umkmData?.galleries && umkmData.galleries.length > 0
+      ? umkmData.galleries
+      : [];
+
   const previewUmkmDto: UmkmDetailDto = {
     id: umkmData?.id || "preview-umkm",
     name: umkmFormData.name || "Nama UMKM",
@@ -202,16 +276,24 @@ export function SubmissionReviewModal({
     logo:
       umkmFormData.coverUrl ||
       "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80",
+    coverUrl: umkmFormData.coverUrl || "",
     whatsappNumber: umkmFormData.phone || "081234567890",
     address: umkmFormData.address || "Desa Pringgodani",
+    mapsUrl: umkmFormData.mapsUrl || umkmData?.mapsUrl || null,
+    addressUrl: umkmFormData.mapsUrl || umkmData?.mapsUrl || null,
+    since: umkmFormData.since || umkmData?.since || null,
+    openDay: umkmFormData.openDay || umkmData?.openDay || null,
+    startTime: umkmFormData.startTime || umkmData?.startTime || null,
+    endTime: umkmFormData.endTime || umkmData?.endTime || null,
     ownerName: umkmFormData.ownerName || "Pemilik UMKM",
     publishedAt: new Date().toISOString(),
-    latitude: -7.981,
-    longitude: 112.631,
-    gallery: [
-      umkmFormData.coverUrl ||
-        "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80",
-    ],
+    latitude:
+      umkmFormData.latitude ??
+      (umkmData?.latitude !== undefined ? umkmData.latitude : -8.2811),
+    longitude:
+      umkmFormData.longitude ??
+      (umkmData?.longitude !== undefined ? umkmData.longitude : 112.5664),
+    gallery: previewUmkmGalleries,
     products: (umkmFormData.products || []).map((p, idx) => ({
       id: `prod-${idx}`,
       productName: p.name || "Nama Produk",

@@ -10,7 +10,6 @@ import { CategoryFilterPanel } from "./sections/category-filter-panel";
 import { MapLegend } from "./sections/map-legend";
 import { MapControls } from "./sections/map-controls";
 import { Icon } from "@/shared/ui/icon";
-
 import { cn } from "@/shared/utils/cn";
 
 interface PetaPageProps {
@@ -123,7 +122,7 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari fasilitas desa..."
+            placeholder="Cari UMKM dan fasilitas desa..."
             className="text-on-surface w-full border-none bg-transparent text-sm focus:outline-none"
           />
           {searchQuery && (
@@ -171,7 +170,7 @@ export function PetaPage({ initialLocations, categories }: PetaPageProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari fasilitas desa..."
+            placeholder="Cari UMKM dan fasilitas..."
             className="text-on-surface w-full border-none bg-transparent text-sm focus:outline-none"
           />
           {searchQuery && (

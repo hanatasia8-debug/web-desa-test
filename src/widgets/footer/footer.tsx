@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/shared/ui/icon";
 import { SettingsService } from "@/entities/settings/api/settings.service";
+import {
+  getStoredAdminSettings,
+  subscribeStoredAdminSettings,
+} from "@/entities/admin/api/admin-settings.service";
 import { cn } from "@/shared/utils/cn";
-
-const CACHE_KEY = "pringgodani_site_settings";
 
 interface FooterSettings {
   contactEmail: string;
@@ -20,115 +22,82 @@ interface FooterSettings {
 
 const DEFAULT_SETTINGS: FooterSettings = {
   contactEmail: "info@pringgodani.desa.id",
-  contactPhone: "(021) 1234-5678",
-  contactAddress: "Jl. Raya Pringgodani No. 1, Kab. Pringgodani",
+  contactPhone: "0812-3456-7890",
+  contactAddress: "Jl. Raya Desa Pringgodani No. 1, Kec. Bantur, Kab. Malang",
   socialFacebook: "https://facebook.com/desapringgodani",
   socialInstagram: "https://instagram.com/desapringgodani",
   socialYoutube: "https://youtube.com/@desapringgodani",
   socialTiktok: "https://tiktok.com/@desapringgodani",
 };
 
-/**
- * The cached settings live in localStorage, i.e. outside React, so they are
- * read through `useSyncExternalStore` rather than copied into state inside an
- * effect. That keeps the cached values available on the very first client
- * render (0ms, no cascading re-render) while the server render still uses
- * `DEFAULT_SETTINGS`, so hydration stays consistent.
- */
-const listeners = new Set<() => void>();
-
-/** Set once the background fetch succeeds, so a failed localStorage write
- *  (private mode, quota) still updates the UI. */
-let freshSettings: FooterSettings | null = null;
-let cachedRaw: string | null = null;
-let cachedSettings: FooterSettings = DEFAULT_SETTINGS;
-
-function subscribe(onStoreChange: () => void) {
-  listeners.add(onStoreChange);
-  // Keeps other tabs in sync.
-  window.addEventListener("storage", onStoreChange);
-  return () => {
-    listeners.delete(onStoreChange);
-    window.removeEventListener("storage", onStoreChange);
-  };
-}
-
-function getSnapshot(): FooterSettings {
-  if (freshSettings) return freshSettings;
-
-  let raw: string | null;
-  try {
-    raw = localStorage.getItem(CACHE_KEY);
-  } catch (e) {
-    console.warn("Gagal membaca cache settings di footer:", e);
-    return DEFAULT_SETTINGS;
-  }
-
-  // Reparse only when the stored string actually changed — the snapshot
-  // identity must be stable or React would re-render forever.
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    try {
-      cachedSettings = raw
-        ? {
-            ...DEFAULT_SETTINGS,
-            ...(JSON.parse(raw) as Partial<FooterSettings>),
-          }
-        : DEFAULT_SETTINGS;
-    } catch (e) {
-      console.warn("Gagal membaca cache settings di footer:", e);
-      cachedSettings = DEFAULT_SETTINGS;
-    }
-  }
-
-  return cachedSettings;
-}
-
-function getServerSnapshot(): FooterSettings {
-  return DEFAULT_SETTINGS;
-}
-
-function publishSettings(fresh: FooterSettings) {
-  freshSettings = fresh;
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(fresh));
-  } catch (e) {
-    console.error("Gagal menyimpan cache settings di footer:", e);
-  }
-  listeners.forEach((listener) => listener());
-}
-
 export function Footer() {
-  const settings = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-  );
   const pathname = usePathname();
   const isMapPage = pathname === "/peta";
+  const [settings, setSettings] = useState<FooterSettings>(DEFAULT_SETTINGS);
+
+  const applySettings = (s?: any) => {
+    if (!s) return;
+    setSettings({
+      contactEmail:
+        s.contact_email ||
+        s.contactEmail ||
+        s.email ||
+        DEFAULT_SETTINGS.contactEmail,
+      contactPhone:
+        s.contact_phone ||
+        s.contactPhone ||
+        s.phone ||
+        DEFAULT_SETTINGS.contactPhone,
+      contactAddress:
+        s.address || s.contactAddress || DEFAULT_SETTINGS.contactAddress,
+      socialFacebook:
+        s.social_facebook ||
+        s.socialFacebook ||
+        s.facebook ||
+        DEFAULT_SETTINGS.socialFacebook,
+      socialInstagram:
+        s.social_instagram ||
+        s.socialInstagram ||
+        s.instagram ||
+        DEFAULT_SETTINGS.socialInstagram,
+      socialYoutube:
+        s.social_youtube ||
+        s.socialYoutube ||
+        s.youtube ||
+        DEFAULT_SETTINGS.socialYoutube,
+      socialTiktok:
+        s.social_tiktok ||
+        s.socialTiktok ||
+        s.tiktok ||
+        DEFAULT_SETTINGS.socialTiktok,
+    });
+  };
 
   useEffect(() => {
-    // Background fetch to validate and update the cached settings.
+    // 1. Initial read from local cache
+    const stored = getStoredAdminSettings();
+    applySettings(stored);
+
+    // 2. Fetch public settings
     SettingsService.getAll()
       .then((res) => {
-        if (res && res.settings) {
-          const s = res.settings as Record<string, string | undefined>;
-          publishSettings({
-            contactEmail: s.contact_email || DEFAULT_SETTINGS.contactEmail,
-            contactPhone: s.contact_phone || DEFAULT_SETTINGS.contactPhone,
-            contactAddress: s.address || DEFAULT_SETTINGS.contactAddress,
-            socialFacebook:
-              s.social_facebook || DEFAULT_SETTINGS.socialFacebook,
-            socialInstagram:
-              s.social_instagram || DEFAULT_SETTINGS.socialInstagram,
-            socialYoutube: s.social_youtube || DEFAULT_SETTINGS.socialYoutube,
-            socialTiktok: s.social_tiktok || DEFAULT_SETTINGS.socialTiktok,
-          });
+        if (res?.settings) {
+          applySettings(res.settings);
         }
       })
       .catch((err) => {
-        console.error("Gagal memperbarui settings di background:", err);
+        console.warn("Gagal memperbarui settings di background:", err);
       });
+
+    // 3. Subscribe to reactive changes
+    const unsubscribe = subscribeStoredAdminSettings(() => {
+      const latest = getStoredAdminSettings();
+      applySettings(latest);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -146,28 +115,28 @@ export function Footer() {
           </h4>
           <ul className="font-body-base text-on-surface-variant space-y-4">
             <li className="flex items-center gap-3">
-              <Icon name="location_on" className="text-primary text-xl" />
-              {settings.contactAddress}
+              <Icon name="location_on" className="text-primary text-xl shrink-0" />
+              <span>{settings.contactAddress}</span>
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="call" className="text-primary text-xl" />
-              {settings.contactPhone}
+              <Icon name="call" className="text-primary text-xl shrink-0" />
+              <span>{settings.contactPhone}</span>
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="mail" className="text-primary text-xl" />
-              {settings.contactEmail}
+              <Icon name="mail" className="text-primary text-xl shrink-0" />
+              <span>{settings.contactEmail}</span>
             </li>
           </ul>
         </div>
 
-        {/* Kolom Rerata Kanan: Media Sosial Kami */}
+        {/* Kolom Kanan: Media Sosial Kami */}
         <div className="mt-8 flex flex-col justify-center md:mt-0 md:items-end">
           <h4 className="font-headline-md text-headline-md text-primary mb-4 md:text-right">
             Media Sosial Kami
           </h4>
           <p className="text-on-surface-variant font-body-base mb-6 max-w-sm text-sm md:text-right">
-            Ikuti kanal resmi media sosial Pemerintah Desa Pringgodani untuk
-            berita terupdate.
+            Ikuti kanal resmi media sosial Lokal Pringgodani untuk kabar produk,
+            UMKM, dan hasil bumi terupdate.
           </p>
           <div className="flex gap-4">
             {/* Facebook */}

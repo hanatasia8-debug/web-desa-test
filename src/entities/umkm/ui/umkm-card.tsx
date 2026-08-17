@@ -7,13 +7,6 @@ import { WhatsappCta } from "@/features/whatsapp-contact/ui/whatsapp-cta";
 import { getUmkmCategoryMeta } from "../model/category-meta";
 import type { UmkmListItemDto } from "../model/types";
 
-/**
- * The prototypes draw the same UMKM card three ways: Home ("Produk Unggulan
- * Desa") puts the WhatsApp button right on the card, the /umkm directory grid
- * shows a location line plus a "Lihat Detail" link, and the "UMKM Serupa"
- * strip on the detail page uses a translucent badge with the owner name. One
- * component with three variants — no duplicated card components.
- */
 export type UmkmCardVariant = "compact" | "listing" | "similar";
 
 interface UmkmCardProps {
@@ -24,148 +17,121 @@ interface UmkmCardProps {
 
 export function UmkmCard({
   umkm,
-  variant = "compact",
+  variant = "listing",
   className,
 }: UmkmCardProps) {
   const categoryMeta = getUmkmCategoryMeta(umkm.category);
   const isCompact = variant === "compact";
+  const isSimilar = variant === "similar";
 
   return (
     <article
       className={cn(
-        "scroll-reveal group visible flex flex-col overflow-hidden border transition-all duration-300",
-        isCompact
-          ? "bg-surface-container-lowest border-outline-variant/30 rounded-2xl hover:shadow-xl"
-          : "bg-surface-container-lowest border-outline-variant/30 rounded-xl hover:shadow-lg",
+        "group bg-surface-container-lowest border-outline-variant/30 hover:border-primary/50 hover:shadow-xl relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border shadow-xs transition-all duration-300 hover:-translate-y-1",
         className,
       )}
     >
-      <div
-        className={cn(
-          "relative overflow-hidden",
-          isCompact ? "h-56" : "h-48 w-full",
-        )}
-      >
-        <Link href={`/umkm/${umkm.slug}`}>
-          <FallbackImage
-            src={umkm.logo}
-            alt={umkm.name}
-            className={cn(
-              "h-full w-full object-cover transition-transform duration-500",
-              isCompact ? "group-hover:scale-110" : "group-hover:scale-105",
-            )}
-            fallbackIcon="storefront"
-          />
-        </Link>
+      <div>
+        {/* Cover / Logo Banner */}
+        <div className="bg-surface-container relative aspect-[16/10] w-full overflow-hidden">
+          <Link href={`/umkm/${umkm.slug}`} className="block h-full w-full">
+            <FallbackImage
+              src={umkm.logo}
+              alt={umkm.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              fallbackIcon="storefront"
+            />
+          </Link>
 
-        {variant === "similar" ? (
-          <span className="font-badge-xs text-badge-xs text-primary absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 shadow-sm backdrop-blur">
-            {categoryMeta.label}
-          </span>
-        ) : (
-          <span
-            className={cn(
-              "font-badge-xs text-badge-xs absolute rounded-full px-3 py-1 text-white shadow-md",
-              isCompact
-                ? "top-4 left-4"
-                : "top-3 left-3 tracking-wider uppercase",
-              categoryMeta.badgeClass,
-            )}
-          >
-            {categoryMeta.label}
-          </span>
-        )}
-      </div>
-
-      <div
-        className={cn(
-          "flex flex-1 flex-col",
-          variant === "listing" ? "p-5" : "p-6",
-        )}
-      >
-        <div className="mb-2 flex items-start justify-between gap-2">
-          <h3
-            className={cn(
-              "font-headline-md text-headline-md leading-tight",
-              isCompact ? "text-on-surface" : "text-primary",
-            )}
-          >
-            <Link href={`/umkm/${umkm.slug}`}>{umkm.name}</Link>
-          </h3>
-
-          {isCompact ? (
-            <span className="text-on-surface-variant font-label-sm shrink-0">
-              {formatRelativeTime(umkm.publishedAt)}
+          {/* Badge Kategori */}
+          <div className="absolute top-2.5 left-2.5">
+            <span
+              className={cn(
+                "font-label-sm rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-xs backdrop-blur-xs",
+                categoryMeta.badgeClass,
+              )}
+            >
+              {categoryMeta.label}
             </span>
-          ) : (
-            // Every UMKM in the directory is published, which in this project
-            // only happens after an admin approves it — hence "Terverifikasi".
-            variant === "listing" && (
-              <span
-                className="shrink-0 leading-none"
-                title="Terverifikasi oleh Pemerintah Desa"
-              >
-                <Icon
-                  name="verified"
-                  filled
-                  className="text-status-verified text-[20px]"
-                />
-                <span className="sr-only">
-                  Terverifikasi oleh Pemerintah Desa
-                </span>
-              </span>
-            )
-          )}
+          </div>
+
+          {/* Badge Terverifikasi */}
+          <div className="absolute top-2.5 right-2.5">
+            <span
+              className="bg-primary text-on-primary flex h-6 w-6 items-center justify-center rounded-full shadow-xs"
+              title="UMKM Terverifikasi Pemerintah Desa"
+            >
+              <Icon name="verified" filled className="text-xs text-white" />
+            </span>
+          </div>
         </div>
 
-        <p
-          className={cn(
-            "text-on-surface-variant line-clamp-2",
-            variant === "similar"
-              ? "font-label-sm text-label-sm mb-4"
-              : "font-body-base text-body-base mb-4",
-            isCompact && "mb-6",
-          )}
-        >
-          {umkm.description}
-        </p>
+        {/* Info Konten */}
+        <div className="p-3.5 sm:p-4">
+          <div className="mb-1 flex items-start justify-between gap-1.5">
+            <h3 className="font-headline-md text-on-surface group-hover:text-primary line-clamp-1 text-sm font-bold transition sm:text-base">
+              <Link href={`/umkm/${umkm.slug}`}>{umkm.name}</Link>
+            </h3>
+            {isCompact && (
+              <span className="text-on-surface-variant/70 shrink-0 text-[10px] font-medium">
+                {formatRelativeTime(umkm.publishedAt)}
+              </span>
+            )}
+          </div>
 
-        {isCompact && (
+          {/* Pemilik Usaha */}
+          <p className="text-on-surface-variant mb-2 flex items-center gap-1 text-[11px] font-medium">
+            <Icon name="person" className="shrink-0 text-xs text-slate-400" />
+            <span className="truncate">
+              Pemilik: <span className="font-semibold">{umkm.ownerName}</span>
+            </span>
+          </p>
+
+          {/* Deskripsi Singkat */}
+          <p className="text-on-surface-variant/80 line-clamp-2 text-xs leading-relaxed">
+            {umkm.description}
+          </p>
+        </div>
+      </div>
+
+      {/* Footer Kartu */}
+      <div className="border-outline-variant/15 bg-surface/40 border-t p-3">
+        {isCompact ? (
           <WhatsappCta
             phone={umkm.whatsappNumber}
             umkmName={umkm.name}
-            className="mt-auto"
+            className="w-full"
           />
-        )}
-
-        {variant === "listing" && (
-          <div className="border-outline-variant/20 mt-auto flex items-center justify-between gap-3 border-t pt-4">
-            <span className="text-on-surface-variant flex min-w-0 items-center gap-1.5">
-              <Icon name="location_on" className="shrink-0 text-[18px]" />
-              <span className="font-label-sm text-label-sm truncate">
-                {umkm.address}
-              </span>
-            </span>
-            <Link
-              href={`/umkm/${umkm.slug}`}
-              className="text-secondary font-label-sm text-label-sm shrink-0 font-bold hover:underline"
-            >
-              Lihat Detail
-            </Link>
-          </div>
-        )}
-
-        {variant === "similar" && (
-          <div className="mt-auto flex items-center justify-between gap-2">
-            <span className="font-label-sm text-label-sm text-on-surface truncate font-bold">
+        ) : isSimilar ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-on-surface-variant truncate text-xs font-semibold">
               {umkm.ownerName}
             </span>
             <Link
               href={`/umkm/${umkm.slug}`}
-              className="text-secondary font-label-sm text-label-sm flex shrink-0 items-center gap-1 font-bold hover:underline"
+              className="text-primary hover:text-primary/80 inline-flex shrink-0 items-center gap-1 text-xs font-bold transition hover:underline"
             >
-              Lihat Detail
-              <Icon name="chevron_right" className="text-[18px]" />
+              <span>Detail</span>
+              <Icon name="chevron_right" className="text-sm" />
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-on-surface-variant/80 flex min-w-0 items-center gap-1 text-[11px]">
+              <Icon
+                name="location_on"
+                className="shrink-0 text-xs text-slate-400"
+              />
+              <span className="truncate">
+                {umkm.address || "Desa Pringgodani"}
+              </span>
+            </span>
+            <Link
+              href={`/umkm/${umkm.slug}`}
+              className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary inline-flex shrink-0 items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition-all"
+            >
+              <span>Kunjungi</span>
+              <Icon name="arrow_forward" className="text-xs" />
             </Link>
           </div>
         )}

@@ -24,8 +24,8 @@ export const FasilitasService = {
     const slugFilter = categorySlug || category;
 
     try {
-      const { data } = await apiClient.get<ApiSuccessBody<MapLocationDto[]>>(
-        "/public/maps/locations",
+      const { data } = await apiClient.get<any>(
+        "/public/maps",
         {
           params: {
             categorySlug: slugFilter,
@@ -34,7 +34,8 @@ export const FasilitasService = {
         },
       );
 
-      let items = data?.data || [];
+      let raw = data?.data;
+      let items: MapLocationDto[] = Array.isArray(raw) ? raw : (raw?.items || []);
       if (limit) {
         items = items.slice(0, limit);
       }

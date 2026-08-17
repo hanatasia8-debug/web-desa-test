@@ -20,10 +20,15 @@ export interface MapLocationDto {
   name: string;
   shortDescription: string | null;
   imageUrl: string | null;
+  photoUrl?: string | null;
   address: string | null;
+  phone?: string | null;
   latitude: number;
   longitude: number;
   googleMapsUrl?: string | null;
+  mapsUrl?: string | null;
+  slug?: string | null;
+  umkmSlug?: string | null;
   category: MapCategoryDto;
 }
 

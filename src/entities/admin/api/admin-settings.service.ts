@@ -18,6 +18,21 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsPayload = {
   jumlah_dusun: 4,
 };
 
+const listeners = new Set<() => void>();
+
+export function subscribeStoredAdminSettings(onStoreChange: () => void) {
+  listeners.add(onStoreChange);
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", onStoreChange);
+  }
+  return () => {
+    listeners.delete(onStoreChange);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", onStoreChange);
+    }
+  };
+}
+
 export function getStoredAdminSettings(): AdminSettingsPayload {
   if (typeof window === "undefined") return { ...DEFAULT_ADMIN_SETTINGS };
   try {
@@ -37,6 +52,13 @@ export function saveStoredAdminSettings(
     const current = getStoredAdminSettings();
     const merged = { ...current, ...payload };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+    listeners.forEach((listener) => {
+      try {
+        listener();
+      } catch (e) {
+        console.error("Error in admin settings subscriber:", e);
+      }
+    });
     return merged;
   } catch {
     return { ...DEFAULT_ADMIN_SETTINGS };

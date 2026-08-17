@@ -15,11 +15,13 @@ import type { UmkmDetailDto } from "@/entities/umkm/model/types";
 export function UmkmHero({ umkm }: { umkm: UmkmDetailDto }) {
   const categoryMeta = getUmkmCategoryMeta(umkm.category);
   const registeredYear = new Date(umkm.publishedAt).getFullYear();
+  const heroImage =
+    umkm.coverUrl || umkm.logo || (umkm.gallery && umkm.gallery[0]) || "";
 
   return (
     <div className="group relative h-80 w-full overflow-hidden">
       <FallbackImage
-        src={umkm.gallery[0] ?? umkm.logo}
+        src={heroImage}
         alt={umkm.name}
         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         fallbackIcon="storefront"
@@ -45,7 +47,9 @@ export function UmkmHero({ umkm }: { umkm: UmkmDetailDto }) {
           </span>
           <span className="flex items-center gap-1">
             <Icon name="calendar_today" className="text-sm" />
-            Terdaftar sejak {registeredYear}
+            {umkm.since
+              ? `Berdiri sejak Tahun ${umkm.since}`
+              : `Terdaftar sejak ${registeredYear}`}
           </span>
           <span className="text-status-verified flex items-center gap-1">
             <Icon name="verified" filled className="text-sm" />

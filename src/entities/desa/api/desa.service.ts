@@ -30,18 +30,12 @@ export const DesaService = {
       console.error("Gagal memuat profil desa dari API:", err);
     }
 
-    const historyContent = apiProfile?.historyText || stored.historyText || "";
-    const historyExcerpt =
-      historyContent.length > 200
-        ? historyContent.substring(0, 200) + "..."
-        : historyContent;
-
     const mergedProfile = {
-      villageName: apiProfile?.villageName || "Desa Pringgodani",
+      villageName: apiProfile?.villageName || "Lokal Pringgodani",
       headGreeting:
         apiProfile?.headGreeting ||
         stored.headGreeting ||
-        "Selamat datang di website resmi Desa Pringgodani.",
+        "Selamat datang di portal resmi Lokal Pringgodani.",
       headPhoto:
         apiProfile?.headPhoto ||
         stored.headPhoto ||
@@ -49,13 +43,10 @@ export const DesaService = {
       headName: apiProfile?.headName || stored.headName || "Kepala Desa",
       headPosition:
         apiProfile?.headPosition || stored.headPosition || "Kepala Desa",
-      historyText: historyContent,
-      historyExcerpt: historyExcerpt,
-      vision: apiProfile?.vision || stored.vision || "",
-      missions:
-        apiProfile?.missions && apiProfile.missions.length > 0
-          ? apiProfile.missions
-          : stored.missions || [],
+      aboutText:
+        apiProfile?.aboutText ||
+        stored.aboutText ||
+        "Desa Pringgodani berada di wilayah Kecamatan Bantur, Kabupaten Malang, Jawa Timur. Wilayah ini dianugerahi tanah yang subur untuk komoditas pertanian tebu, padi, dan palawija, serta masyarakat yang aktif memproduksi aneka produk olahan rumahan, kerajinan tangan, dan aneka usaha jasa.\n\nMelalui portal Lokal Pringgodani, Pemerintah Desa memfasilitasi publikasi produk olahan, sentra kerajinan, dan hasil bumi warga agar mudah ditemukan oleh masyarakat luas dan pembeli dari luar daerah secara langsung.",
       officials:
         apiProfile?.officials && apiProfile.officials.length > 0
           ? apiProfile.officials
@@ -68,8 +59,6 @@ export const DesaService = {
               email: o.email ? String(o.email) : undefined,
             }))
           : [],
-      structureImageUrl:
-        apiProfile?.structureImageUrl || stored.structureImageUrl || "",
     };
 
     return { profile: mergedProfile, stats };

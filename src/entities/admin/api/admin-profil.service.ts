@@ -19,10 +19,7 @@ export interface AdminProfilPayload {
   headPosition: string;
   headPhoto: string;
   headGreeting: string;
-  historyText: string;
-  vision: string;
-  missions: string[];
-  structureImageUrl: string;
+  aboutText?: string;
   officials: AdminOfficialItem[];
 }
 

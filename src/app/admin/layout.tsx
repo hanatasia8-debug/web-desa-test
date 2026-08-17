@@ -69,10 +69,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </div>
             <div>
               <h1 className="font-headline-md text-lg font-bold">
-                Admin Panel — Desa Pringgodani
+                Admin Panel — Lokal Pringgodani
               </h1>
               <p className="text-on-primary/70 text-xs font-medium">
-                Sistem Informasi & Manajemen Terpadu Desa
+                Portal Manajemen Produk, UMKM &amp; Hasil Bumi Desa
               </p>
             </div>
           </div>

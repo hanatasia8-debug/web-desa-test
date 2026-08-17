@@ -4,7 +4,7 @@ import type { SettingsResponse } from "../model/types";
 
 const DEFAULT_SETTINGS: SettingsResponse = {
   settings: {
-    website_name: "Desa Pringgodani",
+    website_name: "Lokal Pringgodani",
     logo_url: "",
     favicon_url: "/favicon.ico",
     contact_email: "",

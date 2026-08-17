@@ -10,9 +10,7 @@ import { FileUploadWithPreview } from "@/shared/ui/file-upload-with-preview";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 
 export function AdminProfilPage() {
-  const [activeTab, setActiveTab] = useState<
-    "PROFIL" | "OFFICIALS" | "STRUCTURE"
-  >("PROFIL");
+  const [activeTab, setActiveTab] = useState<"PROFIL" | "OFFICIALS">("PROFIL");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -20,15 +18,12 @@ export function AdminProfilPage() {
     "success",
   );
 
-  // Form State Profil & Visi Misi
+  // Form State Profil
   const [headName, setHeadName] = useState("");
   const [headPosition, setHeadPosition] = useState("");
   const [headPhoto, setHeadPhoto] = useState("");
   const [headGreeting, setHeadGreeting] = useState("");
-  const [historyText, setHistoryText] = useState("");
-  const [vision, setVision] = useState("");
-  const [missions, setMissions] = useState<string[]>([]);
-  const [structureImageUrl, setStructureImageUrl] = useState("");
+  const [aboutText, setAboutText] = useState("");
 
   // Form State Officials
   const [officials, setOfficials] = useState<AdminOfficialItem[]>([]);
@@ -51,10 +46,7 @@ export function AdminProfilPage() {
         setHeadPosition(data.headPosition || "");
         setHeadPhoto(data.headPhoto || "");
         setHeadGreeting(data.headGreeting || "");
-        setHistoryText(data.historyText || "");
-        setVision(data.vision || "");
-        setMissions(data.missions || []);
-        setStructureImageUrl(data.structureImageUrl || "");
+        setAboutText(data.aboutText || "");
         setOfficials(data.officials || []);
       })
       .finally(() => setIsLoading(false));
@@ -69,10 +61,7 @@ export function AdminProfilPage() {
           setHeadPosition(data.headPosition || "");
           setHeadPhoto(data.headPhoto || "");
           setHeadGreeting(data.headGreeting || "");
-          setHistoryText(data.historyText || "");
-          setVision(data.vision || "");
-          setMissions(data.missions || []);
-          setStructureImageUrl(data.structureImageUrl || "");
+          setAboutText(data.aboutText || "");
           setOfficials(data.officials || []);
         }
       })
@@ -90,22 +79,7 @@ export function AdminProfilPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Handlers Misi Dinamis
-  const handleAddMission = () => {
-    setMissions([...missions, ""]);
-  };
-
-  const handleUpdateMission = (index: number, val: string) => {
-    const next = [...missions];
-    next[index] = val;
-    setMissions(next);
-  };
-
-  const handleRemoveMission = (index: number) => {
-    setMissions(missions.filter((_, i) => i !== index));
-  };
-
-  // Save Profil & Visi Misi
+  // Save Profil
   const handleSaveProfil = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -116,14 +90,11 @@ export function AdminProfilPage() {
         headPosition,
         headPhoto,
         headGreeting,
-        historyText,
-        vision,
-        missions,
-        structureImageUrl,
+        aboutText,
       });
       showToast(
         success
-          ? "Profil desa & Visi Misi berhasil diperbarui."
+          ? "Profil desa berhasil diperbarui."
           : "Gagal menyimpan profil desa. Silakan coba lagi.",
         success ? "success" : "error",
       );
@@ -174,19 +145,17 @@ export function AdminProfilPage() {
 
       if (editingOfficialId) {
         await AdminProfilService.updateOfficial(editingOfficialId, payload);
-        showToast(`Perangkat desa "${officialName}" berhasil diperbarui.`);
+        showToast("Data perangkat desa berhasil diperbarui.");
       } else {
         await AdminProfilService.addOfficial(payload);
-        showToast(
-          `Perangkat desa baru "${officialName}" berhasil ditambahkan.`,
-        );
+        showToast("Perangkat desa baru berhasil ditambahkan.");
       }
 
       setIsOfficialModalOpen(false);
       loadData();
     } catch (err) {
       console.error("Gagal menyimpan perangkat desa:", err);
-      alert("Terjadi kesalahan saat menyimpan perangkat desa.");
+      showToast("Gagal menyimpan perangkat desa. Silakan coba lagi.", "error");
     } finally {
       setIsSavingOfficial(false);
     }
@@ -234,15 +203,14 @@ export function AdminProfilPage() {
             Manajemen Informasi Desa
           </span>
           <h2 className="font-headline-lg text-primary mt-1 text-3xl font-bold">
-            Kelola Profil, Visi Misi & Perangkat Desa
+            Kelola Profil & Perangkat Desa
           </h2>
           <p className="text-on-surface-variant mt-1 text-sm">
-            Sunting sambutan Kepala Desa, sejarah, visi misi, data pamong
-            perangkat desa, dan diagram bagan struktur organisasi.
+            Sunting sambutan Kepala Desa, sekilas gambaran umum desa, dan jajaran perangkat/pamong desa.
           </p>
         </div>
 
-        {activeTab === "PROFIL" || activeTab === "STRUCTURE" ? (
+        {activeTab === "PROFIL" ? (
           <button
             onClick={handleSaveProfil}
             disabled={isSaving || isLoading}
@@ -281,7 +249,7 @@ export function AdminProfilPage() {
           }`}
         >
           <Icon name="assignment_ind" className="text-lg" />
-          Sambutan Kades & Visi Misi
+          Sambutan & Profil Desa
         </button>
 
         <button
@@ -295,21 +263,9 @@ export function AdminProfilPage() {
           <Icon name="groups" className="text-lg" />
           Perangkat & Pamong Desa ({officials.length})
         </button>
-
-        <button
-          onClick={() => setActiveTab("STRUCTURE")}
-          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition ${
-            activeTab === "STRUCTURE"
-              ? "bg-primary text-on-primary shadow-sm"
-              : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-          }`}
-        >
-          <Icon name="schema" className="text-lg" />
-          Bagan Struktur Organisasi
-        </button>
       </div>
 
-      {/* TAB 1: PROFIL UTAMA & VISI MISI */}
+      {/* TAB 1: PROFIL UTAMA */}
       {activeTab === "PROFIL" && (
         <form onSubmit={handleSaveProfil} className="space-y-8">
           {/* Seksi Sambutan & Foto Kepala Desa */}
@@ -338,7 +294,7 @@ export function AdminProfilPage() {
 
               <div>
                 <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-                  Jabatan Resmiku
+                  Jabatan Resmi
                 </label>
                 <input
                   type="text"
@@ -355,7 +311,7 @@ export function AdminProfilPage() {
               label="Unggah Foto Resmi Kepala Desa"
               value={headPhoto}
               onChange={(url) => setHeadPhoto(url)}
-              helperText="Foto resmi Kepala Desa Pringgodani untuk halaman profil & sejarah."
+              helperText="Foto resmi Kepala Desa Pringgodani untuk halaman profil."
               aspectRatio="square"
             />
 
@@ -374,86 +330,28 @@ export function AdminProfilPage() {
             </div>
           </div>
 
-          {/* Seksi Sejarah Desa */}
+          {/* Seksi Sekilas Tentang Desa */}
           <div className="border-outline-variant/30 bg-surface-container-lowest space-y-6 rounded-3xl border p-8 shadow-sm">
             <div className="border-b pb-4">
               <h3 className="font-headline-md text-primary flex items-center gap-2 text-lg font-bold">
-                <Icon name="history_edu" className="text-xl" /> Teks Sejarah
-                Desa Pringgodani
+                <Icon name="info" className="text-xl" /> Sekilas Tentang Desa (Overview Profil)
               </h3>
-            </div>
-
-            <div>
-              <textarea
-                rows={5}
-                required
-                value={historyText}
-                onChange={(e) => setHistoryText(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none"
-                placeholder="Ceritakan asal-usul dan sejarah perkembangan Desa Pringgodani..."
-              />
-            </div>
-          </div>
-
-          {/* Seksi Visi & Misi Desa */}
-          <div className="border-outline-variant/30 bg-surface-container-lowest space-y-6 rounded-3xl border p-8 shadow-sm">
-            <div className="border-b pb-4">
-              <h3 className="font-headline-md text-primary flex items-center gap-2 text-lg font-bold">
-                <Icon name="flag" className="text-xl" /> Visi & Misi Desa
-              </h3>
+              <p className="text-on-surface-variant mt-1 text-xs leading-relaxed">
+                Teks ringkasan dan gambaran umum tentang desa yang tampil pada bagian &ldquo;Sekilas Tentang Pringgodani&rdquo; di halaman publik <strong>/profil</strong>.
+              </p>
             </div>
 
             <div>
               <label className="font-label-sm text-on-surface-variant mb-2 block text-xs font-bold uppercase">
-                Visi Pembangunan Desa
+                Deskripsi Sekilas Tentang Desa
               </label>
               <textarea
-                rows={2}
-                required
-                value={vision}
-                onChange={(e) => setVision(e.target.value)}
-                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed font-bold outline-none"
-                placeholder="Mewujudkan Desa Pringgodani yang mandiri, maju, dan sejahtera..."
+                rows={5}
+                value={aboutText}
+                onChange={(e) => setAboutText(e.target.value)}
+                className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm leading-relaxed outline-none"
+                placeholder="Ceritakan gambaran umum, potensi wilayah, dan pengantar tentang Desa Pringgodani..."
               />
-            </div>
-
-            <div className="space-y-3 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <label className="font-label-sm text-on-surface-variant text-xs font-bold uppercase">
-                  Daftar Misi Desa
-                </label>
-                <button
-                  type="button"
-                  onClick={handleAddMission}
-                  className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition"
-                >
-                  <Icon name="add" className="text-sm" /> Tambah Misi
-                </button>
-              </div>
-
-              {missions.map((m, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-primary w-6 text-right font-mono text-xs font-bold">
-                    {idx + 1}.
-                  </span>
-                  <input
-                    type="text"
-                    value={m}
-                    onChange={(e) => handleUpdateMission(idx, e.target.value)}
-                    placeholder="Misi pembangunan desa..."
-                    className="bg-surface border-outline-variant text-on-surface focus:border-primary flex-1 rounded-2xl border p-3 text-sm outline-none"
-                  />
-                  {missions.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMission(idx)}
-                      className="text-error hover:bg-error/10 rounded-xl p-2 text-xs font-bold"
-                    >
-                      <Icon name="delete" className="text-lg" />
-                    </button>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </form>
@@ -476,7 +374,7 @@ export function AdminProfilPage() {
                 <thead className="bg-surface-container-highest text-on-surface-variant border-b text-xs font-bold uppercase">
                   <tr>
                     <th className="px-6 py-4">Foto & Nama Perangkat</th>
-                    <th className="px-6 py-4">Jabatan Resmiku</th>
+                    <th className="px-6 py-4">Jabatan Resmi</th>
                     <th className="px-6 py-4">Email / Kontak</th>
                     <th className="px-6 py-4 text-right">Aksi</th>
                   </tr>
@@ -504,72 +402,45 @@ export function AdminProfilPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="bg-secondary-container text-on-secondary-container rounded-full px-3 py-1 text-xs font-bold">
+                        <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-bold">
                           {item.position}
                         </span>
                       </td>
-                      <td className="text-on-surface-variant px-6 py-4 font-mono text-xs whitespace-nowrap">
-                        {item.email || "-"}
+                      <td className="px-6 py-4 text-xs">
+                        {item.email ? (
+                          <span className="text-on-surface-variant font-mono">
+                            {item.email}
+                          </span>
+                        ) : (
+                          <span className="text-on-surface-variant/50 italic">
+                            -
+                          </span>
+                        )}
                       </td>
-                      <td className="space-x-2 px-6 py-4 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => openEditOfficialModal(item)}
-                          className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary rounded-xl px-3 py-1.5 text-xs font-bold transition"
-                        >
-                          Sunting
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteOfficial(item.id, item.name)
-                          }
-                          className="bg-error/10 text-error hover:bg-error hover:text-on-error rounded-xl px-3 py-1.5 text-xs font-bold transition"
-                        >
-                          Hapus
-                        </button>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditOfficialModal(item)}
+                            className="bg-surface border-outline-variant text-on-surface hover:text-primary hover:border-primary flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-sm transition"
+                          >
+                            <Icon name="edit" className="text-sm" />
+                            <span>Sunting</span>
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteOfficial(item.id, item.name)
+                            }
+                            className="text-error hover:bg-error/10 flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition"
+                          >
+                            <Icon name="delete" className="text-sm" />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: BAGAN STRUKTUR ORGANISASI DESA */}
-      {activeTab === "STRUCTURE" && (
-        <div className="border-outline-variant/30 bg-surface-container-lowest space-y-6 rounded-3xl border p-8 shadow-sm">
-          <div className="border-b pb-4">
-            <h3 className="font-headline-md text-primary flex items-center gap-2 text-lg font-bold">
-              <Icon name="schema" className="text-xl" /> Diagram Bagan Struktur
-              Organisasi Desa
-            </h3>
-            <p className="text-on-surface-variant mt-1 text-xs">
-              Unggah berkas gambar diagram alur / bagan struktur tata kelola
-              pemerintahan Desa Pringgodani.
-            </p>
-          </div>
-
-          <FileUploadWithPreview
-            label="Unggah Berkas Gambar Bagan Struktur Organisasi"
-            value={structureImageUrl}
-            onChange={(url) => setStructureImageUrl(url)}
-            helperText="File diagram (.png, .jpg, .webp) resolusi tinggi."
-            aspectRatio="banner"
-          />
-
-          {structureImageUrl && (
-            <div className="space-y-2 border-t pt-6">
-              <p className="text-primary text-xs font-bold uppercase">
-                Pratinjau Tampilan Bagan Struktur Publik:
-              </p>
-              <div className="border-outline-variant bg-surface-container relative aspect-[16/9] w-full overflow-hidden rounded-2xl border shadow-md">
-                <FallbackImage
-                  src={structureImageUrl}
-                  alt="Struktur Organisasi Desa Pringgodani"
-                  className="h-full w-full object-contain"
-                />
-              </div>
             </div>
           )}
         </div>
@@ -610,7 +481,7 @@ export function AdminProfilPage() {
 
               <div>
                 <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Jabatan Resmiku (Wajib)
+                  Jabatan Resmi (Wajib)
                 </label>
                 <input
                   type="text"

@@ -9,6 +9,7 @@ import {
   clearDraftImages,
   syncArrayDraftImages,
 } from "@/shared/lib/db/draft-image-db";
+import { compressImage } from "@/shared/utils/image-compression";
 
 const DRAFT_KEY = "register_news_draft_v1";
 const PREFIX = "news_draft_";
@@ -178,8 +179,9 @@ export function useRegisterNewsDraft() {
     }
   }, [formData, coverFile, blockFiles, galleryFiles, isHydrated]);
 
-  // Setters with clean sync
-  const setCoverFile = useCallback(async (file: File | null) => {
+  // Setters with clean sync and client-side compression
+  const setCoverFile = useCallback(async (rawFile: File | null) => {
+    const file = rawFile ? await compressImage(rawFile, "banner") : null;
     setCoverFileState(file);
     if (file) {
       const previewUrl = URL.createObjectURL(file);
@@ -191,7 +193,8 @@ export function useRegisterNewsDraft() {
     }
   }, []);
 
-  const setBlockFile = useCallback(async (index: number, file: File | null) => {
+  const setBlockFile = useCallback(async (index: number, rawFile: File | null) => {
+    const file = rawFile ? await compressImage(rawFile, "gallery") : null;
     setBlockFilesState((prev) => {
       const next = { ...prev };
       if (file) next[index] = file;
@@ -225,7 +228,8 @@ export function useRegisterNewsDraft() {
   }, []);
 
   const setGalleryFile = useCallback(
-    async (index: number, file: File | null) => {
+    async (index: number, rawFile: File | null) => {
+      const file = rawFile ? await compressImage(rawFile, "gallery") : null;
       setGalleryFilesState((prev) => {
         const next = { ...prev };
         if (file) next[index] = file;

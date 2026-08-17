@@ -13,7 +13,8 @@ export function RelatedPotentialCard({
 }: {
   potential: UmkmPotentialSummaryDto;
 }) {
-  const categoryMeta = getPotensiCategoryMeta(potential.category);
+  const categoryMeta = getPotensiCategoryMeta(potential.category || "pertanian");
+  const title = potential.title || potential.name || "Potensi Desa";
 
   return (
     <section className="mb-20">
@@ -34,7 +35,7 @@ export function RelatedPotentialCard({
               <Icon name={categoryMeta.icon} className="text-white" />
             </div>
             <div className="min-w-0">
-              <h3 className="truncate font-bold">{potential.title}</h3>
+              <h3 className="truncate font-bold">{title}</h3>
               <p className="text-[12px] opacity-70">
                 Potensi {categoryMeta.label}
               </p>

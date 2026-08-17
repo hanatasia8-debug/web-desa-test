@@ -2,22 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/shared/ui/icon";
+import { FallbackImage } from "@/shared/ui/fallback-image";
+import { SettingsService } from "@/entities/settings/api/settings.service";
+import {
+  getStoredAdminSettings,
+  subscribeStoredAdminSettings,
+} from "@/entities/admin/api/admin-settings.service";
 import { cn } from "@/shared/utils/cn";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/profil", label: "Profil" },
-  { href: "/potensi", label: "Potensi" },
+  { href: "/produk", label: "Produk" },
   { href: "/umkm", label: "UMKM" },
   { href: "/berita", label: "Berita" },
   { href: "/peta", label: "Peta" },
 ];
 
 const AJUKAN_OPTIONS = [
-  { href: "/submit/berita", label: "Ajukan Berita", icon: "edit_square" },
   { href: "/umkm/daftar", label: "Daftarkan UMKM", icon: "storefront" },
+  { href: "/submit/berita", label: "Ajukan Berita", icon: "edit_square" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -29,6 +35,46 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ajukanOpen, setAjukanOpen] = useState(false);
+  const [brandName, setBrandName] = useState("Lokal Pringgodani");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  const applySettings = (s?: { website_name?: string; logo_url?: string } | null) => {
+    if (
+      s?.website_name &&
+      typeof s.website_name === "string" &&
+      s.website_name !== "Desa Pringgodani" &&
+      s.website_name !== "LokalUMKM Pringgodani"
+    ) {
+      setBrandName(s.website_name);
+    } else {
+      setBrandName("Lokal Pringgodani");
+    }
+    if (s?.logo_url && typeof s.logo_url === "string") {
+      setLogoUrl(s.logo_url);
+    }
+  };
+
+  useEffect(() => {
+    // 1. Initial read from local cache
+    const stored = getStoredAdminSettings();
+    applySettings(stored);
+
+    // 2. Fetch public settings
+    SettingsService.getAll().then((res) => {
+      const s = res?.settings as Record<string, any> | undefined;
+      applySettings(s);
+    });
+
+    // 3. Subscribe to reactive changes
+    const unsubscribe = subscribeStoredAdminSettings(() => {
+      const latest = getStoredAdminSettings();
+      applySettings(latest);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <>
@@ -36,11 +82,22 @@ export function Navbar() {
         <nav className="max-w-container-max px-gutter mx-auto flex items-center justify-between py-3 md:py-4">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full md:h-10 md:w-10">
-              <Icon name="eco" className="text-xl md:text-2xl" />
-            </div>
+            {logoUrl ? (
+              <div className="relative h-9 w-9 overflow-hidden rounded-full md:h-10 md:w-10">
+                <FallbackImage
+                  src={logoUrl}
+                  alt={brandName}
+                  className="h-full w-full object-cover"
+                  fallbackIcon="storefront"
+                />
+              </div>
+            ) : (
+              <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full md:h-10 md:w-10">
+                <Icon name="storefront" className="text-xl md:text-2xl" />
+              </div>
+            )}
             <span className="font-headline-md md:text-headline-md text-primary text-lg font-bold tracking-tight">
-              Desa Pringgodani
+              {brandName}
             </span>
           </Link>
 

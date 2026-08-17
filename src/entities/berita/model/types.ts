@@ -1,12 +1,62 @@
+export interface TaggedUmkmDto {
+  id: string;
+  name: string;
+  slug: string;
+  address?: string;
+  coverUrl?: string;
+  categoryName?: string;
+}
+
+export interface TaggedProductDto {
+  id: string;
+  name: string;
+  price: number | null;
+  imageUrl?: string;
+  umkmName?: string;
+  umkmSlug?: string;
+}
+
+export interface TaggedPotentialDto {
+  id: string;
+  name: string;
+  slug: string;
+  coverUrl?: string;
+  summary?: string;
+}
+
+export interface NewsArticleBlockDto {
+  id?: string;
+  blockOrder?: number;
+  sectionTitle?: string | null;
+  paragraph?: string;
+  sectionImage?: string | null;
+  title?: string | null;
+  body?: string;
+  imageUrl?: string | null;
+  imageCaption?: string | null;
+}
+
+export type NewsContentSectionDto = NewsArticleBlockDto;
+
+export interface NewsGalleryImageDto {
+  id?: string;
+  imageOrder?: number;
+  imageUrl: string;
+  caption?: string | null;
+}
+
 export interface NewsListItemDto {
   id: string;
   title: string;
   slug: string;
   summary: string;
+  excerpt?: string;
   coverImage: string;
+  coverUrl?: string;
   categoryName: string;
   categorySlug: string;
-  /** `null` for community submissions approved without an assigned author. */
+  typeName?: string;
+  typeSlug?: string;
   authorName: string | null;
   publishedAt: string; // ISO string over the wire
 }
@@ -16,33 +66,28 @@ export interface NewsListResponse {
   total: number;
 }
 
-/**
- * One entry of `News.contentSections` (`Json` column, `prd_2.txt §6.2`:
- * "Array of { section_title, paragraph, section_image }"). Stored snake_case
- * in the database, exposed camelCase over the API like every other DTO here.
- */
-export interface NewsContentSectionDto {
-  sectionTitle: string | null;
-  paragraph: string;
-  sectionImage: string | null;
-}
-
 export interface NewsDetailDto {
   id: string;
   title: string;
   slug: string;
   summary: string;
+  excerpt?: string;
   coverImage: string;
-  coverCaption: string;
+  coverUrl?: string;
+  coverCaption?: string;
   categoryId: string;
   categoryName: string;
   categorySlug: string;
+  typeName?: string;
+  typeSlug?: string;
   authorName: string | null;
-  /** Label derived from `User.role`; `null` whenever `authorName` is null. */
   authorRole: string | null;
-  contentSections: NewsContentSectionDto[];
+  contentSections: NewsArticleBlockDto[];
+  galleryImages?: NewsGalleryImageDto[];
+  taggedUmkms?: TaggedUmkmDto[];
+  taggedProducts?: TaggedProductDto[];
+  taggedPotentials?: TaggedPotentialDto[];
   publishedAt: string;
-  /** Derived at request time from the word count — never stored in the DB. */
   readingTimeMinutes: number;
 }
 
@@ -50,10 +95,10 @@ export interface NewsCategoryDto {
   id: string;
   name: string;
   slug: string;
-  /** Number of PUBLISHED news in this category. */
   newsCount: number;
 }
 
 export interface NewsCategoryListResponse {
   items: NewsCategoryDto[];
 }
+

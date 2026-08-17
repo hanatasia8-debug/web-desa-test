@@ -10,6 +10,7 @@ import type { NewsStatus } from "@/entities/admin/model/admin.types";
 import { generateAutoExcerpt } from "@/shared/utils/news-excerpt.helper";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import { apiClient } from "@/shared/api/axios-instance";
+import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
 
 interface ContentBlockInput {
   subHeading: string;
@@ -63,9 +64,13 @@ export function AdminBeritaEditor({
   const [blockFiles, setBlockFiles] = useState<Record<number, File>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const uploadSingleFile = async (file: File): Promise<string> => {
+  const uploadSingleFile = async (
+    file: File,
+    preset: ImagePreset = "banner",
+  ): Promise<string> => {
+    const compressed = await compressImage(file, preset);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", compressed);
 
     // Go through apiClient (relative "/api", routed by next.config.ts
     // rewrites) instead of manually building
@@ -75,13 +80,9 @@ export function AdminBeritaEditor({
     // "<frontend-host>:3000". Same underlying issue as the next.config.ts
     // rewrite bug fixed earlier, just reintroduced here in app code.
     const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
-      "/uploads",
+      "/uploads?category=news",
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
+      { timeout: 60000 },
     );
     if (!data?.data?.url) {
       throw new Error("Gagal mengunggah gambar");
@@ -205,7 +206,7 @@ export function AdminBeritaEditor({
       // 1. Upload cover photo if new file selected
       let finalCoverUrl = coverUrl;
       if (coverFile) {
-        finalCoverUrl = await uploadSingleFile(coverFile);
+        finalCoverUrl = await uploadSingleFile(coverFile, "banner");
         if (coverUrl.startsWith("blob:")) {
           URL.revokeObjectURL(coverUrl);
         }
@@ -217,7 +218,10 @@ export function AdminBeritaEditor({
           let finalBlockImgUrl = block.imageUrl;
           const localBlockFile = blockFiles[idx];
           if (localBlockFile) {
-            finalBlockImgUrl = await uploadSingleFile(localBlockFile);
+            finalBlockImgUrl = await uploadSingleFile(
+              localBlockFile,
+              "gallery",
+            );
             if (block.imageUrl.startsWith("blob:")) {
               URL.revokeObjectURL(block.imageUrl);
             }

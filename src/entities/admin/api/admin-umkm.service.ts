@@ -3,12 +3,14 @@ import type { ApiSuccessBody } from "@/shared/api/response";
 import type { AdminUmkmItem, UmkmStatus } from "../model/admin.types";
 
 export const AdminUmkmService = {
-  async getAllUmkm(): Promise<{ items: AdminUmkmItem[]; total: number }> {
+  async getAllUmkm(
+    status: string = "ALL",
+  ): Promise<{ items: AdminUmkmItem[]; total: number }> {
     try {
       const { data } =
         await apiClient.get<
           ApiSuccessBody<{ items: AdminUmkmItem[]; total: number }>
-        >("/admin/umkm");
+        >(`/admin/umkm?status=${status}&limit=1000`);
       if (data?.data) return data.data;
     } catch (err) {
       console.error("Gagal memuat UMKM admin dari API:", err);

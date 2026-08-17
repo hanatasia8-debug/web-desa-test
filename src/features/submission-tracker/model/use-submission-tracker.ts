@@ -11,54 +11,19 @@ export interface PendingItemState {
   createdAt: string;
 }
 
-const MOCK_PENDING_NEWS: PendingItemState[] = [
-  {
-    id: "news-pending-1",
-    title: "Kerja Bakti Dusun Krajan",
-    type: "NEWS",
-    status: "PENDING",
-    createdAt: "Diajukan kemarin",
-  },
-];
-
-const MOCK_PENDING_UMKM: PendingItemState[] = [
-  {
-    id: "umkm-pending-1",
-    title: "Keripik Tempe Barokah Krajan",
-    type: "UMKM",
-    status: "PENDING",
-    createdAt: "Diajukan kemarin",
-  },
-];
-
-function mockPendingFor(type: "UMKM" | "NEWS") {
-  return type === "UMKM" ? MOCK_PENDING_UMKM : MOCK_PENDING_NEWS;
-}
-
 export function usePendingSubmissions(type: "UMKM" | "NEWS") {
-  // With no API behind us the mock list is the final answer, so it seeds the
-  // state directly instead of being written from the effect below.
-  const [items, setItems] = useState<PendingItemState[]>(() =>
-    IS_API_CONNECTED ? [] : mockPendingFor(type),
-  );
-  const [isLoading, setIsLoading] = useState(IS_API_CONNECTED);
+  const [items, setItems] = useState<PendingItemState[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchPending = useCallback(() => {
-    if (!IS_API_CONNECTED) return Promise.resolve();
-
     return apiClient
       .get("/public/submissions/pending", { params: { type, limit: 5 } })
       .then(({ data }) => {
-        setItems(
-          Array.isArray(data?.data?.items)
-            ? data.data.items
-            : mockPendingFor(type),
-        );
+        setItems(Array.isArray(data?.data?.items) ? data.data.items : []);
       })
       .catch((e) => {
         console.warn("Gagal mengambil daftar pending publik dari API:", e);
-        // Fallback mock data when the API call fails.
-        setItems(mockPendingFor(type));
+        setItems([]);
       });
   }, [type]);
 

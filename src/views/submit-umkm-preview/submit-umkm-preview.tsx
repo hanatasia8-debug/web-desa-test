@@ -12,6 +12,7 @@ import { UmkmCard } from "@/entities/umkm/ui/umkm-card";
 interface SubmitUmkmPreviewProps {
   previewDetailDto: UmkmDetailDto;
   isSubmitting?: boolean;
+  submittingText?: string;
   onBackToEdit?: () => void;
   onFinalSubmit?: () => void;
   /**
@@ -25,6 +26,7 @@ interface SubmitUmkmPreviewProps {
 export function SubmitUmkmPreview({
   previewDetailDto,
   isSubmitting = false,
+  submittingText,
   onBackToEdit,
   onFinalSubmit,
   readOnly = false,
@@ -107,7 +109,7 @@ export function SubmitUmkmPreview({
             {isSubmitting ? (
               <>
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>Mengirim Pengajuan...</span>
+                <span>{submittingText || "Mengirim Pengajuan..."}</span>
               </>
             ) : (
               <>

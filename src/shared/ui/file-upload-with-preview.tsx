@@ -1,8 +1,9 @@
-"use client";
-
 import React, { useRef, useState } from "react";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
+import { apiClient } from "@/shared/api/axios-instance";
+import type { ApiSuccessBody } from "@/shared/api/response";
+import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
 
 interface FileUploadWithPreviewProps {
   label: string;
@@ -11,6 +12,7 @@ interface FileUploadWithPreviewProps {
   placeholder?: string;
   helperText?: string;
   aspectRatio?: "square" | "video" | "banner";
+  category?: "profile" | "umkm" | "news" | "village";
 }
 
 export function FileUploadWithPreview({
@@ -20,20 +22,67 @@ export function FileUploadWithPreview({
   placeholder = "Pilih berkas gambar dari perangkat Anda...",
   helperText,
   aspectRatio = "square",
+  category = "profile",
 }: FileUploadWithPreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          onChange(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFile = e.target.files?.[0];
+    if (!rawFile) return;
+
+    // Validate size (max 15MB)
+    if (rawFile.size > 15 * 1024 * 1024) {
+      setUploadError("Ukuran file maksimal adalah 15MB");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // Determine compression preset based on category & aspect ratio
+      let preset: ImagePreset = "default";
+      if (aspectRatio === "banner" || category === "news") {
+        preset = "banner";
+      } else if (category === "umkm") {
+        preset = "product";
+      } else if (category === "profile") {
+        preset = "avatar";
+      }
+
+      const file = await compressImage(rawFile, preset);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", category);
+
+      const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
+        `/uploads?category=${category}`,
+        formData,
+        {
+          timeout: 60000,
+        },
+      );
+
+      if (data?.data?.url) {
+        onChange(data.data.url);
+      } else {
+        throw new Error("Gagal mendapatkan URL publik dari server storage");
+      }
+    } catch (err: any) {
+      console.error("Gagal mengunggah berkas ke Supabase storage:", err);
+      setUploadError(
+        err?.response?.data?.message ||
+          "Gagal mengunggah berkas ke server storage. Periksa format dan koneksi Anda.",
+      );
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -102,14 +151,22 @@ export function FileUploadWithPreview({
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                disabled={isUploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition"
+                className="bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition"
               >
-                <Icon name="upload_file" className="text-base" /> Pilih Berkas
-                Gambar
+                {isUploading ? (
+                  <>
+                    <Icon name="sync" className="animate-spin text-base" /> Mengunggah ke Storage...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="upload_file" className="text-base" /> Pilih Berkas Gambar
+                  </>
+                )}
               </button>
 
-              {value && (
+              {value && !isUploading && (
                 <button
                   type="button"
                   onClick={() => onChange("")}
@@ -119,6 +176,10 @@ export function FileUploadWithPreview({
                 </button>
               )}
             </div>
+
+            {uploadError && (
+              <p className="text-error text-xs font-semibold">{uploadError}</p>
+            )}
 
             <p className="text-on-surface-variant text-[11px]">
               {helperText || placeholder}

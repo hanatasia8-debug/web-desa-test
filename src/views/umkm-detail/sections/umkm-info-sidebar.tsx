@@ -29,7 +29,7 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
                 WhatsApp
               </p>
               <p className="font-body-base text-body-base font-semibold break-words">
-                {formatWhatsappNumber(umkm.whatsappNumber)}
+                {formatWhatsappNumber(umkm.whatsappNumber || umkm.phone || "")}
               </p>
             </div>
           </div>
@@ -48,10 +48,41 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
               </p>
             </div>
           </div>
+
+          {(umkm.openDay || (umkm.startTime && umkm.endTime)) && (
+            <div className="flex items-start gap-3">
+              <Icon name="schedule" className="text-secondary mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="font-label-sm text-label-sm text-on-surface-variant">
+                  Jam Operasional
+                </p>
+                <p className="font-body-base text-body-base font-semibold break-words">
+                  {umkm.openDay || "Setiap Hari"}
+                  {umkm.startTime &&
+                    umkm.endTime &&
+                    ` (${String(umkm.startTime).includes("T") ? String(umkm.startTime).slice(11, 16) : String(umkm.startTime).slice(0, 5)} - ${String(umkm.endTime).includes("T") ? String(umkm.endTime).slice(11, 16) : String(umkm.endTime).slice(0, 5)})`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {umkm.since && (
+            <div className="flex items-start gap-3">
+              <Icon name="history_edu" className="text-secondary mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="font-label-sm text-label-sm text-on-surface-variant">
+                  Berdiri Sejak
+                </p>
+                <p className="font-body-base text-body-base font-semibold">
+                  Tahun {umkm.since}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <WhatsappCta
-          phone={umkm.whatsappNumber}
+          phone={umkm.whatsappNumber || umkm.phone || ""}
           umkmName={umkm.name}
           className="mt-6"
         />
@@ -61,7 +92,7 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
         latitude={umkm.latitude}
         longitude={umkm.longitude}
         placeName={umkm.name}
-        addressUrl={umkm.addressUrl}
+        addressUrl={umkm.mapsUrl || umkm.addressUrl}
       />
     </div>
   );

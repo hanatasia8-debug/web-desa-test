@@ -5,8 +5,16 @@
  * step 6 of Tahap 4).
  */
 export function buildWhatsappLink(phone: string, umkmName: string): string {
-  const message = `Halo, saya tertarik dengan produk dari ${umkmName} yang saya lihat di website Desa Pringgodani.`;
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const message = `Halo, saya tertarik dengan produk dari ${umkmName} yang saya lihat di katalog Lokal Pringgodani.`;
+  return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+}
+
+export function createWhatsappUrl(phone: string, message: string): string {
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.slice(1);
+  }
+  return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
 }
 
 /**

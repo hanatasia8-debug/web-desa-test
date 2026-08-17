@@ -52,8 +52,8 @@ export function estimateReadingMinutes(
   const words = sections.reduce(
     (total, section) =>
       total +
-      countWords(section.sectionTitle ?? "") +
-      countWords(section.paragraph),
+      countWords(section.sectionTitle || section.title || "") +
+      countWords(section.paragraph || section.body || ""),
     0,
   );
 

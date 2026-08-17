@@ -23,6 +23,8 @@ import {
   Trash2,
   Plus,
   PlusCircle,
+  Minus,
+  MinusCircle,
   Check,
   CheckCircle2,
   ClipboardCheck,
@@ -56,7 +58,7 @@ import {
   Star,
   Lock,
   Shield,
-  Sparkles,
+  ShieldCheck,
   GraduationCap,
   Building2,
   Building,
@@ -76,9 +78,11 @@ import {
   Contact,
   ExternalLink,
   Navigation,
+  LocateFixed,
   TrendingUp,
   HeartPulse,
   FileEdit,
+  Quote,
   HelpCircle,
   LucideProps,
 } from "lucide-react";
@@ -113,6 +117,10 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   open_in_new: ExternalLink,
   directions: Navigation,
   navigation: Navigation,
+  my_location: LocateFixed,
+  location_searching: LocateFixed,
+  gps_fixed: LocateFixed,
+  locate: LocateFixed,
 
   // Action & Edit
   edit: Edit3,
@@ -123,10 +131,14 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   add: Plus,
   plus: Plus,
   add_circle: PlusCircle,
+  remove: Minus,
+  minus: Minus,
+  remove_circle: MinusCircle,
   check: Check,
   check_circle: CheckCircle2,
   task_alt: CheckCircle2,
   verified: CheckCircle2,
+  verified_user: ShieldCheck,
   assignment_turned_in: ClipboardCheck,
   send: Send,
   upload: Upload,
@@ -137,6 +149,8 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   sync: RefreshCw,
   refresh: RefreshCw,
   save: FileEdit,
+  format_quote: Quote,
+  quote: Quote,
 
   bookmark: Bookmark,
   target: Target,
@@ -211,9 +225,9 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   perikanan: Fish,
   landscape: Mountain,
   pariwisata: Mountain,
-  wisata: Sparkles,
-  attractions: Sparkles,
-  tourist_attraction: Sparkles,
+  wisata: Mountain,
+  attractions: Landmark,
+  tourist_attraction: Landmark,
   theater_comedy: Theater,
   kebudayaan: Theater,
   handyman: Wrench,
@@ -231,6 +245,8 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   star: Star,
   lock: Lock,
   shield: Shield,
+  admin_panel_settings: ShieldCheck,
+  pending_actions: Clock,
 
   // People & User
   user: User,
@@ -274,7 +290,7 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
  */
 export function Icon({ name, className, filled = false }: IconProps) {
   const normalizedKey = (name || "").toLowerCase().trim().replace(/[- ]/g, "_");
-  const IconComponent = ICON_MAP[normalizedKey] || ICON_MAP[name] || Sparkles;
+  const IconComponent = ICON_MAP[normalizedKey] || ICON_MAP[name] || HelpCircle;
 
   return (
     <IconComponent

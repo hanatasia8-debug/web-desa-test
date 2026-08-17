@@ -59,13 +59,35 @@ export const AdminSubmissionsService = {
           categoryName: String(u.categoryName || "Kuliner"),
           description: String(u.description || u.summary || ""),
           phone: String(u.phone || u.whatsappNumber || "081234567890"),
+          email: u.email ? String(u.email) : undefined,
           address: String(u.address || "Desa Pringgodani"),
+          latitude:
+            u.latitude !== undefined && u.latitude !== null
+              ? Number(u.latitude)
+              : -8.2811,
+          longitude:
+            u.longitude !== undefined && u.longitude !== null
+              ? Number(u.longitude)
+              : 112.5664,
+          mapsUrl: u.mapsUrl ? String(u.mapsUrl) : undefined,
+          since:
+            u.since !== undefined && u.since !== null
+              ? Number(u.since)
+              : undefined,
+          openDay: u.openDay ? String(u.openDay) : undefined,
+          startTime: u.startTime ? String(u.startTime) : undefined,
+          endTime: u.endTime ? String(u.endTime) : undefined,
           submittedAt: String(u.submittedAt || new Date().toISOString()),
           coverUrl: String(
             u.coverUrl ||
               u.coverImage ||
               "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
           ),
+          galleries: Array.isArray(u.galleries)
+            ? (u.galleries as string[])
+            : Array.isArray(u.gallery)
+            ? (u.gallery as string[])
+            : [],
           products:
             (u.products as Array<{
               name: string;

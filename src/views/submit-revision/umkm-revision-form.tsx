@@ -13,6 +13,7 @@ import { SubmitUmkmForm } from "@/views/submit-umkm/submit-umkm-form";
 import { RevisionService } from "@/entities/pengajuan/api/revision.service";
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
+import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
 
 interface UmkmRevisionFormProps {
   token: string;
@@ -38,13 +39,17 @@ export function UmkmRevisionForm({
     UmkmService.getCategories().then((res) => setCategories(res.items));
   }, []);
 
-  const uploadSingleFile = async (file: File): Promise<string> => {
+  const uploadSingleFile = async (
+    file: File,
+    preset: ImagePreset = "banner",
+  ): Promise<string> => {
+    const compressed = await compressImage(file, preset);
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", compressed);
     const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
-      "/uploads",
+      "/uploads?category=umkm",
       body,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      { timeout: 60000 },
     );
     return data.data.url;
   };

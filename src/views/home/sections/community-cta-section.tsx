@@ -1,49 +1,80 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Icon } from "@/shared/ui/icon";
 
 export function CommunityCtaSection() {
   return (
-    <section className="max-w-container-max pb-section-padding px-gutter mx-auto">
-      <div className="scroll-reveal grid grid-cols-1 gap-8 md:grid-cols-2">
-        <div className="group bg-secondary text-on-secondary relative flex h-64 items-center overflow-hidden rounded-3xl p-10 shadow-xl">
-          <div className="absolute -right-10 -bottom-10 opacity-10 transition-transform group-hover:scale-110">
-            <Icon name="storefront" filled className="text-[200px]" />
+    <section className="max-w-container-max pb-16 px-gutter mx-auto">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Card 1: UMKM Registration */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          whileHover={{ y: -4 }}
+          className="group relative overflow-hidden rounded-3xl bg-secondary text-on-secondary p-8 md:p-10 shadow-lg"
+        >
+          <div className="relative z-10 flex flex-col justify-between h-full space-y-5">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-semibold backdrop-blur-sm">
+                <Icon name="storefront" className="text-sm" />
+                <span>Pelaku Usaha Lokal</span>
+              </div>
+              <h3 className="font-headline-lg text-2xl md:text-3xl font-bold">
+                Punya Usaha di Pringgodani?
+              </h3>
+              <p className="mt-2 text-sm opacity-90 leading-relaxed max-w-md">
+                Daftarkan UMKM dan produk Anda untuk dipromosikan di platform resmi desa. Gratis dan langsung terhubung dengan pembeli via WhatsApp.
+              </p>
+            </div>
+            <div>
+              <Link
+                href="/umkm/daftar"
+                className="inline-flex items-center gap-2 rounded-full bg-on-secondary text-secondary px-6 py-3 text-sm font-bold shadow-md transition hover:bg-white hover:shadow-xl active:scale-95"
+              >
+                <span>Daftarkan Usaha Anda</span>
+                <Icon name="arrow_forward" className="text-sm" />
+              </Link>
+            </div>
           </div>
-          <div className="relative z-10 space-y-4">
-            <h3 className="font-headline-lg text-headline-lg">
-              Punya Usaha Lokal?
-            </h3>
-            <p className="font-body-base max-w-sm opacity-90">
-              Daftarkan UMKM Anda untuk mendapatkan akses promosi gratis di
-              portal resmi desa.
-            </p>
-            <Link
-              href="/umkm/daftar"
-              className="bg-on-secondary text-secondary font-label-sm inline-block rounded-full px-6 py-3 font-bold transition-shadow hover:shadow-lg"
-            >
-              Daftarkan UMKM
-            </Link>
-          </div>
-        </div>
+        </motion.div>
 
-        <div className="group bg-primary text-on-primary relative flex h-64 items-center overflow-hidden rounded-3xl p-10 shadow-xl">
-          <div className="absolute -right-10 -bottom-10 opacity-10 transition-transform group-hover:scale-110">
-            <Icon name="edit_square" filled className="text-[200px]" />
+        {/* Card 2: News / Contribution */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          whileHover={{ y: -4 }}
+          className="group relative overflow-hidden rounded-3xl bg-primary text-on-primary p-8 md:p-10 shadow-lg"
+        >
+          <div className="relative z-10 flex flex-col justify-between h-full space-y-5">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-semibold backdrop-blur-sm">
+                <Icon name="edit_square" className="text-sm" />
+                <span>Kontribusi Warga</span>
+              </div>
+              <h3 className="font-headline-lg text-2xl md:text-3xl font-bold">
+                Ada Informasi atau Kegiatan?
+              </h3>
+              <p className="mt-2 text-sm opacity-90 leading-relaxed max-w-md">
+                Bagikan kabar UMKM, event bazar, pelatihan wirausaha, atau kegiatan positif warga desa untuk dipublikasikan.
+              </p>
+            </div>
+            <div>
+              <Link
+                href="/submit/berita"
+                className="inline-flex items-center gap-2 rounded-full bg-on-primary text-primary px-6 py-3 text-sm font-bold shadow-md transition hover:bg-white hover:shadow-xl active:scale-95"
+              >
+                <span>Kirim Berita / Event</span>
+                <Icon name="arrow_forward" className="text-sm" />
+              </Link>
+            </div>
           </div>
-          <div className="relative z-10 space-y-4">
-            <h3 className="font-headline-lg text-headline-lg">Punya Berita?</h3>
-            <p className="font-body-base max-w-sm opacity-90">
-              Bagikan kegiatan atau aspirasi Anda melalui platform kontribusi
-              warga kami.
-            </p>
-            <Link
-              href="/submit/berita"
-              className="bg-on-primary text-primary font-label-sm inline-block rounded-full px-6 py-3 font-bold transition-shadow hover:shadow-lg"
-            >
-              Tulis Berita Desa
-            </Link>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

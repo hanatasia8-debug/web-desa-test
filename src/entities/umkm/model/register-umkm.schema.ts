@@ -48,6 +48,9 @@ export const registerUmkmSchema = z
       z.number({ message: "Koordinat Longitude wajib diisi" }),
     ),
     googlePlaceId: z.string().nullable().optional(),
+    mapsUrl: z.string().nullable().optional(),
+    addressUrl: z.string().nullable().optional(),
+    googleMapsUrl: z.string().nullable().optional(),
     since: z.preprocess(
       (val) =>
         val === "" || val === undefined || val === null ? null : Number(val),

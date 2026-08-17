@@ -13,8 +13,8 @@ import {
 
 export function AdminSettingsPage() {
   const [formData, setFormData] = useState<AdminSettingsPayload>({
-    website_name: "Desa Pringgodani",
-    logo_url: "/images/logo-desa.png",
+    website_name: "Lokal Pringgodani",
+    logo_url: "/images/logo.png",
     favicon_url: "/favicon.ico",
     contact_email: "info@pringgodani.desa.id",
     contact_phone: "081234567890",

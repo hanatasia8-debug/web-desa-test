@@ -33,8 +33,16 @@ export interface PendingUmkmSubmission {
   phone: string;
   email?: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
+  mapsUrl?: string;
+  since?: number;
+  openDay?: string;
+  startTime?: string;
+  endTime?: string;
   submittedAt: string;
   coverUrl?: string;
+  galleries?: string[];
   products?: Array<{
     name: string;
     price: number;
@@ -64,11 +72,29 @@ export interface AdminUmkmItem {
   phone: string;
   address: string;
   coverUrl?: string;
+  mapsUrl?: string;
+  addressUrl?: string;
+  description?: string;
+  since?: number;
+  openDay?: string;
+  startTime?: string;
+  endTime?: string;
+  latitude?: number;
+  longitude?: number;
+  galleries?: Array<{ id?: string; imageUrl: string; caption?: string } | string>;
+  products?: Array<{
+    id?: string;
+    name: string;
+    price: number;
+    description?: string;
+    imageUrl?: string;
+  }>;
 }
 
 export interface AdminMapLocation {
   id: string;
   name: string;
+  slug?: string;
   categoryId: string;
   categoryName: string;
   shortDescription?: string;
@@ -76,6 +102,7 @@ export interface AdminMapLocation {
   latitude: number;
   longitude: number;
   googleMapsUrl?: string;
+  mapsUrl?: string;
   imageUrl?: string;
 }
 
@@ -85,6 +112,7 @@ export interface AdminMapCategory {
   slug: string;
   icon: string;
   color: string;
+  count?: number;
 }
 
 export interface AdminSettingsPayload {

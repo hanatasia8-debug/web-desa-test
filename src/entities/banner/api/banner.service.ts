@@ -7,7 +7,7 @@ export const BannerService = {
     try {
       const { data } =
         await apiClient.get<ApiSuccessBody<BannerListResponse>>(
-          "/public/banner",
+          "/public/banners",
         );
       if (data?.data) return data.data;
     } catch (err) {

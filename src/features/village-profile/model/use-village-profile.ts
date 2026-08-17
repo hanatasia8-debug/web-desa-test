@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import type { VillageProfileDto } from "@/entities/desa/model/types";
 import {
   getStoredVillageProfile,
@@ -8,56 +8,69 @@ import {
 } from "@/shared/utils/profile-storage";
 
 export function useVillageProfile(initialProfile: VillageProfileDto | null) {
-  // The stored profile lives in localStorage, i.e. outside React, so it is read
-  // during render through the store rather than copied into state from an
-  // effect — no cascading re-render, and edits made elsewhere show up here.
-  const stored = useSyncExternalStore(
-    subscribeStoredVillageProfile,
-    getStoredVillageProfile,
-    getStoredVillageProfile,
-  );
+  // Initialize with initialProfile from server (guarantees 100% matching SSR hydration)
+  const [profile, setProfile] = useState<VillageProfileDto | null>(initialProfile);
 
-  return useMemo<VillageProfileDto>(() => {
-    const historyContent =
-      initialProfile?.historyText || stored.historyText || "";
-
-    return {
-      villageName: initialProfile?.villageName || "Desa Pringgodani",
-      headGreeting:
-        initialProfile?.headGreeting ||
+  useEffect(() => {
+    // Synchronize if admin modified profile in local session
+    const syncWithStore = () => {
+      const stored = getStoredVillageProfile();
+      if (
+        stored.headName ||
         stored.headGreeting ||
-        "Selamat datang di website resmi Desa Pringgodani.",
-      headPhoto:
-        initialProfile?.headPhoto ||
-        stored.headPhoto ||
-        "/images/kepala-desa.jpg",
-      headName: initialProfile?.headName || stored.headName || "Kepala Desa",
-      headPosition:
-        initialProfile?.headPosition || stored.headPosition || "Kepala Desa",
-      historyText: historyContent,
-      historyExcerpt:
-        historyContent.length > 200
-          ? historyContent.substring(0, 200) + "..."
-          : historyContent,
-      vision: initialProfile?.vision || stored.vision || "",
-      missions:
-        initialProfile?.missions && initialProfile.missions.length > 0
-          ? initialProfile.missions
-          : stored.missions || [],
-      officials:
-        initialProfile?.officials && initialProfile.officials.length > 0
-          ? initialProfile.officials
-          : stored.officials?.length > 0
-          ? stored.officials.map((o) => ({
-              name: o.name,
-              position: o.position,
-              photo: o.photoUrl,
-              greeting: o.greeting,
-              email: o.email,
-            }))
-          : [],
-      structureImageUrl:
-        initialProfile?.structureImageUrl || stored.structureImageUrl || "",
+        stored.aboutText ||
+        stored.officials?.length
+      ) {
+        setProfile((prev) => ({
+          villageName:
+            initialProfile?.villageName ||
+            prev?.villageName ||
+            "Desa Pringgodani",
+          headGreeting:
+            stored.headGreeting ||
+            prev?.headGreeting ||
+            initialProfile?.headGreeting ||
+            "Selamat datang di website resmi Desa Pringgodani.",
+          headPhoto:
+            stored.headPhoto ||
+            prev?.headPhoto ||
+            initialProfile?.headPhoto ||
+            "/images/kepala-desa.jpg",
+          headName:
+            stored.headName ||
+            prev?.headName ||
+            initialProfile?.headName ||
+            "Kepala Desa",
+          headPosition:
+            stored.headPosition ||
+            prev?.headPosition ||
+            initialProfile?.headPosition ||
+            "Kepala Desa",
+          aboutText:
+            stored.aboutText ||
+            prev?.aboutText ||
+            initialProfile?.aboutText ||
+            "",
+          officials:
+            stored.officials && stored.officials.length > 0
+              ? stored.officials.map((o) => ({
+                  name: o.name,
+                  position: o.position,
+                  photo: o.photoUrl,
+                  greeting: o.greeting,
+                  email: o.email,
+                }))
+              : prev?.officials || initialProfile?.officials || [],
+        }));
+      }
     };
-  }, [stored, initialProfile]);
+
+    // Listen for real-time updates from admin changes
+    const unsubscribe = subscribeStoredVillageProfile(syncWithStore);
+    return () => {
+      unsubscribe();
+    };
+  }, [initialProfile]);
+
+  return profile || initialProfile;
 }

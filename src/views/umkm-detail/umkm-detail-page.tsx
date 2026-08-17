@@ -54,7 +54,11 @@ export async function UmkmDetailPage({ slug }: UmkmDetailPageProps) {
                 </p>
               </section>
 
-              <UmkmProductsSection products={umkm.products} />
+              <UmkmProductsSection
+                products={umkm.products}
+                umkmName={umkm.name}
+                phone={umkm.whatsappNumber || umkm.phone || ""}
+              />
             </div>
 
             <UmkmInfoSidebar umkm={umkm} />
