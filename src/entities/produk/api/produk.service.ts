@@ -18,7 +18,7 @@ export interface GetProductsParams {
 }
 
 export const ProdukService = {
-  async getLatest({ limit = 3 }: { limit?: number } = {}): Promise<ProductItemDto[]> {
+  async getLatest({ limit = 6 }: { limit?: number } = {}): Promise<ProductItemDto[]> {
     try {
       const { data } = await apiClient.get<ApiSuccessBody<ProductListResponse>>(
         "/public/products",
@@ -33,9 +33,19 @@ export const ProdukService = {
 
   async getPaginated(params: GetProductsParams = {}): Promise<ProductListResponse> {
     try {
+      const queryParams: Record<string, any> = {
+        page: params.page,
+        limit: params.limit,
+      };
+      if (params.search) queryParams.search = params.search;
+      if (params.categorySlug) queryParams.category = params.categorySlug;
+      if (params.minPrice !== undefined) queryParams.minPrice = params.minPrice;
+      if (params.maxPrice !== undefined) queryParams.maxPrice = params.maxPrice;
+      if (params.sort) queryParams.sort = params.sort;
+
       const { data } = await apiClient.get<ApiSuccessBody<ProductListResponse>>(
         "/public/products",
-        { params },
+        { params: queryParams },
       );
       if (data?.data) return data.data;
     } catch (err) {
