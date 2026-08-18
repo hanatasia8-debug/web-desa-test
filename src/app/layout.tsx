@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   },
   description:
     "Katalog resmi produk olahan, sentra kerajinan, dan hasil bumi pertanian Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang.",
+  applicationName: "Portal Desa Pringgodani",
+  generator: "Next.js",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
