@@ -8,44 +8,50 @@ import {
 } from "@/shared/utils/profile-storage";
 
 export function useVillageProfile(initialProfile: VillageProfileDto | null) {
-  // Initialize with initialProfile from server (guarantees 100% matching SSR hydration)
   const [profile, setProfile] = useState<VillageProfileDto | null>(initialProfile);
 
+  // Keep state in sync with server props
   useEffect(() => {
-    // Synchronize if admin modified profile in local session
+    if (initialProfile) {
+      setProfile(initialProfile);
+    }
+  }, [initialProfile]);
+
+  useEffect(() => {
+    // Only synchronize when admin actively updates profile in the browser session
     const syncWithStore = () => {
       const stored = getStoredVillageProfile();
       if (
         stored.headName ||
         stored.headGreeting ||
         stored.aboutText ||
-        stored.officials?.length
+        (stored.officials && stored.officials.length > 0)
       ) {
         setProfile((prev) => ({
           villageName:
-            initialProfile?.villageName ||
             prev?.villageName ||
+            initialProfile?.villageName ||
             "Desa Pringgodani",
           headGreeting:
             stored.headGreeting ||
             prev?.headGreeting ||
             initialProfile?.headGreeting ||
-            "Selamat datang di website resmi Desa Pringgodani.",
+            "",
           headPhoto:
             stored.headPhoto ||
             prev?.headPhoto ||
             initialProfile?.headPhoto ||
-            "/images/kepala-desa.jpg",
+            "",
           headName:
             stored.headName ||
             prev?.headName ||
             initialProfile?.headName ||
-            "Kepala Desa",
+            "",
           headPosition:
             stored.headPosition ||
             prev?.headPosition ||
             initialProfile?.headPosition ||
-            "Kepala Desa",
+            "",
           aboutText:
             stored.aboutText ||
             prev?.aboutText ||
@@ -57,6 +63,7 @@ export function useVillageProfile(initialProfile: VillageProfileDto | null) {
                   name: o.name,
                   position: o.position,
                   photo: o.photoUrl,
+                  photoUrl: o.photoUrl,
                   greeting: o.greeting,
                   email: o.email,
                 }))
