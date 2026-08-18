@@ -137,7 +137,7 @@ async function UmkmResults({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
         {result.items.map((umkm) => (
           <UmkmCard key={umkm.id} umkm={umkm} variant="listing" />
         ))}

@@ -44,10 +44,10 @@ export function UmkmCard({
           </Link>
 
           {/* Badge Kategori */}
-          <div className="absolute top-2.5 left-2.5">
+          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5">
             <span
               className={cn(
-                "font-label-sm rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-xs backdrop-blur-xs",
+                "font-label-sm rounded-md px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider text-white uppercase shadow-xs backdrop-blur-xs",
                 categoryMeta.badgeClass,
               )}
             >
@@ -56,31 +56,31 @@ export function UmkmCard({
           </div>
 
           {/* Badge Terverifikasi */}
-          <div className="absolute top-2.5 right-2.5">
+          <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5">
             <span
-              className="bg-primary text-on-primary flex h-6 w-6 items-center justify-center rounded-full shadow-xs"
+              className="bg-primary text-on-primary flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full shadow-xs"
               title="UMKM Terverifikasi Pemerintah Desa"
             >
-              <Icon name="verified" filled className="text-xs text-white" />
+              <Icon name="verified" filled className="text-[10px] sm:text-xs text-white" />
             </span>
           </div>
         </div>
 
         {/* Info Konten */}
-        <div className="p-3.5 sm:p-4">
-          <div className="mb-1 flex items-start justify-between gap-1.5">
-            <h3 className="font-headline-md text-on-surface group-hover:text-primary line-clamp-1 text-sm font-bold transition sm:text-base">
+        <div className="p-3 sm:p-4">
+          <div className="mb-1 flex items-start justify-between gap-1">
+            <h3 className="font-headline-md text-on-surface group-hover:text-primary line-clamp-1 text-xs sm:text-base font-bold transition">
               <Link href={`/umkm/${umkm.slug}`}>{umkm.name}</Link>
             </h3>
             {isCompact && (
-              <span className="text-on-surface-variant/70 shrink-0 text-[10px] font-medium">
+              <span className="text-on-surface-variant/70 shrink-0 text-[9px] sm:text-[10px] font-medium">
                 {formatRelativeTime(umkm.publishedAt)}
               </span>
             )}
           </div>
 
           {/* Pemilik Usaha */}
-          <p className="text-on-surface-variant mb-2 flex items-center gap-1 text-[11px] font-medium">
+          <p className="text-on-surface-variant mb-1.5 flex items-center gap-1 text-[10px] sm:text-[11px] font-medium">
             <Icon name="person" className="shrink-0 text-xs text-slate-400" />
             <span className="truncate">
               Pemilik: <span className="font-semibold">{umkm.ownerName}</span>
@@ -88,14 +88,14 @@ export function UmkmCard({
           </p>
 
           {/* Deskripsi Singkat */}
-          <p className="text-on-surface-variant/80 line-clamp-2 text-xs leading-relaxed">
+          <p className="text-on-surface-variant/80 line-clamp-2 text-[11px] sm:text-xs leading-relaxed">
             {umkm.description}
           </p>
         </div>
       </div>
 
       {/* Footer Kartu */}
-      <div className="border-outline-variant/15 bg-surface/40 border-t p-3">
+      <div className="border-outline-variant/15 bg-surface/40 border-t p-2.5 sm:p-3">
         {isCompact ? (
           <WhatsappCta
             phone={umkm.whatsappNumber}
@@ -104,20 +104,20 @@ export function UmkmCard({
           />
         ) : isSimilar ? (
           <div className="flex items-center justify-between gap-2">
-            <span className="text-on-surface-variant truncate text-xs font-semibold">
+            <span className="text-on-surface-variant truncate text-[11px] sm:text-xs font-semibold">
               {umkm.ownerName}
             </span>
             <Link
               href={`/umkm/${umkm.slug}`}
-              className="text-primary hover:text-primary/80 inline-flex shrink-0 items-center gap-1 text-xs font-bold transition hover:underline"
+              className="text-primary hover:text-primary/80 inline-flex shrink-0 items-center gap-1 text-[11px] sm:text-xs font-bold transition hover:underline"
             >
               <span>Detail</span>
               <Icon name="chevron_right" className="text-sm" />
             </Link>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-on-surface-variant/80 flex min-w-0 items-center gap-1 text-[11px]">
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-on-surface-variant/80 flex min-w-0 items-center gap-1 text-[10px] sm:text-[11px]">
               <Icon
                 name="location_on"
                 className="shrink-0 text-xs text-slate-400"
@@ -128,7 +128,7 @@ export function UmkmCard({
             </span>
             <Link
               href={`/umkm/${umkm.slug}`}
-              className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary inline-flex shrink-0 items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition-all"
+              className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary inline-flex shrink-0 items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] sm:text-xs font-bold transition-all"
             >
               <span>Kunjungi</span>
               <Icon name="arrow_forward" className="text-xs" />

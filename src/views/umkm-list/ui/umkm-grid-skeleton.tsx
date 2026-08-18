@@ -4,7 +4,7 @@
 export function UmkmGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
-      className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6"
       aria-busy="true"
       aria-label="Memuat daftar UMKM"
     >
