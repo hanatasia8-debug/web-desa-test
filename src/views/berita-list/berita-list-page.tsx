@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-
+import Link from "next/link";
+import { Icon } from "@/shared/ui/icon";
 import { BeritaService } from "@/entities/berita/api/berita.service";
 import { NewsCard } from "@/entities/berita/ui/news-card";
 import { Pagination } from "@/widgets/pagination/pagination";
 import { buildQueryString } from "@/shared/utils/search-params";
-import { FeaturedNewsHero } from "./sections/featured-news-hero";
 import { BeritaFilterBar } from "./sections/berita-filter-bar";
 import { NewsGridSkeleton } from "./ui/news-grid-skeleton";
 import { NewsEmptyState, NewsErrorState } from "./ui/results-state";
 
-/** `prd_2.txt §4.6.1`: "Paginated Grid: 6 articles per page". */
+/** 2-column grid layout (2x2 grid rows per page) */
 const PAGE_SIZE = 6;
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
@@ -23,15 +23,7 @@ function firstValue(value: string | string[] | undefined): string {
 }
 
 /**
- * `views/berita-list` — the /berita listing view, rendered thinly from
- * `app/(public)/berita/page.tsx`.
- *
- * Search, category and page all live in the URL query string
- * (`?cari=&kategori=&halaman=`) rather than in client state: the filter
- * controls push a new URL, Next.js re-renders this Server Component in place
- * (client-side navigation, no full reload), and every result set stays
- * shareable and back-button friendly. Data still flows strictly
- * Page → Service → API → Database.
+ * `views/berita-list` — the /berita listing view.
  */
 export async function BeritaListPage({ searchParams }: BeritaListPageProps) {
   const params = await searchParams;
@@ -41,45 +33,47 @@ export async function BeritaListPage({ searchParams }: BeritaListPageProps) {
   const page = Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
   const hasFilters = Boolean(search || categorySlug);
 
-  const [categoriesResult, featuredResult] = await Promise.allSettled([
-    BeritaService.getCategories(),
-    // The featured slot always shows the newest article overall, so it is
-    // irrelevant (and confusing) while a filter or keyword is active.
-    hasFilters ? null : BeritaService.getLatestPublished({ limit: 1 }),
-  ]);
+  const categories = await BeritaService.getCategories()
+    .then((result) => result.items)
+    .catch((err) => {
+      console.error("Gagal memuat kategori berita:", err);
+      return [];
+    });
 
-  const categories =
-    categoriesResult.status === "fulfilled" ? categoriesResult.value.items : [];
-  const featured =
-    featuredResult.status === "fulfilled"
-      ? (featuredResult.value?.items[0] ?? null)
-      : null;
-
-  // A hand-typed/stale `?kategori=` that matches no row is an empty result,
-  // not an error — but only trust that verdict when the category list itself
-  // loaded (an empty list here means the API call failed).
   const unknownCategory =
     Boolean(categorySlug) &&
     categories.length > 0 &&
-    !categories.some((category) => category.slug === categorySlug);
+    !categories.some(
+      (c) =>
+        c.slug === categorySlug ||
+        c.name.toLowerCase() === categorySlug.toLowerCase()
+    );
 
   return (
     <div className="pb-section-padding pt-24">
-      {featured && page === 1 ? (
-        <FeaturedNewsHero news={featured} />
-      ) : (
-        <header className="max-w-container-max px-gutter mx-auto mb-12">
-          <h1 className="font-headline-lg text-headline-lg text-primary">
-            Berita Desa Pringgodani
-          </h1>
-          <p className="font-body-base text-body-base text-on-surface-variant mt-2">
-            Kabar terkini, pengumuman resmi, dan kegiatan warga Desa
-            Pringgodani.
-          </p>
-        </header>
-      )}
+      <header className="max-w-container-max px-gutter mb-stack-lg mx-auto">
+        <div className="gap-gutter flex flex-col justify-between md:flex-row md:items-center">
+          <div className="max-w-2xl">
+            <h1 className="font-headline-lg text-headline-lg text-primary mb-4">
+              Berita &amp; Kegiatan Desa
+            </h1>
+            <p className="font-body-lg text-body-lg text-on-surface-variant">
+              Kabar terkini, liputan kegiatan warga, pengumuman resmi, dan potensi kemandirian ekonomi Desa Pringgodani.
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <Link
+              href="/berita/daftar"
+              className="bg-primary text-on-primary font-label-sm inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold shadow-md transition-all hover:opacity-90 active:scale-95"
+            >
+              <Icon name="edit_document" className="text-lg" />
+              <span>Kirim Kabar Warga</span>
+            </Link>
+          </div>
+        </div>
 
-      <BeritaFilterBar categories={categories} />
+        <BeritaFilterBar categories={categories} />
+      </header>
 
       <section className="max-w-container-max px-gutter mx-auto">
         {unknownCategory ? (
@@ -93,7 +87,6 @@ export async function BeritaListPage({ searchParams }: BeritaListPageProps) {
               search={search}
               categorySlug={categorySlug}
               page={page}
-              excludeId={featured?.id ?? null}
               hasFilters={hasFilters}
             />
           </Suspense>
@@ -107,8 +100,6 @@ interface BeritaResultsProps {
   search: string;
   categorySlug: string;
   page: number;
-  /** Featured article id — kept out of the grid so it is not shown twice. */
-  excludeId: string | null;
   hasFilters: boolean;
 }
 
@@ -116,7 +107,6 @@ async function BeritaResults({
   search,
   categorySlug,
   page,
-  excludeId,
   hasFilters,
 }: BeritaResultsProps) {
   let result;
@@ -126,7 +116,6 @@ async function BeritaResults({
       limit: PAGE_SIZE,
       category: categorySlug || undefined,
       search: search || undefined,
-      exclude: excludeId ?? undefined,
     });
   } catch (err) {
     console.error("Gagal memuat daftar berita:", err);
@@ -141,7 +130,7 @@ async function BeritaResults({
 
   return (
     <>
-      <div className="gap-gutter grid grid-cols-1 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {result.items.map((news) => (
           <NewsCard key={news.id} news={news} variant="listing" />
         ))}

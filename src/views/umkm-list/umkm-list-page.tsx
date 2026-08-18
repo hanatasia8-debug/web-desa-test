@@ -12,7 +12,7 @@ import { UmkmPromoSection } from "./sections/umkm-promo-section";
 import { UmkmGridSkeleton } from "./ui/umkm-grid-skeleton";
 import { UmkmEmptyState, UmkmErrorState } from "./ui/results-state";
 
-/** The directory prototype shows a 4-column grid with 8 cards per page. */
+/** 2-column grid layout (2x2 grid rows) */
 const PAGE_SIZE = 8;
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
@@ -28,13 +28,6 @@ function firstValue(value: string | string[] | undefined): string {
 /**
  * `views/umkm-list` — the /umkm directory view, rendered thinly from
  * `app/(public)/umkm/(list)/page.tsx`.
- *
- * Search, category and page all live in the URL query string
- * (`?cari=&kategori=&halaman=`) rather than in client state: the filter
- * controls push a new URL, Next.js re-renders this Server Component in place
- * (client-side navigation, no full reload), and every result set stays
- * shareable and back-button friendly. Data still flows strictly
- * Page → Service → (API or mock data source).
  */
 export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
   const params = await searchParams;
@@ -47,13 +40,10 @@ export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
   const categories = await UmkmService.getCategories()
     .then((result) => result.items)
     .catch((err) => {
-      // Losing the chips must not take the whole directory down — the grid
-      // below still renders.
       console.error("Gagal memuat kategori UMKM:", err);
       return [];
     });
 
-  // A hand-typed/stale `?kategori=` that matches no category is an empty result, not an error
   const unknownCategory =
     Boolean(categorySlug) &&
     categories.length > 0 &&
@@ -147,7 +137,7 @@ async function UmkmResults({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {result.items.map((umkm) => (
           <UmkmCard key={umkm.id} umkm={umkm} variant="listing" />
         ))}
