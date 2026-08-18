@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 /**
  * Base HTTP client for calling the backend API.
@@ -24,7 +24,7 @@ function getBaseURL(): string {
   return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 }
 
-export const apiClient = axios.create({
+const rawAxios = axios.create({
   baseURL: getBaseURL(),
   withCredentials: true,
   timeout: 30000,
@@ -34,7 +34,7 @@ export const apiClient = axios.create({
 });
 
 // Request interceptor to attach Authorization Bearer token and handle FormData
-apiClient.interceptors.request.use((config) => {
+rawAxios.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("pringgodani_admin_access_token");
     if (token) {
@@ -51,7 +51,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // Interceptor to handle unauthorized access (401)
-apiClient.interceptors.response.use(
+rawAxios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
@@ -74,6 +74,41 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+// Map to deduplicate concurrent in-flight GET requests
+const inFlightGetRequests = new Map<string, Promise<AxiosResponse<any>>>();
+
+function getRequestKey(url: string, config?: AxiosRequestConfig): string {
+  const paramsStr = config?.params ? JSON.stringify(config.params) : "";
+  return `${url}::${paramsStr}`;
+}
+
+export const apiClient = {
+  ...rawAxios,
+  get: <T = any, R = AxiosResponse<T>, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>,
+  ): Promise<R> => {
+    const key = getRequestKey(url, config);
+    const existing = inFlightGetRequests.get(key);
+    if (existing) {
+      return existing as unknown as Promise<R>;
+    }
+
+    const requestPromise = (rawAxios.get(url, config) as Promise<R>).finally(() => {
+      inFlightGetRequests.delete(key);
+    });
+
+    inFlightGetRequests.set(key, requestPromise as unknown as Promise<AxiosResponse<any>>);
+    return requestPromise;
+  },
+  post: rawAxios.post.bind(rawAxios),
+  put: rawAxios.put.bind(rawAxios),
+  patch: rawAxios.patch.bind(rawAxios),
+  delete: rawAxios.delete.bind(rawAxios),
+  defaults: rawAxios.defaults,
+  interceptors: rawAxios.interceptors,
+};
 
 /** Zero Trust Architecture: Frontend strictly connects to backend REST API. */
 export const IS_API_CONNECTED = true;

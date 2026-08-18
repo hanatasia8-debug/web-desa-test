@@ -58,6 +58,7 @@ export interface AdminNewsItem {
   excerpt: string;
   categoryName: string;
   status: NewsStatus;
+  rejectionReason?: string | null;
   publishedAt: string;
   coverUrl?: string;
 }
@@ -69,6 +70,7 @@ export interface AdminUmkmItem {
   ownerName: string;
   categoryName: string;
   status: UmkmStatus;
+  rejectionReason?: string | null;
   phone: string;
   address: string;
   coverUrl?: string;

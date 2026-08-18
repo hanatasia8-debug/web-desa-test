@@ -27,12 +27,12 @@ export function WhatsappCta({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold whitespace-nowrap text-white transition-all hover:brightness-95 active:scale-95",
+        "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#20BD5A] hover:shadow-md hover:shadow-emerald-500/20 active:scale-[0.98]",
         className,
       )}
     >
       <Icon name="chat" className="shrink-0 text-base" />
-      <span className="truncate">{label}</span>
+      <span className="text-center leading-tight">{label}</span>
     </a>
   );
 }

@@ -280,7 +280,6 @@ export function SubmissionReviewModal({
     whatsappNumber: umkmFormData.phone || "081234567890",
     address: umkmFormData.address || "Desa Pringgodani",
     mapsUrl: umkmFormData.mapsUrl || umkmData?.mapsUrl || null,
-    addressUrl: umkmFormData.mapsUrl || umkmData?.mapsUrl || null,
     since: umkmFormData.since || umkmData?.since || null,
     openDay: umkmFormData.openDay || umkmData?.openDay || null,
     startTime: umkmFormData.startTime || umkmData?.startTime || null,

@@ -242,16 +242,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
         coverUrl: finalCoverUrl,
         products: finalProducts,
         galleries: finalGalleries,
-        mapsUrl:
-          formData.mapsUrl ||
-          formData.addressUrl ||
-          formData.googlePlaceId ||
-          null,
-        addressUrl:
-          formData.mapsUrl ||
-          formData.addressUrl ||
-          formData.googlePlaceId ||
-          null,
+        mapsUrl: formData.mapsUrl?.trim() || null,
       };
 
       const result = await UmkmService.register(finalPayload as any);
@@ -288,12 +279,7 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     Boolean(g && g.trim()),
   );
 
-  const previewMapsUrl =
-    formData.mapsUrl ||
-    formData.addressUrl ||
-    formData.googlePlaceId ||
-    formData.googleMapsUrl ||
-    null;
+  const previewMapsUrl = formData.mapsUrl?.trim() || null;
 
   const previewDetailDto: UmkmDetailDto = {
     id: "preview-umkm-id",
@@ -306,7 +292,6 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     whatsappNumber: formData.phone || "628123456789",
     address: formData.address || "Dusun Krajan, Desa Pringgodani",
     mapsUrl: previewMapsUrl,
-    addressUrl: previewMapsUrl,
     since: formData.since ? Number(formData.since) : null,
     openDay: formData.openDay || null,
     startTime: formData.startTime || null,
@@ -318,8 +303,10 @@ export function RegisterUmkmPage({ categories }: RegisterUmkmPageProps) {
     gallery: validGalleries,
     products: (formData.products || []).map((p, idx) => ({
       id: `preview-p-${idx}`,
+      name: p.name || "Nama Produk",
       productName: p.name || "Nama Produk",
       price: p.price ? Number(p.price) : null,
+      imageUrl: p.imageUrl || null,
       productPhoto: p.imageUrl || null,
     })),
     potential: null,

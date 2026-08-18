@@ -171,43 +171,86 @@ export function NewsRevisionForm({
         }
       }
 
-      const finalBlocks = await Promise.all(
-        (formData.blocks || []).map(async (block, idx) => {
-          let finalImg = block.imageUrl;
-          const localFile = blockFiles[idx];
-          if (localFile) {
-            finalImg = await uploadSingleFile(localFile);
-            if (block.imageUrl?.startsWith("blob:")) {
-              URL.revokeObjectURL(block.imageUrl);
-            }
-          }
-          return { ...block, imageUrl: finalImg };
-        }),
-      );
+      const isStandard =
+        formData.newsTypeId === "STANDARD" || !formData.newsTypeId;
 
-      const finalGalleryImages = await Promise.all(
-        (formData.galleryImages || []).map(async (img, idx) => {
-          let finalImg = img.imageUrl;
-          const localFile = galleryFiles[idx];
-          if (localFile) {
-            finalImg = await uploadSingleFile(localFile);
-            if (img.imageUrl?.startsWith("blob:")) {
-              URL.revokeObjectURL(img.imageUrl);
-            }
-          }
-          return { ...img, imageUrl: finalImg };
-        }),
-      );
+      // 2. Upload blocks (only for STANDARD template)
+      let finalBlocks: {
+        subHeading?: string | null;
+        content?: string;
+        imageUrl?: string | null;
+        sortOrder: number;
+      }[] = [];
+
+      if (isStandard) {
+        finalBlocks = await Promise.all(
+          (formData.blocks || [])
+            .filter((block) => Boolean(block.content && block.content.trim()))
+            .map(async (block, idx) => {
+              let finalImg = block.imageUrl;
+              const localFile = blockFiles[idx];
+              if (localFile) {
+                finalImg = await uploadSingleFile(localFile, "gallery");
+                if (block.imageUrl?.startsWith("blob:")) {
+                  URL.revokeObjectURL(block.imageUrl);
+                }
+              }
+              return {
+                ...block,
+                imageUrl:
+                  finalImg && !finalImg.startsWith("blob:") ? finalImg : null,
+                sortOrder: idx + 1,
+              };
+            }),
+        );
+      }
+
+      // 3. Upload gallery images (only for GALLERY template)
+      let finalGalleryImages: {
+        imageUrl?: string;
+        imageDescription?: string | null;
+        sortOrder: number;
+      }[] = [];
+
+      if (!isStandard) {
+        finalGalleryImages = await Promise.all(
+          (formData.galleryImages || [])
+            .filter(
+              (img, idx) =>
+                Boolean(galleryFiles[idx]) ||
+                Boolean(img.imageUrl && img.imageUrl.trim()),
+            )
+            .map(async (img, idx) => {
+              let finalImg = img.imageUrl;
+              const localFile = galleryFiles[idx];
+              if (localFile) {
+                finalImg = await uploadSingleFile(localFile, "gallery");
+                if (img.imageUrl?.startsWith("blob:")) {
+                  URL.revokeObjectURL(img.imageUrl);
+                }
+              }
+              return {
+                ...img,
+                imageUrl: finalImg || "",
+                sortOrder: idx + 1,
+              };
+            }),
+        );
+      }
+
+      const excerpt =
+        formData.excerpt?.trim() ||
+        generateAutoExcerpt({
+          ...formData,
+          blocks: finalBlocks,
+        } as any);
 
       const payload = {
         ...formData,
         coverUrl: finalCoverUrl,
         blocks: finalBlocks,
         galleryImages: finalGalleryImages,
-        excerpt: generateAutoExcerpt({
-          ...formData,
-          blocks: finalBlocks,
-        } as any),
+        excerpt,
       };
 
       const { success } = await RevisionService.resubmitNews(
@@ -224,7 +267,12 @@ export function NewsRevisionForm({
       }
     } catch (err: any) {
       console.error("Gagal mengirim revisi berita:", err);
-      alert(err.message || "Terjadi kesalahan saat mengirim revisi.");
+      const serverMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Terjadi kesalahan saat mengirim revisi.";
+      alert(serverMsg);
     } finally {
       setIsSubmitting(false);
     }

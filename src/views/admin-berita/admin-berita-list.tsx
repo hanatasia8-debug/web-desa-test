@@ -204,11 +204,18 @@ export function AdminBeritaList() {
                         }
 
                         return (
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-bold ${badgeClasses}`}
-                          >
-                            {statusUpper}
-                          </span>
+                          <div className="space-y-1">
+                            <span
+                              className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${badgeClasses}`}
+                            >
+                              {statusUpper}
+                            </span>
+                            {statusUpper === "REJECTED" && item.rejectionReason && (
+                              <p className="text-error mt-1 max-w-xs text-[11px] font-medium italic">
+                                Alasan: {item.rejectionReason}
+                              </p>
+                            )}
+                          </div>
                         );
                       })()}
                     </td>

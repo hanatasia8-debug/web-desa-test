@@ -35,7 +35,7 @@ export function AdminUmkmEditor({
   const [categoryName, setCategoryName] = useState("Kuliner");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [addressUrl, setAddressUrl] = useState("");
+  const [mapsUrl, setMapsUrl] = useState("");
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -101,7 +101,7 @@ export function AdminUmkmEditor({
             if (parsed.categoryName) setCategoryName(parsed.categoryName);
             if (parsed.phone) setPhone(parsed.phone);
             if (parsed.address) setAddress(parsed.address);
-            if (parsed.addressUrl) setAddressUrl(parsed.addressUrl);
+            if (parsed.mapsUrl) setMapsUrl(parsed.mapsUrl);
             if (parsed.description) setDescription(parsed.description);
             if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
             if (parsed.status) setStatus(parsed.status);
@@ -131,7 +131,7 @@ export function AdminUmkmEditor({
               setCategoryName(data.categoryName || "Kuliner");
               setPhone(data.phone || "");
               setAddress(data.address || "");
-              setAddressUrl(data.mapsUrl || data.addressUrl || "");
+              setMapsUrl(data.mapsUrl || "");
               setDescription(data.description || "");
               setCoverUrl(data.coverUrl || "");
               setStatus(data.status || "APPROVED");
@@ -178,7 +178,7 @@ export function AdminUmkmEditor({
           categoryName,
           phone,
           address,
-          addressUrl,
+          mapsUrl,
           description,
           coverUrl: coverFile ? "" : coverUrl,
           status,
@@ -203,7 +203,7 @@ export function AdminUmkmEditor({
     categoryName,
     phone,
     address,
-    addressUrl,
+    mapsUrl,
     description,
     coverUrl,
     coverFile,
@@ -424,8 +424,7 @@ export function AdminUmkmEditor({
         categoryName,
         phone,
         address,
-        addressUrl,
-        mapsUrl: addressUrl,
+        mapsUrl: mapsUrl?.trim() || null,
         coverUrl: finalCoverUrl,
         status,
         since: since ? Number(since) : undefined,
@@ -831,10 +830,10 @@ export function AdminUmkmEditor({
             <div className="relative">
               <input
                 type="url"
-                value={addressUrl}
+                value={mapsUrl}
                 onChange={(e) => {
                   const url = e.target.value;
-                  setAddressUrl(url);
+                  setMapsUrl(url);
                   const { lat, lng } = extractCoordinatesFromUrl(url);
                   if (lat !== -8.2811 && lng !== 112.5664) {
                     setLatitude(lat);
@@ -1136,18 +1135,18 @@ export function AdminUmkmEditor({
                 </span>
               </div>
 
-              {addressUrl && (
+              {mapsUrl && (
                 <div className="bg-surface-container border-outline-variant/30 flex items-center justify-between rounded-2xl border p-4">
                   <div className="overflow-hidden pr-2">
                     <p className="text-on-surface-variant text-xs font-bold">
                       Lokasi Google Maps
                     </p>
                     <p className="text-primary max-w-[200px] truncate font-mono text-xs font-semibold">
-                      {addressUrl}
+                      {mapsUrl}
                     </p>
                   </div>
                   <a
-                    href={addressUrl}
+                    href={mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-primary text-on-primary hover:bg-primary/90 flex shrink-0 items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold shadow-sm transition"

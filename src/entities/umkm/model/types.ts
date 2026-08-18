@@ -28,7 +28,6 @@ export interface UmkmListItemDto {
   phone?: string;
   whatsappNumber: string;
   address: string;
-  addressUrl?: string | null;
   mapsUrl?: string | null;
   ownerName: string;
   latitude?: number | null;

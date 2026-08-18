@@ -183,17 +183,24 @@ export function AdminUmkmList() {
                       {item.phone}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          item.status === "APPROVED"
-                            ? "bg-primary-container text-on-primary-container"
-                            : item.status === "PENDING"
-                              ? "bg-warning-container text-on-warning-container"
-                              : "bg-error-container text-on-error-container"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
+                      <div className="space-y-1">
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
+                            item.status === "APPROVED"
+                              ? "bg-primary-container text-on-primary-container"
+                              : item.status === "PENDING"
+                                ? "bg-warning-container text-on-warning-container"
+                                : "bg-error-container text-on-error-container"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                        {item.status === "REJECTED" && item.rejectionReason && (
+                          <p className="text-error mt-1 max-w-xs text-[11px] font-medium italic">
+                            Alasan: {item.rejectionReason}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="space-x-2 px-6 py-4 text-right whitespace-nowrap">
                       {item.status !== "APPROVED" && (

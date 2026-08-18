@@ -50,26 +50,37 @@ export function SubmitUmkmPreview({
       </div>
 
       {/* EXACT RENDER OF UmkmDetailPage UI COMPONENTS */}
-      <div className="bg-surface-container-lowest border-outline-variant/20 overflow-hidden rounded-xl border shadow-sm">
+      <div className="bg-surface-container-lowest border-outline-variant/20 overflow-hidden rounded-2xl border shadow-sm">
         <UmkmHero umkm={previewDetailDto} />
 
         <div
-          className={`grid gap-8 p-6 md:p-8 ${readOnly ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"}`}
+          className={`grid gap-8 p-6 md:p-8 ${readOnly ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-12 lg:gap-10"}`}
         >
-          <div className={`space-y-8 ${readOnly ? "w-full" : "lg:col-span-2"}`}>
+          <div className={`space-y-10 ${readOnly ? "w-full" : "lg:col-span-8"}`}>
             <section>
-              <h2 className="font-headline-md text-headline-md text-primary border-outline-variant/30 mb-4 border-b pb-3">
-                Tentang Usaha
-              </h2>
+              <div className="border-outline-variant/30 mb-4 flex items-center gap-2.5 border-b pb-3">
+                <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+                  <Icon name="storefront" className="text-base" />
+                </div>
+                <h2 className="font-headline-md text-primary text-lg font-bold sm:text-xl">
+                  Tentang Usaha
+                </h2>
+              </div>
               <p className="font-body-base text-on-surface-variant leading-relaxed">
                 {previewDetailDto.description}
               </p>
             </section>
 
-            <UmkmProductsSection products={previewDetailDto.products} />
+            <UmkmProductsSection
+              products={previewDetailDto.products}
+              umkmName={previewDetailDto.name}
+              phone={previewDetailDto.whatsappNumber || previewDetailDto.phone || ""}
+            />
           </div>
 
-          <UmkmInfoSidebar umkm={previewDetailDto} />
+          <div className={readOnly ? "w-full" : "lg:col-span-4"}>
+            <UmkmInfoSidebar umkm={previewDetailDto} />
+          </div>
         </div>
       </div>
 

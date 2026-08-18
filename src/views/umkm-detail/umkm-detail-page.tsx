@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { Icon } from "@/shared/ui/icon";
 import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { UmkmBreadcrumb } from "./sections/umkm-breadcrumb";
 import { UmkmHero } from "./sections/umkm-hero";
@@ -40,15 +41,20 @@ export async function UmkmDetailPage({ slug }: UmkmDetailPageProps) {
       <div className="max-w-container-max px-gutter mx-auto">
         <UmkmBreadcrumb name={umkm.name} />
 
-        <div className="bg-surface-container-lowest border-outline-variant/20 overflow-hidden rounded-xl border shadow-sm">
+        <div className="bg-surface-container-lowest border-outline-variant/20 overflow-hidden rounded-2xl border shadow-sm">
           <UmkmHero umkm={umkm} />
 
-          <div className="grid grid-cols-1 gap-8 p-8 md:grid-cols-3">
-            <div className="space-y-8 md:col-span-2">
+          <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:gap-10">
+            <div className="space-y-10 lg:col-span-8">
               <section>
-                <h2 className="font-headline-md text-headline-md text-primary border-outline-variant/30 mb-4 border-b pb-3">
-                  Tentang Usaha
-                </h2>
+                <div className="border-outline-variant/30 mb-4 flex items-center gap-2.5 border-b pb-3">
+                  <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+                    <Icon name="storefront" className="text-base" />
+                  </div>
+                  <h2 className="font-headline-md text-primary text-lg font-bold sm:text-xl">
+                    Tentang Usaha
+                  </h2>
+                </div>
                 <p className="font-body-base text-on-surface-variant leading-relaxed">
                   {umkm.description}
                 </p>
@@ -61,7 +67,9 @@ export async function UmkmDetailPage({ slug }: UmkmDetailPageProps) {
               />
             </div>
 
-            <UmkmInfoSidebar umkm={umkm} />
+            <div className="lg:col-span-4">
+              <UmkmInfoSidebar umkm={umkm} />
+            </div>
           </div>
         </div>
 

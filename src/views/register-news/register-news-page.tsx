@@ -198,6 +198,9 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
 
     setIsSubmitting(true);
     try {
+      const isStandard =
+        formData.newsTypeId === "STANDARD" || !formData.newsTypeId;
+
       // 1. Upload cover
       let finalCoverUrl = formData.coverUrl;
       if (coverFile) {
@@ -207,51 +210,92 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
         }
       }
 
-      // 2. Upload blocks
-      const finalBlocks = await Promise.all(
-        (formData.blocks || []).map(async (block, idx) => {
-          let finalBlockImgUrl = block.imageUrl;
-          const localBlockFile = blockFiles[idx];
-          if (localBlockFile) {
-            finalBlockImgUrl = await uploadSingleFile(
-              localBlockFile,
-              "gallery",
-            );
-            if (block.imageUrl?.startsWith("blob:")) {
-              URL.revokeObjectURL(block.imageUrl);
-            }
-          }
-          return { ...block, imageUrl: finalBlockImgUrl };
-        }),
-      );
+      // 2. Upload blocks (only for STANDARD template)
+      let finalBlocks: {
+        subHeading?: string | null;
+        content?: string;
+        imageUrl?: string | null;
+        sortOrder: number;
+      }[] = [];
 
-      // 3. Upload gallery images
-      const finalGalleryImages = await Promise.all(
-        (formData.galleryImages || []).map(async (img, idx) => {
-          let finalGalleryImgUrl = img.imageUrl;
-          const localGalleryFile = galleryFiles[idx];
-          if (localGalleryFile) {
-            finalGalleryImgUrl = await uploadSingleFile(
-              localGalleryFile,
-              "gallery",
-            );
-            if (img.imageUrl?.startsWith("blob:")) {
-              URL.revokeObjectURL(img.imageUrl);
-            }
-          }
-          return { ...img, imageUrl: finalGalleryImgUrl };
-        }),
-      );
+      if (isStandard) {
+        finalBlocks = await Promise.all(
+          (formData.blocks || [])
+            .filter((block) => Boolean(block.content && block.content.trim()))
+            .map(async (block, idx) => {
+              let finalBlockImgUrl = block.imageUrl;
+              const localBlockFile = blockFiles[idx];
+              if (localBlockFile) {
+                finalBlockImgUrl = await uploadSingleFile(
+                  localBlockFile,
+                  "gallery",
+                );
+                if (block.imageUrl?.startsWith("blob:")) {
+                  URL.revokeObjectURL(block.imageUrl);
+                }
+              }
+              return {
+                ...block,
+                imageUrl:
+                  finalBlockImgUrl && !finalBlockImgUrl.startsWith("blob:")
+                    ? finalBlockImgUrl
+                    : null,
+                sortOrder: idx + 1,
+              };
+            }),
+        );
+      }
+
+      // 3. Upload gallery images (only for GALLERY template)
+      let finalGalleryImages: {
+        imageUrl?: string;
+        imageDescription?: string | null;
+        sortOrder: number;
+      }[] = [];
+
+      if (!isStandard) {
+        finalGalleryImages = await Promise.all(
+          (formData.galleryImages || [])
+            .filter(
+              (img, idx) =>
+                Boolean(galleryFiles[idx]) ||
+                Boolean(img.imageUrl && img.imageUrl.trim()),
+            )
+            .map(async (img, idx) => {
+              let finalGalleryImgUrl = img.imageUrl;
+              const localGalleryFile = galleryFiles[idx];
+              if (localGalleryFile) {
+                finalGalleryImgUrl = await uploadSingleFile(
+                  localGalleryFile,
+                  "gallery",
+                );
+                if (img.imageUrl?.startsWith("blob:")) {
+                  URL.revokeObjectURL(img.imageUrl);
+                }
+              }
+              return {
+                ...img,
+                imageUrl: finalGalleryImgUrl || "",
+                sortOrder: idx + 1,
+              };
+            }),
+        );
+      }
+
+      const excerpt =
+        formData.excerpt?.trim() ||
+        generateAutoExcerpt({
+          ...formData,
+          blocks: finalBlocks,
+        } as any);
 
       const finalPayload = {
         ...formData,
+        status: "PENDING",
         coverUrl: finalCoverUrl,
         blocks: finalBlocks,
         galleryImages: finalGalleryImages,
-        excerpt: generateAutoExcerpt({
-          ...formData,
-          blocks: finalBlocks,
-        } as any),
+        excerpt,
       };
 
       const result = await BeritaService.submit(finalPayload as any);
@@ -265,9 +309,12 @@ export function RegisterNewsPage({ categories }: RegisterNewsPageProps) {
       setShowSuccessModal(true);
     } catch (err: any) {
       console.error("Pengajuan berita gagal:", err);
-      alert(
-        err.message || "Terjadi kesalahan saat memproses pengajuan berita.",
-      );
+      const serverMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Terjadi kesalahan saat memproses pengajuan berita.";
+      alert(serverMsg);
     } finally {
       setIsSubmitting(false);
     }

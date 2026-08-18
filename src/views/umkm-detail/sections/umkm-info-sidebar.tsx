@@ -16,47 +16,55 @@ import type { UmkmDetailDto } from "@/entities/umkm/model/types";
 export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
   return (
     <div className="space-y-6">
-      <div className="bg-surface-container-low border-outline-variant/20 rounded-xl border p-6">
-        <h2 className="font-label-sm text-label-sm text-primary mb-4 font-bold tracking-widest uppercase">
-          Informasi Kontak
-        </h2>
+      <div className="bg-surface-container-low/70 border-outline-variant/30 rounded-2xl border p-5 shadow-xs backdrop-blur-xs sm:p-6">
+        <div className="mb-5 flex items-center gap-2.5">
+          <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+            <Icon name="contact_mail" className="text-sm" />
+          </div>
+          <h2 className="font-label-sm text-label-sm text-primary font-bold tracking-wider uppercase">
+            Informasi Kontak
+          </h2>
+        </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4.5">
           <div className="flex items-start gap-3">
-            <Icon name="phone" className="text-secondary mt-0.5 shrink-0" />
+            <div className="bg-emerald-50 text-emerald-700 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+              <Icon name="phone" className="text-sm" />
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="font-label-sm text-label-sm text-on-surface-variant">
+              <p className="text-on-surface-variant/75 text-[11px] font-bold tracking-wider uppercase">
                 WhatsApp
               </p>
-              <p className="font-body-base text-body-base font-semibold break-words">
-                {formatWhatsappNumber(umkm.whatsappNumber || umkm.phone || "")}
+              <p className="text-on-surface mt-0.5 text-sm font-semibold break-words">
+                {formatWhatsappNumber(umkm.whatsappNumber || umkm.phone || "") || "-"}
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <Icon
-              name="location_on"
-              className="text-secondary mt-0.5 shrink-0"
-            />
+            <div className="bg-secondary/10 text-secondary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+              <Icon name="location_on" className="text-sm" />
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="font-label-sm text-label-sm text-on-surface-variant">
+              <p className="text-on-surface-variant/75 text-[11px] font-bold tracking-wider uppercase">
                 Alamat Usaha
               </p>
-              <p className="font-body-base text-body-base font-semibold break-words">
-                {umkm.address}
+              <p className="text-on-surface mt-0.5 text-sm font-semibold leading-snug break-words">
+                {umkm.address || "Desa Pringgodani"}
               </p>
             </div>
           </div>
 
           {(umkm.openDay || (umkm.startTime && umkm.endTime)) && (
             <div className="flex items-start gap-3">
-              <Icon name="schedule" className="text-secondary mt-0.5 shrink-0" />
+              <div className="bg-amber-50 text-amber-700 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+                <Icon name="schedule" className="text-sm" />
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="font-label-sm text-label-sm text-on-surface-variant">
+                <p className="text-on-surface-variant/75 text-[11px] font-bold tracking-wider uppercase">
                   Jam Operasional
                 </p>
-                <p className="font-body-base text-body-base font-semibold break-words">
+                <p className="text-on-surface mt-0.5 text-sm font-semibold leading-snug break-words">
                   {umkm.openDay || "Setiap Hari"}
                   {umkm.startTime &&
                     umkm.endTime &&
@@ -68,12 +76,14 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
 
           {umkm.since && (
             <div className="flex items-start gap-3">
-              <Icon name="history_edu" className="text-secondary mt-0.5 shrink-0" />
+              <div className="bg-purple-50 text-purple-700 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+                <Icon name="calendar_today" className="text-sm" />
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="font-label-sm text-label-sm text-on-surface-variant">
+                <p className="text-on-surface-variant/75 text-[11px] font-bold tracking-wider uppercase">
                   Berdiri Sejak
                 </p>
-                <p className="font-body-base text-body-base font-semibold">
+                <p className="text-on-surface mt-0.5 text-sm font-semibold">
                   Tahun {umkm.since}
                 </p>
               </div>
@@ -89,10 +99,9 @@ export function UmkmInfoSidebar({ umkm }: { umkm: UmkmDetailDto }) {
       </div>
 
       <LocationCard
-        latitude={umkm.latitude}
-        longitude={umkm.longitude}
         placeName={umkm.name}
-        addressUrl={umkm.mapsUrl || umkm.addressUrl}
+        address={umkm.address}
+        mapsUrl={umkm.mapsUrl}
       />
     </div>
   );

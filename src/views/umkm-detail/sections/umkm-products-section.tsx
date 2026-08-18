@@ -15,20 +15,35 @@ export function UmkmProductsSection({
 }) {
   return (
     <section>
-      <h2 className="font-headline-md text-primary border-outline-variant/30 mb-4 flex items-center justify-between border-b pb-3 text-lg font-bold">
-        <span>Katalog Produk Unggulan</span>
-        <span className="text-on-surface-variant text-xs font-semibold">
+      <div className="border-outline-variant/30 mb-6 flex items-center justify-between border-b pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+            <Icon name="shopping_bag" className="text-base" />
+          </div>
+          <h2 className="font-headline-md text-primary text-lg font-bold sm:text-xl">
+            Katalog Produk Unggulan
+          </h2>
+        </div>
+        <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-bold">
           {products.length} Produk
         </span>
-      </h2>
+      </div>
 
       {products.length === 0 ? (
-        <p className="font-body-base text-on-surface-variant border-outline-variant/30 bg-surface-container-low rounded-2xl border border-dashed px-6 py-10 text-center text-xs sm:text-sm">
-          Pelaku usaha belum menambahkan daftar produk secara spesifik. Hubungi
-          langsung melalui WhatsApp untuk menanyakan katalog lengkap produk.
-        </p>
+        <div className="border-outline-variant/30 bg-surface-container-low/50 rounded-2xl border border-dashed p-8 text-center sm:p-12">
+          <div className="bg-primary/10 text-primary mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
+            <Icon name="inventory_2" className="text-2xl" />
+          </div>
+          <h3 className="font-headline-md text-on-surface text-base font-bold">
+            Belum Ada Produk Terdaftar
+          </h3>
+          <p className="text-on-surface-variant/80 mx-auto mt-1.5 max-w-md text-xs leading-relaxed sm:text-sm">
+            Pelaku usaha belum menambahkan daftar produk secara spesifik. Hubungi
+            langsung melalui WhatsApp untuk menanyakan katalog lengkap produk.
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5">
           {products.map((product) => {
             const name = product.name || product.productName || "Produk UMKM";
             const photo = product.imageUrl || product.productPhoto;
@@ -42,37 +57,47 @@ export function UmkmProductsSection({
             return (
               <article
                 key={product.id}
-                className="bg-surface-container-lowest border-outline-variant/30 hover:border-primary/50 hover:shadow-lg relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 shadow-xs transition-all duration-300 hover:-translate-y-1"
+                className="group bg-surface-container-lowest border-outline-variant/30 hover:border-primary/40 relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
                 <div>
-                  <div className="bg-surface-container relative mb-2.5 aspect-square w-full overflow-hidden rounded-xl">
+                  <div className="bg-surface-container relative aspect-[4/3] w-full overflow-hidden">
                     <FallbackImage
                       src={photo}
                       alt={name}
-                      className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       fallbackIcon="inventory_2"
                     />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                   </div>
-                  <h3 className="text-on-surface line-clamp-2 min-h-[2.25rem] text-xs font-bold sm:text-sm">
-                    {name}
-                  </h3>
-                  {product.description && (
-                    <p className="text-on-surface-variant/80 mt-1 line-clamp-1 text-[11px]">
-                      {product.description}
-                    </p>
-                  )}
+
+                  <div className="p-4">
+                    <h3 className="font-headline-md text-on-surface group-hover:text-primary line-clamp-2 text-sm font-bold leading-snug transition sm:text-base">
+                      {name}
+                    </h3>
+                    {product.description && (
+                      <p className="text-on-surface-variant/80 mt-1.5 line-clamp-2 text-xs leading-relaxed">
+                        {product.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="border-outline-variant/15 mt-3 flex flex-col gap-2 border-t pt-2.5">
-                  <span className="text-primary font-headline-md text-xs font-extrabold sm:text-sm">
-                    {formatRupiah(product.price)}
-                  </span>
+                <div className="border-outline-variant/20 bg-surface/30 mt-auto flex items-center justify-between gap-3 border-t p-4">
+                  <div className="min-w-0">
+                    <p className="text-on-surface-variant/70 text-[10px] font-bold tracking-wider uppercase">
+                      Harga
+                    </p>
+                    <p className="font-headline-md text-primary truncate text-sm font-extrabold sm:text-base">
+                      {formatRupiah(product.price)}
+                    </p>
+                  </div>
+
                   {waMessage && (
                     <a
                       href={waMessage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-[#25D366] hover:bg-[#20BD5A] text-white flex items-center justify-center gap-1 rounded-xl py-1.5 text-center text-xs font-bold shadow-xs transition-all active:scale-98"
+                      className="bg-[#25D366] hover:bg-[#20BD5A] text-white inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-xs transition-all duration-200 hover:shadow-md active:scale-95"
                     >
                       <Icon name="chat" className="text-sm" />
                       <span>Pesan</span>

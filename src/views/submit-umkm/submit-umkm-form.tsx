@@ -481,18 +481,10 @@ export function SubmitUmkmForm({
                   <div className="relative">
                     <input
                       type="url"
-                      value={
-                        formData.mapsUrl ||
-                        formData.addressUrl ||
-                        formData.googlePlaceId ||
-                        ""
-                      }
+                      value={formData.mapsUrl || ""}
                       onChange={(e) => {
                         const url = e.target.value;
                         onChange("mapsUrl", url);
-                        onChange("addressUrl", url);
-                        onChange("googlePlaceId", url);
-                        onChange("googleMapsUrl", url);
                         const { lat, lng } = extractCoordinatesFromUrl(url);
                         if (lat) onChange("latitude", lat);
                         if (lng) onChange("longitude", lng);

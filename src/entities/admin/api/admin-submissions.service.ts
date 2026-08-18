@@ -121,7 +121,11 @@ export const AdminSubmissionsService = {
     reason?: string,
   ): Promise<{ success: boolean }> {
     try {
-      await apiClient.patch(`/admin/news/${id}/status`, { status, reason });
+      await apiClient.patch(`/admin/news/${id}/status`, {
+        status,
+        rejectionReason: reason,
+        reason,
+      });
       return { success: true };
     } catch (err) {
       console.error(`Gagal mengubah status berita ${id}:`, err);
@@ -135,7 +139,11 @@ export const AdminSubmissionsService = {
     reason?: string,
   ): Promise<{ success: boolean }> {
     try {
-      await apiClient.patch(`/admin/umkm/${id}/status`, { status, reason });
+      await apiClient.patch(`/admin/umkm/${id}/status`, {
+        status,
+        rejectionReason: reason,
+        reason,
+      });
       return { success: true };
     } catch (err) {
       console.error(`Gagal mengubah status UMKM ${id}:`, err);
