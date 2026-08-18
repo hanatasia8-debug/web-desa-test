@@ -141,7 +141,7 @@ async function BeritaResults({
 
   return (
     <>
-      <div className="gap-gutter grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="gap-gutter grid grid-cols-1 md:grid-cols-2">
         {result.items.map((news) => (
           <NewsCard key={news.id} news={news} variant="listing" />
         ))}

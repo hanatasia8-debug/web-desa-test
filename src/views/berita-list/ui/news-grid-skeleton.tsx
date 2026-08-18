@@ -7,7 +7,7 @@
 export function NewsGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
-      className="gap-gutter grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+      className="gap-gutter grid grid-cols-1 md:grid-cols-2"
       aria-busy="true"
       aria-label="Memuat berita"
     >
