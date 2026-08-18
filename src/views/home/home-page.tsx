@@ -25,8 +25,8 @@ export async function HomePage() {
   const [profileResult, productsResult, umkmResult, beritaResult, mapLocationsResult] =
     await Promise.allSettled([
       DesaService.getProfileWithStats(),
-      ProdukService.getLatest({ limit: 3 }),
-      UmkmService.getLatestPublished({ limit: 3 }),
+      ProdukService.getLatest({ limit: 6 }),
+      UmkmService.getLatestPublished({ limit: 6 }),
       BeritaService.getLatestPublished({ limit: 3 }),
       FasilitasService.getFacilities(),
     ]);

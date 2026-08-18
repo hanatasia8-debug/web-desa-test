@@ -28,13 +28,18 @@ export function UmkmSection({ items }: UmkmSectionProps) {
               siap melayani pemesanan.
             </p>
           </div>
-          <Link
-            href="/umkm"
-            className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1.5 text-xs font-bold transition sm:text-sm"
-          >
-            <span>Lihat Semua UMKM</span>
-            <Icon name="arrow_forward" className="text-sm" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <span className="text-on-surface-variant/70 md:hidden text-[11px] font-medium flex items-center gap-1">
+              <Icon name="swipe" className="text-sm" /> Geser &rarr;
+            </span>
+            <Link
+              href="/umkm"
+              className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1.5 text-xs font-bold transition sm:text-sm"
+            >
+              <span>Lihat Semua UMKM</span>
+              <Icon name="arrow_forward" className="text-sm" />
+            </Link>
+          </div>
         </div>
 
         {items.length === 0 ? (
@@ -44,15 +49,15 @@ export function UmkmSection({ items }: UmkmSectionProps) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-            {items.slice(0, 4).map((umkm, idx) => (
+          <div className="scrollbar-hide -mx-gutter px-gutter flex snap-x snap-mandatory overflow-x-auto pb-4 pt-1 gap-4 sm:gap-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0">
+            {items.slice(0, 6).map((umkm, idx) => (
               <motion.div
                 key={umkm.id}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: idx * 0.08 }}
-                className="h-full"
+                className="w-[80vw] min-w-[260px] max-w-[340px] flex-shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none h-full flex flex-col"
               >
                 <UmkmCard umkm={umkm} variant="listing" />
               </motion.div>

@@ -27,13 +27,18 @@ export function ProductsSection({ items }: ProductsSectionProps) {
             Pringgodani yang siap dipesan langsung via WhatsApp.
           </p>
         </div>
-        <Link
-          href="/produk"
-          className="text-primary hover:text-primary/80 inline-flex items-center gap-1.5 text-xs font-bold transition sm:text-sm"
-        >
-          <span>Lihat Semua Produk</span>
-          <Icon name="arrow_forward" className="text-sm" />
-        </Link>
+        <div className="flex items-center gap-4">
+          <span className="text-on-surface-variant/70 md:hidden text-[11px] font-medium flex items-center gap-1">
+            <Icon name="swipe" className="text-sm" /> Geser &rarr;
+          </span>
+          <Link
+            href="/produk"
+            className="text-primary hover:text-primary/80 inline-flex items-center gap-1.5 text-xs font-bold transition sm:text-sm"
+          >
+            <span>Lihat Semua Produk</span>
+            <Icon name="arrow_forward" className="text-sm" />
+          </Link>
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -43,7 +48,7 @@ export function ProductsSection({ items }: ProductsSectionProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div className="scrollbar-hide -mx-gutter px-gutter flex snap-x snap-mandatory overflow-x-auto pb-3 pt-1 gap-3.5 sm:gap-4 md:grid md:grid-cols-3 lg:grid-cols-6 md:overflow-visible md:pb-0 md:mx-0 md:px-0">
           {items.slice(0, 6).map((product, idx) => (
             <motion.div
               key={product.id}
@@ -51,7 +56,7 @@ export function ProductsSection({ items }: ProductsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.35, delay: idx * 0.06 }}
-              className="h-full"
+              className="w-[46vw] min-w-[160px] max-w-[210px] flex-shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none h-full flex flex-col"
             >
               <ProductCard product={product} />
             </motion.div>
