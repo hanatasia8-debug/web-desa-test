@@ -53,10 +53,16 @@ export async function UmkmListPage({ searchParams }: UmkmListPageProps) {
       return [];
     });
 
-  // A hand-typed/stale `?kategori=` that matches no enum value is an empty
-  // result, not an error.
+  // A hand-typed/stale `?kategori=` that matches no category is an empty result, not an error
   const unknownCategory =
-    Boolean(categorySlug) && resolveUmkmCategory(categorySlug) === null;
+    Boolean(categorySlug) &&
+    categories.length > 0 &&
+    !categories.some(
+      (c) =>
+        c.slug === categorySlug ||
+        c.value?.toLowerCase() === categorySlug.toLowerCase() ||
+        resolveUmkmCategory(categorySlug) === c.slug
+    );
 
   return (
     <div className="pb-section-padding pt-24">
