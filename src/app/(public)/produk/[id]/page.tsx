@@ -21,6 +21,8 @@ export async function generateMetadata({
     product.description ||
     `Beli ${product.name} langsung dari produsen lokal ${product.umkm?.name || "UMKM Desa Pringgodani"}, Kecamatan Bantur, Kabupaten Malang.`;
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lokalpringgodani.my.id";
+
   return {
     title,
     description,
@@ -41,13 +43,18 @@ export async function generateMetadata({
       title,
       description,
       url: `/produk/${id}`,
-      images: product.imageUrl ? [{ url: product.imageUrl, alt: product.name }] : undefined,
+      images: [
+        {
+          url: product.imageUrl || `${SITE_URL}/images/og-image.png`,
+          alt: product.name,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: product.imageUrl ? [product.imageUrl] : undefined,
+      images: [product.imageUrl || `${SITE_URL}/images/og-image.png`],
     },
   };
 }

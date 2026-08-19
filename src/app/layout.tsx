@@ -61,7 +61,8 @@ export const metadata: Metadata = {
       "Temukan aneka produk olahan, sentra kerajinan kreatif, dan hasil bumi unggulan dari para pelaku UMKM Desa Pringgodani, Kec. Bantur, Kab. Malang.",
     images: [
       {
-        url: "/images/og-image.png",
+        url: `${SITE_URL}/images/og-image.png`,
+        secureUrl: `${SITE_URL}/images/og-image.png`,
         width: 1200,
         height: 630,
         type: "image/png",
@@ -74,7 +75,7 @@ export const metadata: Metadata = {
     title: "Lokal Pringgodani — UMKM & Produk Desa Pringgodani",
     description:
       "Direktori resmi UMKM, produk kreatif, dan hasil bumi Desa Pringgodani, Bantur, Malang.",
-    images: ["/images/og-image.png"],
+    images: [`${SITE_URL}/images/og-image.png`],
   },
   robots: {
     index: true,
@@ -91,6 +92,7 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/images/favicon.png", type: "image/png", sizes: "192x192" },
+      { url: "/images/favicon.png", type: "image/png", sizes: "512x512" },
     ],
     shortcut: "/favicon.ico",
     apple: [
@@ -150,10 +152,14 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+        <link rel="image_src" href={`${SITE_URL}/images/og-image.png`} />
         <meta property="og:image" content={`${SITE_URL}/images/og-image.png`} />
+        <meta property="og:image:secure_url" content={`${SITE_URL}/images/og-image.png`} />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Lokal Pringgodani — Direktori Resmi UMKM & Hasil Bumi Desa Pringgodani" />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content={`${SITE_URL}/images/og-image.png`} />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b" />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b.html" />
