@@ -58,29 +58,58 @@ export default async function Page({ params }: Props) {
   const jsonLd = news
     ? {
         "@context": "https://schema.org",
-        "@type": "NewsArticle",
-        headline: news.title,
-        description: news.summary,
-        image: news.coverUrl ? [news.coverUrl] : [],
-        datePublished: news.publishedAt,
-        dateModified: news.publishedAt,
-        author: {
-          "@type": "Organization",
-          name: news.authorName || "Pemerintah Desa Pringgodani",
-          url: "https://lokalpringgodani.my.id",
-        },
-        publisher: {
-          "@type": "Organization",
-          name: "Lokal Pringgodani",
-          logo: {
-            "@type": "ImageObject",
-            url: "https://lokalpringgodani.my.id/images/logo.png",
+        "@graph": [
+          {
+            "@type": "NewsArticle",
+            "@id": `https://lokalpringgodani.my.id/berita/${slug}#article`,
+            headline: news.title,
+            description: news.summary,
+            image: news.coverUrl ? [news.coverUrl] : [],
+            datePublished: news.publishedAt,
+            dateModified: news.publishedAt,
+            author: {
+              "@type": "Organization",
+              name: news.authorName || "Pemerintah Desa Pringgodani",
+              url: "https://lokalpringgodani.my.id",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Lokal Pringgodani",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://lokalpringgodani.my.id/images/logo.png",
+              },
+            },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://lokalpringgodani.my.id/berita/${slug}`,
+            },
           },
-        },
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": `https://lokalpringgodani.my.id/berita/${slug}`,
-        },
+          {
+            "@type": "BreadcrumbList",
+            "@id": `https://lokalpringgodani.my.id/berita/${slug}#breadcrumb`,
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Beranda",
+                item: "https://lokalpringgodani.my.id",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Kabar Desa",
+                item: "https://lokalpringgodani.my.id/berita",
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: news.title,
+                item: `https://lokalpringgodani.my.id/berita/${slug}`,
+              },
+            ],
+          },
+        ],
       }
     : null;
 

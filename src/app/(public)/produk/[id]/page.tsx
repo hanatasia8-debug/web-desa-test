@@ -65,25 +65,56 @@ export default async function Page({
   const jsonLd = product
     ? {
         "@context": "https://schema.org",
-        "@type": "Product",
-        name: product.name,
-        image: product.imageUrl,
-        description: product.description || `Produk unggulan dari ${product.umkm?.name || "Desa Pringgodani"}`,
-        ...(product.price
-          ? {
-              offers: {
-                "@type": "Offer",
-                priceCurrency: "IDR",
-                price: product.price,
-                availability: "https://schema.org/InStock",
-                url: `https://lokalpringgodani.my.id/produk/${product.id}`,
+        "@graph": [
+          {
+            "@type": "Product",
+            "@id": `https://lokalpringgodani.my.id/produk/${product.id}#product`,
+            name: product.name,
+            image: product.imageUrl,
+            description:
+              product.description ||
+              `Produk unggulan dari ${product.umkm?.name || "Desa Pringgodani"}`,
+            ...(product.price
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    priceCurrency: "IDR",
+                    price: product.price,
+                    availability: "https://schema.org/InStock",
+                    url: `https://lokalpringgodani.my.id/produk/${product.id}`,
+                  },
+                }
+              : {}),
+            brand: {
+              "@type": "Brand",
+              name: product.umkm?.name || "UMKM Desa Pringgodani",
+            },
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": `https://lokalpringgodani.my.id/produk/${product.id}#breadcrumb`,
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Beranda",
+                item: "https://lokalpringgodani.my.id",
               },
-            }
-          : {}),
-        brand: {
-          "@type": "Brand",
-          name: product.umkm?.name || "UMKM Desa Pringgodani",
-        },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Katalog Produk",
+                item: "https://lokalpringgodani.my.id/produk",
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: product.name,
+                item: `https://lokalpringgodani.my.id/produk/${product.id}`,
+              },
+            ],
+          },
+        ],
       }
     : null;
 

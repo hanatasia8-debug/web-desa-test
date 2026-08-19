@@ -58,28 +58,57 @@ export default async function Page({ params }: Props) {
   const jsonLd = umkm
     ? {
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        name: umkm.name,
-        description: umkm.description,
-        image: umkm.coverUrl || umkm.logo,
-        telephone: umkm.whatsappNumber || umkm.phone,
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: umkm.address,
-          addressLocality: "Desa Pringgodani",
-          addressRegion: "Kecamatan Bantur, Kabupaten Malang",
-          addressCountry: "ID",
-        },
-        ...(umkm.latitude && umkm.longitude
-          ? {
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: umkm.latitude,
-                longitude: umkm.longitude,
+        "@graph": [
+          {
+            "@type": "LocalBusiness",
+            "@id": `https://lokalpringgodani.my.id/umkm/${umkm.slug}#localbusiness`,
+            name: umkm.name,
+            description: umkm.description,
+            image: umkm.coverUrl || umkm.logo,
+            telephone: umkm.whatsappNumber || umkm.phone,
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: umkm.address,
+              addressLocality: "Desa Pringgodani",
+              addressRegion: "Kecamatan Bantur, Kabupaten Malang",
+              addressCountry: "ID",
+            },
+            ...(umkm.latitude && umkm.longitude
+              ? {
+                  geo: {
+                    "@type": "GeoCoordinates",
+                    latitude: umkm.latitude,
+                    longitude: umkm.longitude,
+                  },
+                }
+              : {}),
+            url: `https://lokalpringgodani.my.id/umkm/${umkm.slug}`,
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": `https://lokalpringgodani.my.id/umkm/${umkm.slug}#breadcrumb`,
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Beranda",
+                item: "https://lokalpringgodani.my.id",
               },
-            }
-          : {}),
-        url: `https://lokalpringgodani.my.id/umkm/${umkm.slug}`,
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Direktori UMKM",
+                item: "https://lokalpringgodani.my.id/umkm",
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: umkm.name,
+                item: `https://lokalpringgodani.my.id/umkm/${umkm.slug}`,
+              },
+            ],
+          },
+        ],
       }
     : null;
 
