@@ -11,80 +11,14 @@ import type {
 } from "@/entities/desa/model/types";
 import { useVillageProfile } from "@/features/village-profile/model/use-village-profile";
 
+import { OfficialsCarousel } from "./sections/officials-carousel";
+
 interface ProfilPageProps {
   profile: VillageProfileDto | null;
   stats: VillageStatsDto;
 }
 
-function OfficialCard({
-  name,
-  position,
-  photo,
-  greeting,
-  email,
-  index,
-}: {
-  name: string;
-  position: string;
-  photo?: string;
-  greeting?: string;
-  email?: string;
-  index: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      whileHover={{ y: -4 }}
-      className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-container-lowest shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40"
-    >
-      <div>
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-container">
-          <FallbackImage
-            src={photo || "/images/placeholder-avatar.jpg"}
-            alt={name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            fallbackIcon="person"
-          />
-          <div className="absolute top-3 left-3">
-            <span className="rounded-full bg-surface/90 px-3 py-1 text-[11px] font-bold text-primary shadow-sm backdrop-blur-md border border-outline-variant/30">
-              {position}
-            </span>
-          </div>
-        </div>
 
-        <div className="p-4">
-          <h3 className="font-headline-md text-base font-bold text-on-surface group-hover:text-primary transition">
-            {name}
-          </h3>
-          <p className="text-xs text-on-surface-variant mt-0.5 font-medium">
-            Pemerintah Desa Pringgodani
-          </p>
-
-          {greeting && (
-            <p className="mt-2.5 text-xs text-on-surface-variant italic leading-relaxed border-l-2 border-primary/30 pl-2.5 py-0.5">
-              &ldquo;{greeting}&rdquo;
-            </p>
-          )}
-        </div>
-      </div>
-
-      {email && (
-        <div className="border-t border-outline-variant/15 p-4 pt-2.5 bg-surface/40">
-          <a
-            href={`mailto:${email}`}
-            className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-primary transition font-medium truncate w-full"
-          >
-            <Icon name="mail" className="text-primary text-sm shrink-0" />
-            <span className="truncate">{email}</span>
-          </a>
-        </div>
-      )}
-    </motion.div>
-  );
-}
 
 export function ProfilPage({
   profile: initialProfile,
@@ -244,44 +178,10 @@ export function ProfilPage({
         </div>
       </section>
 
-      {/* ── 3. Jajaran Perangkat Desa ── */}
+      {/* ── 3. Jajaran Perangkat Desa (Carousel Slider) ── */}
       <section className="bg-surface-container-low/50 border-t border-outline-variant/20 py-16">
         <div className="max-w-container-max px-gutter mx-auto">
-          <div className="mb-10 text-center">
-            <span className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold">
-              <Icon name="groups" className="text-sm" />
-              Struktur Organisasi
-            </span>
-            <h2 className="font-headline-lg text-primary mt-2 text-2xl sm:text-3xl font-bold">
-              Perangkat Desa Pringgodani
-            </h2>
-            <p className="text-on-surface-variant mx-auto mt-2 max-w-lg text-xs sm:text-sm">
-              Aparatur pemerintah desa yang siap memberikan pelayanan publik dan pendampingan wirausaha masyarakat.
-            </p>
-          </div>
-
-          {sortedOfficials.length === 0 ? (
-            <div className="border border-dashed border-outline-variant/30 rounded-3xl p-12 text-center bg-surface-container-lowest max-w-md mx-auto">
-              <Icon name="person_outline" className="text-4xl text-on-surface-variant/50 mx-auto mb-2" />
-              <p className="text-on-surface-variant text-sm">
-                Data susunan perangkat desa belum ditambahkan oleh administrator.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {sortedOfficials.map((official, idx) => (
-                <OfficialCard
-                  key={official.id || idx}
-                  index={idx}
-                  name={official.name}
-                  position={official.position}
-                  photo={official.photoUrl || official.photo}
-                  greeting={official.greeting}
-                  email={official.email}
-                />
-              ))}
-            </div>
-          )}
+          <OfficialsCarousel officials={sortedOfficials} />
         </div>
       </section>
     </div>
