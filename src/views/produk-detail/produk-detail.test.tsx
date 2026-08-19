@@ -28,7 +28,7 @@ const mockProduct: ProductDetailDto = {
 
 describe("Product Detail Components", () => {
   describe("ProductBreadcrumb", () => {
-    it("renders breadcrumbs with home, katalog, category, and product name", () => {
+    it("renders breadcrumbs with home, produk, category, and product name", () => {
       render(
         <ProductBreadcrumb
           productName="Keripik Tempe Renyah"
@@ -38,9 +38,10 @@ describe("Product Detail Components", () => {
       );
 
       expect(screen.getByText("Beranda")).toBeInTheDocument();
-      expect(screen.getByText("Katalog Produk")).toBeInTheDocument();
+      expect(screen.getByText("Produk")).toBeInTheDocument();
       expect(screen.getByText("Kuliner")).toBeInTheDocument();
       expect(screen.getByText("Keripik Tempe Renyah")).toBeInTheDocument();
+      expect(screen.getByText("Katalog")).toBeInTheDocument();
     });
   });
 

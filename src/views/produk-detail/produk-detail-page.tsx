@@ -74,14 +74,14 @@ export async function ProdukDetailPage({ id }: ProdukDetailPageProps) {
   };
 
   return (
-    <div className="pb-24 pt-24 sm:pb-section-padding">
+    <div className="pb-28 pt-20 sm:pt-24 sm:pb-section-padding min-h-screen">
       {/* Schema.org JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-container-max px-gutter mx-auto">
+      <div className="max-w-container-max px-3.5 sm:px-6 lg:px-8 mx-auto">
         {/* Breadcrumb Navigation */}
         <ProductBreadcrumb
           productName={product.name}
@@ -90,10 +90,10 @@ export async function ProdukDetailPage({ id }: ProdukDetailPageProps) {
         />
 
         {/* Main Product Showcase Card */}
-        <div className="bg-surface-container-lowest border-outline-variant/20 rounded-3xl sm:rounded-[2.5rem] border p-5 sm:p-8 lg:p-10 shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <div className="bg-surface-container-lowest border-outline-variant/20 rounded-2xl sm:rounded-3xl lg:rounded-[2.5rem] border p-4 sm:p-6 lg:p-10 shadow-xs sm:shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start">
             {/* Left Column: Visual Gallery & Trust Signals */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <ProductGallery
                 imageUrl={product.imageUrl}
                 productName={product.name}
@@ -104,7 +104,7 @@ export async function ProdukDetailPage({ id }: ProdukDetailPageProps) {
             </div>
 
             {/* Right Column: Sticky Purchase Console & Store Profile */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               <ProductOrderBox product={product} />
 
               {umkm && <ProductStoreCard umkm={umkm} />}
@@ -113,7 +113,7 @@ export async function ProdukDetailPage({ id }: ProdukDetailPageProps) {
         </div>
 
         {/* Structured Product Description & Ordering Guide */}
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-6 sm:mt-10">
           <ProductDescriptionSection
             description={product.description}
             productName={product.name}
