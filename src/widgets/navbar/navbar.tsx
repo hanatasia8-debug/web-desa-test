@@ -36,7 +36,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ajukanOpen, setAjukanOpen] = useState(false);
   const [brandName, setBrandName] = useState("Lokal Pringgodani");
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>("/images/logo.png");
 
   const applySettings = (s?: { website_name?: string; logo_url?: string } | null) => {
     if (
@@ -49,8 +49,15 @@ export function Navbar() {
     } else {
       setBrandName("Lokal Pringgodani");
     }
-    if (s?.logo_url && typeof s.logo_url === "string") {
-      setLogoUrl(s.logo_url);
+
+    if (s?.logo_url && typeof s.logo_url === "string" && s.logo_url.trim().length > 0) {
+      const resolved =
+        s.logo_url === "/images/logo-desa.png"
+          ? "/images/logo.png"
+          : s.logo_url;
+      setLogoUrl(resolved);
+    } else {
+      setLogoUrl("/images/logo.png");
     }
   };
 

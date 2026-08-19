@@ -22,29 +22,33 @@ const PRESET_CONFIGS: Record<
   ImagePreset,
   { maxWidth: number; maxHeight: number; quality: number }
 > = {
-  banner: { maxWidth: 1600, maxHeight: 1200, quality: 0.85 },
-  product: { maxWidth: 1000, maxHeight: 1000, quality: 0.85 },
-  gallery: { maxWidth: 1200, maxHeight: 900, quality: 0.85 },
-  avatar: { maxWidth: 600, maxHeight: 600, quality: 0.9 },
-  default: { maxWidth: 1600, maxHeight: 1200, quality: 0.85 },
+  banner: { maxWidth: 1920, maxHeight: 1080, quality: 0.82 },
+  product: { maxWidth: 1000, maxHeight: 1000, quality: 0.82 },
+  gallery: { maxWidth: 1400, maxHeight: 1050, quality: 0.82 },
+  avatar: { maxWidth: 512, maxHeight: 512, quality: 0.88 },
+  default: { maxWidth: 1600, maxHeight: 1200, quality: 0.82 },
 };
 
 /**
+ * Checks if a file is an image based on mime type or file extension.
+ */
+function isImageFile(file: File): boolean {
+  if (!file) return false;
+  if (file.type && file.type.startsWith("image/")) return true;
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  return ["jpg", "jpeg", "png", "webp", "bmp", "avif", "heic", "heif"].includes(ext);
+}
+
+/**
  * Compresses an image file client-side using HTML5 Canvas & WebP encoding.
- * Preserves high visual fidelity without artifacts while reducing file size by 80-95%.
+ * Enforces progressive compression safety to ensure files stay well under serverless payload limits.
  */
 export async function compressImage(
   file: File,
   options: ImageCompressionOptions | ImagePreset = "default",
 ): Promise<File> {
-  // If not an image or is a GIF (animated) or SVG, preserve original file
-  if (
-    !file ||
-    !file.type ||
-    !file.type.startsWith("image/") ||
-    file.type === "image/gif" ||
-    file.type === "image/svg+xml"
-  ) {
+  // If not an image or is an animated GIF / SVG, preserve original file
+  if (!file || !isImageFile(file) || file.type === "image/gif" || file.type === "image/svg+xml") {
     return file;
   }
 
@@ -55,7 +59,7 @@ export async function compressImage(
 
   const maxWidth = opts.maxWidth || config.maxWidth;
   const maxHeight = opts.maxHeight || config.maxHeight;
-  const quality = opts.quality || config.quality;
+  const initialQuality = opts.quality || config.quality;
 
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -88,32 +92,45 @@ export async function compressImage(
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convert to WebP blob
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              resolve(file);
-              return;
-            }
+        // Helper to encode canvas to blob with progressive compression safety
+        const encodeBlob = (quality: number) => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
 
-            const newExtension = "webp";
-            const originalBase = file.name.replace(/\.[^/.]+$/, "");
-            const newFileName = `${originalBase}.${newExtension}`;
+              // Progressive safety: If output is still > 1.8MB, reduce quality once more
+              if (blob.size > 1.8 * 1024 * 1024 && quality > 0.65) {
+                console.log(
+                  `[ImageCompression] Output ${(blob.size / 1024).toFixed(1)} KB is still large, applying secondary compression...`
+                );
+                encodeBlob(Math.max(0.65, quality - 0.15));
+                return;
+              }
 
-            const compressedFile = new File([blob], newFileName, {
-              type: "image/webp",
-              lastModified: Date.now(),
-            });
+              const newExtension = "webp";
+              const originalBase = file.name.replace(/\.[^/.]+$/, "");
+              const newFileName = `${originalBase}.${newExtension}`;
 
-            console.log(
-              `[ImageCompression] '${file.name}' (${(file.size / 1024).toFixed(1)} KB) -> '${newFileName}' (${(compressedFile.size / 1024).toFixed(1)} KB, preset: ${preset})`,
-            );
+              const compressedFile = new File([blob], newFileName, {
+                type: "image/webp",
+                lastModified: Date.now(),
+              });
 
-            resolve(compressedFile);
-          },
-          "image/webp",
-          quality,
-        );
+              console.log(
+                `[ImageCompression] '${file.name}' (${(file.size / 1024).toFixed(1)} KB) -> '${newFileName}' (${(compressedFile.size / 1024).toFixed(1)} KB, preset: ${preset})`,
+              );
+
+              resolve(compressedFile);
+            },
+            "image/webp",
+            quality,
+          );
+        };
+
+        encodeBlob(initialQuality);
       };
 
       if (event.target?.result) {

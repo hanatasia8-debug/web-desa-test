@@ -200,6 +200,7 @@ export function AdminSettingsPage() {
               onChange={(url) => setCustomBannerUrl(url)}
               helperText="Jika diunggah, gambar ini akan menggantikan banner otomatis berita di beranda publik depan."
               aspectRatio="banner"
+              category="village"
             />
           </div>
         </div>
