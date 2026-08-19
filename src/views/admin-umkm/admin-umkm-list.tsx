@@ -120,7 +120,7 @@ export function AdminUmkmList() {
           <span className="text-on-surface-variant mr-1 text-xs font-bold">
             Status:
           </span>
-          {["ALL", "APPROVED", "PENDING", "REJECTED"].map((st) => (
+          {["ALL", "APPROVED", "PENDING", "DRAFT", "REJECTED"].map((st) => (
             <button
               key={st}
               onClick={() => setFilterStatus(st)}
@@ -190,7 +190,9 @@ export function AdminUmkmList() {
                               ? "bg-primary-container text-on-primary-container"
                               : item.status === "PENDING"
                                 ? "bg-warning-container text-on-warning-container"
-                                : "bg-error-container text-on-error-container"
+                                : item.status === "DRAFT"
+                                  ? "bg-surface-container-high text-on-surface-variant"
+                                  : "bg-error-container text-on-error-container"
                           }`}
                         >
                           {item.status}

@@ -669,6 +669,7 @@ export function AdminUmkmEditor({
               >
                 <option value="APPROVED">APPROVED (Setujui Usaha)</option>
                 <option value="PENDING">PENDING (Tinjau Warga)</option>
+                <option value="DRAFT">DRAFT (Draf Arsip)</option>
                 <option value="REJECTED">REJECTED (Tolak Usaha)</option>
               </select>
             </div>

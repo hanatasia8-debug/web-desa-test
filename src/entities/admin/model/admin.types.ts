@@ -1,5 +1,5 @@
 export type NewsStatus = "PUBLISHED" | "PENDING" | "REJECTED" | "DRAFT";
-export type UmkmStatus = "APPROVED" | "PENDING" | "REJECTED";
+export type UmkmStatus = "APPROVED" | "PENDING" | "REJECTED" | "DRAFT";
 
 export interface PendingSubmissionsResponse {
   pendingNews: PendingNewsSubmission[];

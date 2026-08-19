@@ -395,8 +395,9 @@ export function AdminBeritaEditor({
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
               >
                 <option value="PUBLISHED">PUBLISHED (Langsung Terbit)</option>
-                <option value="DRAFT">DRAFT (Konsep Simpan)</option>
                 <option value="PENDING">PENDING (Menunggu Review)</option>
+                <option value="DRAFT">DRAFT (Konsep Simpan)</option>
+                <option value="REJECTED">REJECTED (Ditolak)</option>
               </select>
             </div>
           </div>
