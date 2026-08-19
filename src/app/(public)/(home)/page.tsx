@@ -7,7 +7,7 @@ import { HomePage } from "@/views/home/home-page";
  * folder, and `berita/(list)/loading.tsx` for why a shared boundary with
  * sibling routes is avoided elsewhere in this app.
  */
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default function Page() {
   return <HomePage />;

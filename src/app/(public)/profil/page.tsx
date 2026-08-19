@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const [{ profile, stats }, categoriesResult] = await Promise.all([
