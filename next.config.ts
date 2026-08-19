@@ -2,14 +2,15 @@ import type { NextConfig } from "next";
 
 /**
  * Destination for the /api/:path* rewrite.
- * Dynamically resolves from environment variables with protocol, quote, and trailing slash sanitization.
- * Next.js requires destination to start with '/', 'http://', or 'https://'.
+ * Server-side resolution from environment variables (BFF pattern).
+ * Browser DevTools only sees /api/* on the frontend host, completely hiding backend URL.
  */
 function getBackendRewriteDestination(): string {
   const raw =
     process.env.INTERNAL_API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.BACKEND_URL ||
     process.env.BACKEND_INTERNAL_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:3000/api";
 
   let url = raw.trim().replace(/^['"]+|['"]+$/g, "").trim();
@@ -33,7 +34,8 @@ function getBackendRewriteDestination(): string {
       url.startsWith("127.0.0.1") ||
       url.startsWith("192.168.") ||
       url.startsWith("10.") ||
-      url.startsWith("172.16.")
+      url.startsWith("172.16.") ||
+      url.startsWith("backend")
     ) {
       url = `http://${url}`;
     } else {
@@ -48,8 +50,6 @@ function getBackendRewriteDestination(): string {
 
   return url;
 }
-
-
 
 /**
  * Parses allowed development origins from ALLOWED_DEV_ORIGINS environment variable
@@ -78,9 +78,32 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: getAllowedDevOrigins(),
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**" },
-      { protocol: "http", hostname: "**" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "pringgondaniblog.wordpress.com" },
+      { protocol: "https", hostname: "*.desa.id" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "maps.googleapis.com" },
+      { protocol: "http", hostname: "localhost" },
+      { protocol: "http", hostname: "127.0.0.1" },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
   },
   async rewrites() {
     const backendUrl = getBackendRewriteDestination();
@@ -94,4 +117,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

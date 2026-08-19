@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { DynamicFavicon } from "@/shared/ui/dynamic-favicon";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lokalpringgodani.my.id";
 
@@ -165,7 +166,7 @@ export default function RootLayout({
         <meta name="google-site-verification" content="googlea9c207ee32eba86b.html" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLdWebSite) }}
         />
       </head>
       <body className="font-body-base flex min-h-full flex-col">

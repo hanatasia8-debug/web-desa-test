@@ -9,6 +9,7 @@ import {
   subscribeStoredAdminSettings,
 } from "@/entities/admin/api/admin-settings.service";
 import { cn } from "@/shared/utils/cn";
+import { sanitizeExternalUrl } from "@/shared/utils/sanitize-url";
 
 interface FooterSettings {
   contactEmail: string;
@@ -141,7 +142,7 @@ export function Footer() {
           <div className="flex gap-4">
             {/* Facebook */}
             <a
-              href={settings.socialFacebook}
+              href={sanitizeExternalUrl(settings.socialFacebook) || "https://facebook.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex h-11 w-11 transform items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110"
@@ -153,7 +154,7 @@ export function Footer() {
             </a>
             {/* Instagram */}
             <a
-              href={settings.socialInstagram}
+              href={sanitizeExternalUrl(settings.socialInstagram) || "https://instagram.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex h-11 w-11 transform items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110"
@@ -165,7 +166,7 @@ export function Footer() {
             </a>
             {/* Youtube */}
             <a
-              href={settings.socialYoutube}
+              href={sanitizeExternalUrl(settings.socialYoutube) || "https://youtube.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex h-11 w-11 transform items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110"
@@ -177,7 +178,7 @@ export function Footer() {
             </a>
             {/* TikTok */}
             <a
-              href={settings.socialTiktok}
+              href={sanitizeExternalUrl(settings.socialTiktok) || "https://tiktok.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex h-11 w-11 transform items-center justify-center rounded-full shadow-sm transition-all duration-300 hover:scale-110"

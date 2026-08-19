@@ -51,30 +51,18 @@ function getBaseURL(): string {
   const isServer = typeof window === "undefined";
 
   if (isServer) {
-    // SSR: use internal Docker hostname or env var
+    // SSR (Server-Side Rendering): Connect directly via internal network or localhost
     return sanitizeApiUrl(
       process.env.INTERNAL_API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.BACKEND_URL ||
       process.env.BACKEND_INTERNAL_URL ||
       "http://localhost:3000/api"
     );
   }
 
-  // Client-side (Browser):
-  // 1. Explicit NEXT_PUBLIC_API_URL set in build/env
-  if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.trim()) {
-    return sanitizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
-  }
-
-  // 2. In browser on local development
-  if (
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ) {
-    return `http://${window.location.hostname}:3000/api`;
-  }
-
-  // 3. Fallback in production browser: relative /api route (rewritten by Next.js)
+  // Client-side (Browser / DevTools):
+  // ALWAYS use relative "/api" path routed through Next.js BFF reverse proxy rewrites.
+  // This guarantees DevTools cannot inspect backend internal host/port and ensures 100% same-origin cookies.
   return "/api";
 }
 

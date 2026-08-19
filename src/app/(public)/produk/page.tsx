@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProdukListPage } from "@/views/produk-list/produk-list-page";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
 export const metadata: Metadata = {
   title: "Katalog Produk UMKM Pringgodani — Produk Olahan & Hasil Bumi Desa",
@@ -74,7 +75,7 @@ export default function Page({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <ProdukListPage searchParams={searchParams} />
     </>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProdukDetailPage } from "@/views/produk-detail/produk-detail-page";
 import { ProdukService } from "@/entities/produk/api/produk.service";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
 export async function generateMetadata({
   params,
@@ -130,7 +131,7 @@ export default async function Page({
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
         />
       )}
       <ProdukDetailPage id={id} />

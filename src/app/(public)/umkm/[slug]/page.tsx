@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { UmkmDetailPage } from "@/views/umkm-detail/umkm-detail-page";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -122,7 +123,7 @@ export default async function Page({ params }: Props) {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
         />
       )}
       <UmkmDetailPage slug={slug} />

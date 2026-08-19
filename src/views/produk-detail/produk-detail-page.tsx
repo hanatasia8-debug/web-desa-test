@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProdukService } from "@/entities/produk/api/produk.service";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 import { ProductBreadcrumb } from "./sections/product-breadcrumb";
 import { ProductGallery } from "./sections/product-gallery";
 import { ProductTrustBadges } from "./sections/product-trust-badges";
@@ -78,7 +79,7 @@ export async function ProdukDetailPage({ id }: ProdukDetailPageProps) {
       {/* Schema.org JSON-LD */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
 
       <div className="max-w-container-max px-3.5 sm:px-6 lg:px-8 mx-auto">

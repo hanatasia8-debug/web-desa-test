@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BeritaListPage } from "@/views/berita-list/berita-list-page";
+import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
 export const metadata: Metadata = {
   title: "Warta & Berita Desa Pringgodani — Kabar Terkini UMKM & Pembangunan",
@@ -71,7 +72,7 @@ export default function Page({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <BeritaListPage searchParams={searchParams} />
     </>
