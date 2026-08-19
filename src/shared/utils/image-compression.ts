@@ -39,6 +39,53 @@ function isImageFile(file: File): boolean {
   return ["jpg", "jpeg", "png", "webp", "bmp", "avif", "heic", "heif"].includes(ext);
 }
 
+/**
+ * Detects if a file is an HEIC/HEIF image by checking its magic bytes in the ISOBMFF header,
+ * even if the file extension was renamed to .jpg, .png, etc.
+ */
+export async function isHeicFile(file: File): Promise<boolean> {
+  if (!file) return false;
+
+  // 1. Check extension and mime type
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  if (["heic", "heif"].includes(ext) || file.type === "image/heic" || file.type === "image/heif") {
+    return true;
+  }
+
+  // 2. Check ISOBMFF magic bytes (bytes 4-11: ftypheic, ftypmif1, etc.)
+  try {
+    const slice = file.slice(0, 24);
+    const buffer = new Uint8Array(await slice.arrayBuffer());
+    if (buffer.length >= 12) {
+      const ftyp = String.fromCharCode(buffer[4], buffer[5], buffer[6], buffer[7]);
+      if (ftyp === "ftyp") {
+        const brand = String.fromCharCode(buffer[8], buffer[9], buffer[10], buffer[11]).toLowerCase();
+        const heicBrands = ["heic", "heix", "heim", "heis", "mif1", "msf1", "hevc", "hevx"];
+        if (heicBrands.includes(brand)) {
+          return true;
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return false;
+}
+
+/**
+ * Converts a HEIC/HEIF file to standard JPEG blob using heic2any.
+ */
+async function convertHeicToJpeg(file: File): Promise<Blob> {
+  const heic2any = (await import("heic2any")).default;
+  const result = await heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.92,
+  });
+  return Array.isArray(result) ? result[0] : result;
+}
+
 export interface CompressionDetails {
   file: File;
   previewUrl: string;
@@ -60,6 +107,7 @@ export function formatFileSize(bytes: number): string {
 
 /**
  * Compresses an image file client-side and returns full compression statistics & preview URL.
+ * Automatically detects and converts HEIC/HEIF files (including renamed files).
  */
 export async function compressImageWithDetails(
   file: File,
@@ -89,8 +137,21 @@ export async function compressImageWithDetails(
   const maxHeight = opts.maxHeight || config.maxHeight;
   const initialQuality = opts.quality || config.quality;
 
+  // Handle HEIC / HEIF conversion if detected
+  let sourceBlob: Blob = file;
+  const isHeic = await isHeicFile(file);
+
+  if (isHeic) {
+    console.log(`[ImageCompression] HEIC image detected in '${file.name}', converting to JPEG first...`);
+    try {
+      sourceBlob = await convertHeicToJpeg(file);
+    } catch (heicErr) {
+      console.warn("[ImageCompression] Failed to convert HEIC via heic2any:", heicErr);
+    }
+  }
+
   return new Promise((resolve) => {
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(sourceBlob);
     const img = new Image();
 
     img.onerror = () => {
