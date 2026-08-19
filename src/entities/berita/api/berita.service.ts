@@ -95,11 +95,15 @@ export const BeritaService = {
     });
   },
 
-  async getCategories(): Promise<NewsCategoryListResponse> {
+  async getCategories({
+    all = false,
+  }: { all?: boolean } = {}): Promise<NewsCategoryListResponse> {
     try {
       const { data } = await apiClient.get<
         ApiSuccessBody<NewsCategoryListResponse>
-      >("/public/news/categories");
+      >("/public/news/categories", {
+        params: all ? { all: "true" } : undefined,
+      });
       if (data?.data) return data.data;
     } catch (err) {
       console.error("Gagal memuat kategori berita dari API:", err);

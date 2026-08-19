@@ -17,6 +17,10 @@ export function BeritaCategoryFilter({
   const searchParams = useSearchParams();
   const activeSlug = searchParams.get("kategori");
 
+  const visibleCategories = categories.filter(
+    (category) => (category.newsCount ?? 1) > 0,
+  );
+
   const chipClass = (isActive: boolean) =>
     cn(
       "font-label-sm text-label-sm rounded-full px-5 py-2.5 whitespace-nowrap transition-colors",
@@ -37,7 +41,7 @@ export function BeritaCategoryFilter({
       >
         Semua
       </Link>
-      {categories.map((category) => (
+      {visibleCategories.map((category) => (
         <Link
           key={category.id || category.slug}
           href={hrefFor(category.slug)}

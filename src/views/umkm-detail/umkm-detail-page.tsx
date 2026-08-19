@@ -7,6 +7,7 @@ import { UmkmHero } from "./sections/umkm-hero";
 import { UmkmProductsSection } from "./sections/umkm-products-section";
 import { UmkmInfoSidebar } from "./sections/umkm-info-sidebar";
 import { UmkmGallerySection } from "./sections/umkm-gallery-section";
+import { UmkmShareBar } from "./sections/umkm-share-bar";
 import { RelatedPotentialCard } from "./sections/related-potential-card";
 import { SimilarUmkmSection } from "./sections/similar-umkm-section";
 
@@ -64,6 +65,12 @@ export async function UmkmDetailPage({ slug }: UmkmDetailPageProps) {
                 products={umkm.products}
                 umkmName={umkm.name}
                 phone={umkm.whatsappNumber || umkm.phone || ""}
+              />
+
+              <UmkmShareBar
+                name={umkm.name}
+                categoryName={umkm.category}
+                description={umkm.description}
               />
             </div>
 

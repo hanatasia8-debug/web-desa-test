@@ -94,11 +94,15 @@ export const UmkmService = {
     return this.getPaginated({ page: 1, limit, category, exclude: excludeId });
   },
 
-  async getCategories(): Promise<UmkmCategoryListResponse> {
+  async getCategories({
+    all = false,
+  }: { all?: boolean } = {}): Promise<UmkmCategoryListResponse> {
     try {
       const { data } = await apiClient.get<
         ApiSuccessBody<UmkmCategoryListResponse>
-      >("/public/umkm/categories");
+      >("/public/umkm/categories", {
+        params: all ? { all: "true" } : undefined,
+      });
       if (data?.data) return data.data;
     } catch (err) {
       console.error("Gagal memuat kategori UMKM dari API:", err);

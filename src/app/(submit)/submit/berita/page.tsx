@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SubmitBeritaRoutePage() {
-  const categoriesRes = await BeritaService.getCategories();
+  const categoriesRes = await BeritaService.getCategories({ all: true });
 
   return <RegisterNewsPage categories={categoriesRes.items} />;
 }

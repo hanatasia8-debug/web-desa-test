@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RegisterUmkmRoutePage() {
-  const categoriesRes = await UmkmService.getCategories();
+  const categoriesRes = await UmkmService.getCategories({ all: true });
 
   return <RegisterUmkmPage categories={categoriesRes.items} />;
 }
