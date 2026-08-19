@@ -3,7 +3,12 @@ import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
-import { compressImage, type ImagePreset } from "@/shared/utils/image-compression";
+import {
+  compressImageWithDetails,
+  type ImagePreset,
+  type CompressionDetails,
+} from "@/shared/utils/image-compression";
+import { UploadConfirmationModal } from "@/shared/ui/upload-confirmation-modal";
 
 interface FileUploadWithPreviewProps {
   label: string;
@@ -26,26 +31,30 @@ export function FileUploadWithPreview({
 }: FileUploadWithPreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [pendingDetails, setPendingDetails] = useState<CompressionDetails | null>(
+    null,
+  );
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFile = e.target.files?.[0];
     if (!rawFile) return;
 
-    // Validate size (max 15MB)
-    if (rawFile.size > 15 * 1024 * 1024) {
-      setUploadError("Ukuran file maksimal adalah 15MB");
+    // Validate size (support up to 50MB raw camera files)
+    if (rawFile.size > 50 * 1024 * 1024) {
+      setUploadError("Ukuran file maksimal adalah 50MB");
       return;
     }
 
-    setIsUploading(true);
+    setIsCompressing(true);
     setUploadError(null);
 
     try {
       // Determine compression preset based on category & aspect ratio
       let preset: ImagePreset = "default";
-      if (aspectRatio === "banner" || category === "news") {
+      if (aspectRatio === "banner" || category === "news" || category === "village") {
         preset = "banner";
       } else if (category === "umkm") {
         preset = "product";
@@ -53,16 +62,29 @@ export function FileUploadWithPreview({
         preset = "avatar";
       }
 
-      const file = await compressImage(rawFile, preset);
-
-      if (file.size > 4 * 1024 * 1024) {
-        throw new Error(
-          "Ukuran file hasil kompresi masih melebihi batas 4MB. Harap gunakan foto dengan resolusi lebih kecil."
-        );
+      // 1. Compress in browser
+      const details = await compressImageWithDetails(rawFile, preset);
+      setPendingDetails(details);
+    } catch (err: any) {
+      console.error("Gagal mengompresi berkas:", err);
+      setUploadError("Gagal memproses gambar. Harap pilih gambar lain.");
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
+    }
+  };
 
+  const handleConfirmUpload = async () => {
+    if (!pendingDetails) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", pendingDetails.file);
       formData.append("category", category);
 
       const { data } = await apiClient.post<ApiSuccessBody<{ url: string }>>(
@@ -75,21 +97,26 @@ export function FileUploadWithPreview({
 
       if (data?.data?.url) {
         onChange(data.data.url);
+        setPendingDetails(null);
       } else {
         throw new Error("Gagal mendapatkan URL publik dari server storage");
       }
     } catch (err: any) {
-      console.error("Gagal mengunggah berkas ke Supabase storage:", err);
+      console.error("Gagal mengunggah berkas ke storage:", err);
       setUploadError(
         err?.response?.data?.message ||
-          "Gagal mengunggah berkas ke server storage. Periksa format dan koneksi Anda.",
+          "Gagal mengunggah berkas ke server storage. Periksa koneksi Anda.",
       );
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
+  };
+
+  const handleCancelConfirmation = () => {
+    if (pendingDetails?.previewUrl) {
+      URL.revokeObjectURL(pendingDetails.previewUrl);
+    }
+    setPendingDetails(null);
   };
 
   const getAspectClass = () => {
@@ -157,11 +184,15 @@ export function FileUploadWithPreview({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                disabled={isUploading}
+                disabled={isUploading || isCompressing}
                 onClick={() => fileInputRef.current?.click()}
                 className="bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition"
               >
-                {isUploading ? (
+                {isCompressing ? (
+                  <>
+                    <Icon name="compress" className="animate-spin text-base" /> Mengompresi Gambar...
+                  </>
+                ) : isUploading ? (
                   <>
                     <Icon name="sync" className="animate-spin text-base" /> Mengunggah ke Storage...
                   </>
@@ -172,7 +203,7 @@ export function FileUploadWithPreview({
                 )}
               </button>
 
-              {value && !isUploading && (
+              {value && !isUploading && !isCompressing && (
                 <button
                   type="button"
                   onClick={() => onChange("")}
@@ -193,6 +224,16 @@ export function FileUploadWithPreview({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal Before Upload */}
+      <UploadConfirmationModal
+        isOpen={Boolean(pendingDetails)}
+        title={`Konfirmasi: ${label}`}
+        details={pendingDetails}
+        isUploading={isUploading}
+        onConfirm={handleConfirmUpload}
+        onCancel={handleCancelConfirmation}
+      />
     </div>
   );
 }

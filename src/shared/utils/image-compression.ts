@@ -39,17 +39,45 @@ function isImageFile(file: File): boolean {
   return ["jpg", "jpeg", "png", "webp", "bmp", "avif", "heic", "heif"].includes(ext);
 }
 
+export interface CompressionDetails {
+  file: File;
+  previewUrl: string;
+  originalSize: number;
+  compressedSize: number;
+  originalName: string;
+  compressedName: string;
+  width: number;
+  height: number;
+  savedPercentage: number;
+}
+
+export function formatFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 /**
- * Compresses an image file client-side using HTML5 Canvas & WebP encoding.
- * Enforces progressive compression safety to ensure files stay well under serverless payload limits.
+ * Compresses an image file client-side and returns full compression statistics & preview URL.
  */
-export async function compressImage(
+export async function compressImageWithDetails(
   file: File,
   options: ImageCompressionOptions | ImagePreset = "default",
-): Promise<File> {
+): Promise<CompressionDetails> {
   // If not an image or is an animated GIF / SVG, preserve original file
   if (!file || !isImageFile(file) || file.type === "image/gif" || file.type === "image/svg+xml") {
-    return file;
+    return {
+      file,
+      previewUrl: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
+      originalSize: file.size,
+      compressedSize: file.size,
+      originalName: file.name,
+      compressedName: file.name,
+      width: 0,
+      height: 0,
+      savedPercentage: 0,
+    };
   }
 
   const opts: ImageCompressionOptions =
@@ -67,7 +95,17 @@ export async function compressImage(
 
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      resolve(file);
+      resolve({
+        file,
+        previewUrl: objectUrl,
+        originalSize: file.size,
+        compressedSize: file.size,
+        originalName: file.name,
+        compressedName: file.name,
+        width: 0,
+        height: 0,
+        savedPercentage: 0,
+      });
     };
 
     img.onload = () => {
@@ -88,7 +126,17 @@ export async function compressImage(
 
       const ctx = canvas.getContext("2d");
       if (!ctx) {
-        resolve(file);
+        resolve({
+          file,
+          previewUrl: URL.createObjectURL(file),
+          originalSize: file.size,
+          compressedSize: file.size,
+          originalName: file.name,
+          compressedName: file.name,
+          width,
+          height,
+          savedPercentage: 0,
+        });
         return;
       }
 
@@ -100,7 +148,17 @@ export async function compressImage(
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              resolve(file);
+              resolve({
+                file,
+                previewUrl: URL.createObjectURL(file),
+                originalSize: file.size,
+                compressedSize: file.size,
+                originalName: file.name,
+                compressedName: file.name,
+                width,
+                height,
+                savedPercentage: 0,
+              });
               return;
             }
 
@@ -114,16 +172,31 @@ export async function compressImage(
             }
 
             const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
-            const compressedFile = new File([blob], `${baseName}.webp`, {
+            const newName = `${baseName}.webp`;
+            const compressedFile = new File([blob], newName, {
               type: "image/webp",
               lastModified: Date.now(),
             });
 
+            const savedBytes = Math.max(0, file.size - blob.size);
+            const savedPercentage = Math.round((savedBytes / file.size) * 100);
+            const previewUrl = URL.createObjectURL(blob);
+
             console.log(
-              `[ImageCompression] '${file.name}' (${(file.size / 1024).toFixed(1)} KB) -> '${compressedFile.name}' (${(compressedFile.size / 1024).toFixed(1)} KB, preset: ${preset})`,
+              `[ImageCompression] '${file.name}' (${formatFileSize(file.size)}) -> '${newName}' (${formatFileSize(blob.size)}, -${savedPercentage}%, preset: ${preset})`,
             );
 
-            resolve(compressedFile);
+            resolve({
+              file: compressedFile,
+              previewUrl,
+              originalSize: file.size,
+              compressedSize: blob.size,
+              originalName: file.name,
+              compressedName: newName,
+              width,
+              height,
+              savedPercentage,
+            });
           },
           "image/webp",
           quality,
@@ -135,4 +208,15 @@ export async function compressImage(
 
     img.src = objectUrl;
   });
+}
+
+/**
+ * Compresses an image file client-side and returns the compressed File object.
+ */
+export async function compressImage(
+  file: File,
+  options: ImageCompressionOptions | ImagePreset = "default",
+): Promise<File> {
+  const result = await compressImageWithDetails(file, options);
+  return result.file;
 }
