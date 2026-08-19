@@ -61,9 +61,10 @@ export const metadata: Metadata = {
       "Temukan aneka produk olahan, sentra kerajinan kreatif, dan hasil bumi unggulan dari para pelaku UMKM Desa Pringgodani, Kec. Bantur, Kab. Malang.",
     images: [
       {
-        url: "/images/hero-desktop.webp",
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: "Lokal Pringgodani - Sentra UMKM & Produk Desa Pringgodani",
       },
     ],
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     title: "Lokal Pringgodani — UMKM & Produk Desa Pringgodani",
     description:
       "Direktori resmi UMKM, produk kreatif, dan hasil bumi Desa Pringgodani, Bantur, Malang.",
-    images: ["/images/hero-desktop.webp"],
+    images: ["/images/og-image.png"],
   },
   robots: {
     index: true,
@@ -149,6 +150,11 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+        <meta property="og:image" content={`${SITE_URL}/images/og-image.png`} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:image" content={`${SITE_URL}/images/og-image.png`} />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b" />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b.html" />
         <script

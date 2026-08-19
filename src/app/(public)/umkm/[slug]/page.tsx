@@ -40,13 +40,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `/umkm/${slug}`,
-      images: umkm.coverUrl ? [{ url: umkm.coverUrl, alt: umkm.name }] : undefined,
+      images: [
+        {
+          url: umkm.coverUrl || "/images/og-image.png",
+          alt: umkm.name,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: umkm.coverUrl ? [umkm.coverUrl] : undefined,
+      images: [umkm.coverUrl || "/images/og-image.png"],
     },
   };
 }

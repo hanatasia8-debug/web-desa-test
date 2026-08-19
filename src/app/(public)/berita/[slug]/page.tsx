@@ -40,13 +40,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `/berita/${slug}`,
-      images: news.coverUrl ? [{ url: news.coverUrl, alt: news.title }] : undefined,
+      images: [
+        {
+          url: news.coverUrl || "/images/og-image.png",
+          alt: news.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: news.coverUrl ? [news.coverUrl] : undefined,
+      images: [news.coverUrl || "/images/og-image.png"],
     },
   };
 }
