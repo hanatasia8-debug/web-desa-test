@@ -8,12 +8,42 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
  * - Server-side (SSR / Docker): Uses INTERNAL_API_URL env var.
  */
 
+function sanitizeApiUrl(raw?: string): string {
+  if (!raw) return "http://localhost:3000/api";
+  let url = raw.trim().replace(/^['"]+|['"]+$/g, "").trim();
+  if (!url) return "http://localhost:3000/api";
+
+  if (url.startsWith("/")) {
+    return url.replace(/\/+$/, "");
+  }
+
+  if (url.startsWith("//")) {
+    return `https:${url}`.replace(/\/+$/, "");
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    if (
+      url.startsWith("localhost") ||
+      url.startsWith("127.0.0.1") ||
+      url.startsWith("192.168.") ||
+      url.startsWith("10.") ||
+      url.startsWith("172.16.")
+    ) {
+      url = `http://${url}`;
+    } else {
+      url = `https://${url}`;
+    }
+  }
+
+  return url.replace(/\/+$/, "");
+}
+
 function getBaseURL(): string {
   const isServer = typeof window === "undefined";
 
   if (isServer) {
     // SSR: use internal Docker hostname or env var
-    return (
+    return sanitizeApiUrl(
       process.env.INTERNAL_API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
       "http://localhost:3000/api"
@@ -21,7 +51,7 @@ function getBaseURL(): string {
   }
 
   // Client-side (Browser): directly connect to backend API URL or localhost:3000
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+  return sanitizeApiUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api");
 }
 
 const rawAxios = axios.create({

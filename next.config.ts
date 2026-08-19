@@ -2,16 +2,43 @@ import type { NextConfig } from "next";
 
 /**
  * Destination for the /api/:path* rewrite.
- * Dynamically resolves from environment variables with trailing slash sanitization.
+ * Dynamically resolves from environment variables with protocol, quote, and trailing slash sanitization.
+ * Next.js requires destination to start with '/', 'http://', or 'https://'.
  */
 function getBackendRewriteDestination(): string {
-  const rawUrl =
+  const raw =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:3000/api";
 
-  return rawUrl.trim().replace(/\/+$/, "");
+  let url = raw.trim().replace(/^['"]+|['"]+$/g, "").trim();
+  if (!url) return "http://localhost:3000/api";
+
+  if (url.startsWith("/")) {
+    return url.replace(/\/+$/, "");
+  }
+
+  if (url.startsWith("//")) {
+    return `https:${url}`.replace(/\/+$/, "");
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    if (
+      url.startsWith("localhost") ||
+      url.startsWith("127.0.0.1") ||
+      url.startsWith("192.168.") ||
+      url.startsWith("10.") ||
+      url.startsWith("172.16.")
+    ) {
+      url = `http://${url}`;
+    } else {
+      url = `https://${url}`;
+    }
+  }
+
+  return url.replace(/\/+$/, "");
 }
+
 
 /**
  * Parses allowed development origins from ALLOWED_DEV_ORIGINS environment variable
