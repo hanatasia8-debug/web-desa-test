@@ -62,84 +62,77 @@ export async function compressImage(
   const initialQuality = opts.quality || config.quality;
 
   return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onerror = () => resolve(file); // fallback on error
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onerror = () => resolve(file);
-      img.onload = () => {
-        let { width, height } = img;
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
 
-        // Calculate aspect ratio preserving dimensions
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          resolve(file);
-          return;
-        }
-
-        // Use high quality image smoothing
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Helper to encode canvas to blob with progressive compression safety
-        const encodeBlob = (quality: number) => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                resolve(file);
-                return;
-              }
-
-              // Progressive safety: If output is still > 1.8MB, reduce quality once more
-              if (blob.size > 1.8 * 1024 * 1024 && quality > 0.65) {
-                console.log(
-                  `[ImageCompression] Output ${(blob.size / 1024).toFixed(1)} KB is still large, applying secondary compression...`
-                );
-                encodeBlob(Math.max(0.65, quality - 0.15));
-                return;
-              }
-
-              const newExtension = "webp";
-              const originalBase = file.name.replace(/\.[^/.]+$/, "");
-              const newFileName = `${originalBase}.${newExtension}`;
-
-              const compressedFile = new File([blob], newFileName, {
-                type: "image/webp",
-                lastModified: Date.now(),
-              });
-
-              console.log(
-                `[ImageCompression] '${file.name}' (${(file.size / 1024).toFixed(1)} KB) -> '${newFileName}' (${(compressedFile.size / 1024).toFixed(1)} KB, preset: ${preset})`,
-              );
-
-              resolve(compressedFile);
-            },
-            "image/webp",
-            quality,
-          );
-        };
-
-        encodeBlob(initialQuality);
-      };
-
-      if (event.target?.result) {
-        img.src = event.target.result as string;
-      } else {
-        resolve(file);
-      }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
     };
 
-    reader.readAsDataURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let { width, height } = img;
+
+      // Scale down to fit max dimensions
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.max(1, Math.round(width * ratio));
+        height = Math.max(1, Math.round(height * ratio));
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const encode = (quality: number) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+
+            // If still > 1.5MB and quality > 0.55, retry with lower quality
+            if (blob.size > 1.5 * 1024 * 1024 && quality > 0.55) {
+              console.log(
+                `[ImageCompression] Blob size ${(blob.size / 1024).toFixed(1)} KB is still large, reducing quality...`
+              );
+              encode(Math.max(0.55, quality - 0.15));
+              return;
+            }
+
+            const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+            const compressedFile = new File([blob], `${baseName}.webp`, {
+              type: "image/webp",
+              lastModified: Date.now(),
+            });
+
+            console.log(
+              `[ImageCompression] '${file.name}' (${(file.size / 1024).toFixed(1)} KB) -> '${compressedFile.name}' (${(compressedFile.size / 1024).toFixed(1)} KB, preset: ${preset})`,
+            );
+
+            resolve(compressedFile);
+          },
+          "image/webp",
+          quality,
+        );
+      };
+
+      encode(initialQuality);
+    };
+
+    img.src = objectUrl;
   });
 }

@@ -55,6 +55,12 @@ export function FileUploadWithPreview({
 
       const file = await compressImage(rawFile, preset);
 
+      if (file.size > 4 * 1024 * 1024) {
+        throw new Error(
+          "Ukuran file hasil kompresi masih melebihi batas 4MB. Harap gunakan foto dengan resolusi lebih kecil."
+        );
+      }
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("category", category);
