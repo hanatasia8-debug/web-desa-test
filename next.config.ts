@@ -9,17 +9,22 @@ function getBackendRewriteDestination(): string {
   const raw =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
+    process.env.BACKEND_INTERNAL_URL ||
     "http://localhost:3000/api";
 
   let url = raw.trim().replace(/^['"]+|['"]+$/g, "").trim();
   if (!url) return "http://localhost:3000/api";
 
   if (url.startsWith("/")) {
-    return url.replace(/\/+$/, "");
+    url = url.replace(/\/+$/, "");
+    if (!url.endsWith("/api") && !url.includes("/api/")) {
+      url = `${url}/api`;
+    }
+    return url;
   }
 
   if (url.startsWith("//")) {
-    return `https:${url}`.replace(/\/+$/, "");
+    url = `https:${url}`;
   }
 
   if (!/^https?:\/\//i.test(url)) {
@@ -36,8 +41,14 @@ function getBackendRewriteDestination(): string {
     }
   }
 
-  return url.replace(/\/+$/, "");
+  url = url.replace(/\/+$/, "");
+  if (!url.endsWith("/api") && !url.includes("/api/")) {
+    url = `${url}/api`;
+  }
+
+  return url;
 }
+
 
 
 /**

@@ -14,11 +14,15 @@ function sanitizeApiUrl(raw?: string): string {
   if (!url) return "http://localhost:3000/api";
 
   if (url.startsWith("/")) {
-    return url.replace(/\/+$/, "");
+    url = url.replace(/\/+$/, "");
+    if (!url.endsWith("/api") && !url.includes("/api/")) {
+      url = `${url}/api`;
+    }
+    return url;
   }
 
   if (url.startsWith("//")) {
-    return `https:${url}`.replace(/\/+$/, "");
+    url = `https:${url}`;
   }
 
   if (!/^https?:\/\//i.test(url)) {
@@ -35,7 +39,12 @@ function sanitizeApiUrl(raw?: string): string {
     }
   }
 
-  return url.replace(/\/+$/, "");
+  url = url.replace(/\/+$/, "");
+  if (!url.endsWith("/api") && !url.includes("/api/")) {
+    url = `${url}/api`;
+  }
+
+  return url;
 }
 
 function getBaseURL(): string {
@@ -46,12 +55,27 @@ function getBaseURL(): string {
     return sanitizeApiUrl(
       process.env.INTERNAL_API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
+      process.env.BACKEND_INTERNAL_URL ||
       "http://localhost:3000/api"
     );
   }
 
-  // Client-side (Browser): directly connect to backend API URL or localhost:3000
-  return sanitizeApiUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api");
+  // Client-side (Browser):
+  // 1. Explicit NEXT_PUBLIC_API_URL set in build/env
+  if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.trim()) {
+    return sanitizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+  }
+
+  // 2. In browser on local development
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    return `http://${window.location.hostname}:3000/api`;
+  }
+
+  // 3. Fallback in production browser: relative /api route (rewritten by Next.js)
+  return "/api";
 }
 
 const rawAxios = axios.create({
