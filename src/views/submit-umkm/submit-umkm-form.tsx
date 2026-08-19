@@ -19,6 +19,7 @@ interface SubmitUmkmFormProps {
   onProductChange: (index: number, field: string, value: any) => void;
   onClearDraft: () => void;
   onSubmitStep: (e: React.FormEvent) => void;
+  hideSidebar?: boolean;
   onSetCoverFile?: (file: File | null) => void;
   onSetProductFile?: (index: number, file: File | null) => void;
   onSetGalleryFile?: (index: number, file: File | null) => void;
@@ -46,6 +47,7 @@ export function SubmitUmkmForm({
   onProductChange,
   onClearDraft,
   onSubmitStep,
+  hideSidebar = false,
   onSetCoverFile,
   onSetProductFile,
   onSetGalleryFile,
@@ -150,8 +152,14 @@ export function SubmitUmkmForm({
           </div>
         ))}
 
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-        <div className="space-y-8 lg:col-span-7">
+      <div
+        className={
+          hideSidebar
+            ? "w-full"
+            : "grid grid-cols-1 items-start gap-8 lg:grid-cols-12"
+        }
+      >
+        <div className={hideSidebar ? "w-full space-y-8" : "space-y-8 lg:col-span-7"}>
           <form onSubmit={onSubmitStep} className="space-y-8" noValidate>
             {/* SEKSI 1: IDENTITAS USAHA */}
             <div>
@@ -719,58 +727,60 @@ export function SubmitUmkmForm({
         </div>
 
         {/* RIGHT COLUMN: SIDEBAR GUIDELINES & STATUS */}
-        <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-5">
-          {/* Panduan Pendaftaran */}
-          <div className="bg-primary-container text-on-primary-container rounded-xl p-6 shadow-sm">
-            <h4 className="font-headline-md text-label-sm mb-4 flex items-center gap-2 font-bold tracking-wider uppercase">
-              <Icon name="gavel" className="text-lg" /> Panduan Pendaftaran UMKM
-            </h4>
-            <ul className="font-body-base space-y-3 text-xs leading-relaxed">
-              <li className="flex gap-2.5">
-                <Icon
-                  name="check_circle"
-                  className="text-on-primary-container/80 shrink-0 text-base"
-                />
-                <span>
-                  Gunakan nama usaha yang jelas dan sesuai lokasi di Desa
-                  Pringgodani.
-                </span>
-              </li>
-              <li className="flex gap-2.5">
-                <Icon
-                  name="check_circle"
-                  className="text-on-primary-container/80 shrink-0 text-base"
-                />
-                <span>
-                  Pastikan nomor HP/WhatsApp aktif agar pembeli dan admin desa
-                  dapat menghubungi Anda.
-                </span>
-              </li>
-              <li className="flex gap-2.5">
-                <Icon
-                  name="check_circle"
-                  className="text-on-primary-container/80 shrink-0 text-base"
-                />
-                <span>
-                  Unggah foto produk & sampul dengan pencahayaan yang terang.
-                </span>
-              </li>
-              <li className="flex gap-2.5">
-                <Icon
-                  name="check_circle"
-                  className="text-on-primary-container/80 shrink-0 text-base"
-                />
-                <span>
-                  Admin desa akan meninjau setiap pengajuan sebelum
-                  dipublikasikan (Maks 24 Jam).
-                </span>
-              </li>
-            </ul>
-          </div>
+        {!hideSidebar && (
+          <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-5">
+            {/* Panduan Pendaftaran */}
+            <div className="bg-primary-container text-on-primary-container rounded-xl p-6 shadow-sm">
+              <h4 className="font-headline-md text-label-sm mb-4 flex items-center gap-2 font-bold tracking-wider uppercase">
+                <Icon name="gavel" className="text-lg" /> Panduan Pendaftaran UMKM
+              </h4>
+              <ul className="font-body-base space-y-3 text-xs leading-relaxed">
+                <li className="flex gap-2.5">
+                  <Icon
+                    name="check_circle"
+                    className="text-on-primary-container/80 shrink-0 text-base"
+                  />
+                  <span>
+                    Gunakan nama usaha yang jelas dan sesuai lokasi di Desa
+                    Pringgodani.
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <Icon
+                    name="check_circle"
+                    className="text-on-primary-container/80 shrink-0 text-base"
+                  />
+                  <span>
+                    Pastikan nomor HP/WhatsApp aktif agar pembeli dan admin desa
+                    dapat menghubungi Anda.
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <Icon
+                    name="check_circle"
+                    className="text-on-primary-container/80 shrink-0 text-base"
+                  />
+                  <span>
+                    Unggah foto produk & sampul dengan pencahayaan yang terang.
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <Icon
+                    name="check_circle"
+                    className="text-on-primary-container/80 shrink-0 text-base"
+                  />
+                  <span>
+                    Admin desa akan meninjau setiap pengajuan sebelum
+                    dipublikasikan (Maks 24 Jam).
+                  </span>
+                </li>
+              </ul>
+            </div>
 
-          {/* Status Pengajuan Terakhir Real Data */}
-          <PendingStatusCard type="UMKM" />
-        </div>
+            {/* Status Pengajuan Terakhir Real Data */}
+            <PendingStatusCard type="UMKM" />
+          </div>
+        )}
       </div>
     </section>
   );

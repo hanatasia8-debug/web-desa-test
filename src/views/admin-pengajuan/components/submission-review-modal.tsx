@@ -381,6 +381,7 @@ export function SubmissionReviewModal({
               />
             ) : (
               <SubmitUmkmForm
+                hideSidebar={true}
                 formData={umkmFormData as unknown as Partial<RegisterUmkmDTO>}
                 categories={UMKM_CATEGORIES}
                 errors={{}}
