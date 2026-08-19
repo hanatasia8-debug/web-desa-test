@@ -2,6 +2,8 @@
  * High-performance client-side image compression utility.
  * Uses native HTML5 Canvas & WebP encoding to compress images
  * according to display context while maintaining crisp visual quality.
+ * Includes native ISOBMFF Magic Bytes detection and modern libheif-js WASM
+ * decoding for all iPhone / iOS HEIC and HEIF photos (including renamed .jpg files).
  */
 
 export type ImagePreset =
@@ -74,16 +76,41 @@ export async function isHeicFile(file: File): Promise<boolean> {
 }
 
 /**
- * Converts a HEIC/HEIF file to standard JPEG blob using heic2any.
+ * Decodes a modern iPhone HEIC/HEIF file into an HTMLCanvasElement using libheif-js WASM.
  */
-async function convertHeicToJpeg(file: File): Promise<Blob> {
-  const heic2any = (await import("heic2any")).default;
-  const result = await heic2any({
-    blob: file,
-    toType: "image/jpeg",
-    quality: 0.92,
+async function decodeHeicToCanvas(file: File): Promise<HTMLCanvasElement> {
+  const libheif = (await import("libheif-js/wasm-bundle")).default;
+  const buffer = await file.arrayBuffer();
+  const decoder = new libheif.HeifDecoder();
+  const data = decoder.decode(buffer);
+
+  if (!data || data.length === 0) {
+    throw new Error("Berkas HEIC tidak memuat data gambar valid");
+  }
+
+  const image = data[0];
+  const width = image.get_width();
+  const height = image.get_height();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Gagal menginisialisasi 2D Canvas context");
+  }
+
+  const imageData = ctx.createImageData(width, height);
+  await new Promise<void>((resolve, reject) => {
+    image.display(imageData, (displayData: any) => {
+      if (!displayData) return reject(new Error("Gagal merender data gambar HEIF"));
+      resolve();
+    });
   });
-  return Array.isArray(result) ? result[0] : result;
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
 }
 
 export interface CompressionDetails {
@@ -107,7 +134,7 @@ export function formatFileSize(bytes: number): string {
 
 /**
  * Compresses an image file client-side and returns full compression statistics & preview URL.
- * Automatically detects and converts HEIC/HEIF files (including renamed files).
+ * Automatically detects and converts HEIC/HEIF files (including renamed files) using libheif-js WASM.
  */
 export async function compressImageWithDetails(
   file: File,
@@ -137,25 +164,102 @@ export async function compressImageWithDetails(
   const maxHeight = opts.maxHeight || config.maxHeight;
   const initialQuality = opts.quality || config.quality;
 
-  // Handle HEIC / HEIF conversion if detected
-  let sourceBlob: Blob = file;
+  // 1. Check if the file is HEIC / HEIF
   const isHeic = await isHeicFile(file);
 
   if (isHeic) {
-    console.log(`[ImageCompression] HEIC image detected in '${file.name}', converting to JPEG first...`);
+    console.log(`[ImageCompression] HEIC image detected in '${file.name}', decoding with libheif-js WASM...`);
     try {
-      sourceBlob = await convertHeicToJpeg(file);
+      const decodedCanvas = await decodeHeicToCanvas(file);
+      let { width, height } = decodedCanvas;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.max(1, Math.round(width * ratio));
+        height = Math.max(1, Math.round(height * ratio));
+      }
+
+      const targetCanvas = document.createElement("canvas");
+      targetCanvas.width = width;
+      targetCanvas.height = height;
+
+      const targetCtx = targetCanvas.getContext("2d");
+      if (!targetCtx) throw new Error("Gagal membuat canvas target");
+
+      targetCtx.imageSmoothingEnabled = true;
+      targetCtx.imageSmoothingQuality = "high";
+      targetCtx.drawImage(decodedCanvas, 0, 0, width, height);
+
+      return new Promise((resolve) => {
+        const encode = (quality: number) => {
+          targetCanvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve({
+                  file,
+                  previewUrl: URL.createObjectURL(file),
+                  originalSize: file.size,
+                  compressedSize: file.size,
+                  originalName: file.name,
+                  compressedName: file.name,
+                  width,
+                  height,
+                  savedPercentage: 0,
+                });
+                return;
+              }
+
+              if (blob.size > 1.5 * 1024 * 1024 && quality > 0.55) {
+                encode(Math.max(0.55, quality - 0.15));
+                return;
+              }
+
+              const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+              const newName = `${baseName}.webp`;
+              const compressedFile = new File([blob], newName, {
+                type: "image/webp",
+                lastModified: Date.now(),
+              });
+
+              const savedBytes = Math.max(0, file.size - blob.size);
+              const savedPercentage = Math.round((savedBytes / file.size) * 100);
+              const previewUrl = URL.createObjectURL(blob);
+
+              console.log(
+                `[ImageCompression] HEIC '${file.name}' (${formatFileSize(file.size)}) -> '${newName}' (${formatFileSize(blob.size)}, -${savedPercentage}%, preset: ${preset})`,
+              );
+
+              resolve({
+                file: compressedFile,
+                previewUrl,
+                originalSize: file.size,
+                compressedSize: blob.size,
+                originalName: file.name,
+                compressedName: newName,
+                width,
+                height,
+                savedPercentage,
+              });
+            },
+            "image/webp",
+            quality,
+          );
+        };
+
+        encode(initialQuality);
+      });
     } catch (heicErr) {
-      console.warn("[ImageCompression] Failed to convert HEIC via heic2any:", heicErr);
+      console.warn("[ImageCompression] Libheif WASM decoding error, attempting fallback:", heicErr);
     }
   }
 
+  // 2. Standard image compression pipeline for JPEG / PNG / WebP / etc.
   return new Promise((resolve) => {
-    const objectUrl = URL.createObjectURL(sourceBlob);
+    const objectUrl = URL.createObjectURL(file);
     const img = new Image();
 
     img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
+      // Do not revoke objectUrl here immediately so preview doesn't break if displayed
       resolve({
         file,
         previewUrl: objectUrl,
