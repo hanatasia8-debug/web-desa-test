@@ -1,42 +1,59 @@
 import type { NextConfig } from "next";
 
 /**
- * Destination for the /api/:path* rewrite below (used by client-side/browser
- * requests via `apiClient`'s relative "/api" base URL — see
- * src/shared/api/axios-instance.ts).
- *
- * BUG FIX: this used to be hardcoded to "http://localhost:3000/api/:path*".
- * That only works when the Next.js server and the backend are on the same
- * host (plain local dev). In Docker/production, the backend runs in a
- * separate container — "localhost" from inside the Next.js container refers
- * to the Next.js container itself, not the backend, so every client-side API
- * call would fail to reach the backend. Falls back to the same default only
- * for local dev without Docker.
+ * Destination for the /api/:path* rewrite.
+ * Dynamically resolves from environment variables with trailing slash sanitization.
  */
-const REWRITE_BACKEND_URL =
-  process.env.INTERNAL_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3000/api";
+function getBackendRewriteDestination(): string {
+  const rawUrl =
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3000/api";
 
-const nextConfig: NextConfig = {
-  allowedDevOrigins: [
-    "192.168.1.16",
-    "192.168.1.*",
+  return rawUrl.trim().replace(/\/+$/, "");
+}
+
+/**
+ * Parses allowed development origins from ALLOWED_DEV_ORIGINS environment variable
+ * and provides safe wildcards for local dev networks instead of hardcoded IPs.
+ */
+function getAllowedDevOrigins(): string[] {
+  const envOrigins = process.env.ALLOWED_DEV_ORIGINS
+    ? process.env.ALLOWED_DEV_ORIGINS.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+
+  const defaultOrigins = [
+    "localhost:*",
+    "127.0.0.1:*",
     "192.168.*.*",
     "10.*.*.*",
     "172.16.*.*",
-    "localhost:*",
-    "127.0.0.1:*",
     "*.local",
-  ],
+  ];
+
+  return Array.from(new Set([...envOrigins, ...defaultOrigins]));
+}
+
+const nextConfig: NextConfig = {
+  allowedDevOrigins: getAllowedDevOrigins(),
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
+    ],
+  },
   async rewrites() {
+    const backendUrl = getBackendRewriteDestination();
     return [
       {
         source: "/api/:path*",
-        destination: `${REWRITE_BACKEND_URL}/:path*`,
+        destination: `${backendUrl}/:path*`,
       },
     ];
   },
 };
 
 export default nextConfig;
+
