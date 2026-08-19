@@ -87,9 +87,14 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/favicon.png", type: "image/png", sizes: "192x192" },
+    ],
     shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    apple: [
+      { url: "/images/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -141,6 +146,9 @@ export default function RootLayout({
   return (
     <html lang="id" className="h-full antialiased">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b" />
         <meta name="google-site-verification" content="googlea9c207ee32eba86b.html" />
         <script

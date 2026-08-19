@@ -82,20 +82,14 @@ export function Navbar() {
         <nav className="max-w-container-max px-gutter mx-auto flex items-center justify-between py-3 md:py-4">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            {logoUrl ? (
-              <div className="relative h-9 w-9 overflow-hidden rounded-full md:h-10 md:w-10">
-                <FallbackImage
-                  src={logoUrl}
-                  alt={brandName}
-                  className="h-full w-full object-cover"
-                  fallbackIcon="storefront"
-                />
-              </div>
-            ) : (
-              <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full md:h-10 md:w-10">
-                <Icon name="storefront" className="text-xl md:text-2xl" />
-              </div>
-            )}
+            <div className="border-outline-variant/30 bg-surface-container-lowest relative h-9 w-9 overflow-hidden rounded-xl border shadow-xs md:h-10 md:w-10">
+              <FallbackImage
+                src={logoUrl || "/images/logo.png"}
+                alt={brandName}
+                className="h-full w-full object-contain p-0.5"
+                fallbackIcon="storefront"
+              />
+            </div>
             <span className="font-headline-md md:text-headline-md text-primary text-lg font-bold tracking-tight">
               {brandName}
             </span>
