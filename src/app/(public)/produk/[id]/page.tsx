@@ -16,9 +16,39 @@ export async function generateMetadata({
     };
   }
 
+  const title = `${product.name} — Produk UMKM ${product.umkm?.name || "Desa Pringgodani"}`;
+  const description =
+    product.description ||
+    `Beli ${product.name} langsung dari produsen lokal ${product.umkm?.name || "UMKM Desa Pringgodani"}, Kecamatan Bantur, Kabupaten Malang.`;
+
   return {
-    title: `${product.name} — Lokal Pringgodani`,
-    description: product.description || `Produk unggulan dari ${product.umkm?.name || "Desa Pringgodani"}`,
+    title,
+    description,
+    keywords: [
+      product.name,
+      "umkm pringgodani",
+      "produk pringgodani",
+      "desa pringgodani",
+      "produk lokal pringgodani",
+      product.umkm?.name || "UMKM Desa Pringgodani",
+      "hasil bumi pringgodani",
+      "kuliner pringgodani",
+    ],
+    alternates: {
+      canonical: `/produk/${id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/produk/${id}`,
+      images: product.imageUrl ? [{ url: product.imageUrl, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: product.imageUrl ? [product.imageUrl] : undefined,
+    },
   };
 }
 
@@ -30,5 +60,43 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ProdukDetailPage id={id} />;
+  const product = await ProdukService.getById(id);
+
+  const jsonLd = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        image: product.imageUrl,
+        description: product.description || `Produk unggulan dari ${product.umkm?.name || "Desa Pringgodani"}`,
+        ...(product.price
+          ? {
+              offers: {
+                "@type": "Offer",
+                priceCurrency: "IDR",
+                price: product.price,
+                availability: "https://schema.org/InStock",
+                url: `https://lokalpringgodani.my.id/produk/${product.id}`,
+              },
+            }
+          : {}),
+        brand: {
+          "@type": "Brand",
+          name: product.umkm?.name || "UMKM Desa Pringgodani",
+        },
+      }
+    : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ProdukDetailPage id={id} />
+    </>
+  );
 }
+

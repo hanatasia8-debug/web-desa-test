@@ -16,15 +16,83 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const title = `${umkm.name} — UMKM Desa Pringgodani`;
+  const description = umkm.description
+    ? umkm.description.substring(0, 160)
+    : `Profil usaha, lokasi, kontak WhatsApp, dan produk unggulan dari ${umkm.name} di Desa Pringgodani, Bantur, Malang.`;
+
   return {
-    title: `${umkm.name} — UMKM`,
-    description: umkm.description
-      ? umkm.description.substring(0, 160)
-      : "Profil usaha, lokasi, kontak WhatsApp, dan katalog produk UMKM kreatif di Desa Pringgodani.",
+    title,
+    description,
+    keywords: [
+      umkm.name,
+      "umkm pringgodani",
+      "umkm lokal pringgodani",
+      "desa pringgodani",
+      umkm.category || "UMKM",
+      "usaha lokal pringgodani",
+      "desa pringgodani bantur malang",
+    ],
+    alternates: {
+      canonical: `/umkm/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/umkm/${slug}`,
+      images: umkm.coverUrl ? [{ url: umkm.coverUrl, alt: umkm.name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: umkm.coverUrl ? [umkm.coverUrl] : undefined,
+    },
   };
 }
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
-  return <UmkmDetailPage slug={slug} />;
+  const umkm = await UmkmService.getBySlug(slug);
+
+  const jsonLd = umkm
+    ? {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: umkm.name,
+        description: umkm.description,
+        image: umkm.coverUrl || umkm.logo,
+        telephone: umkm.whatsappNumber || umkm.phone,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: umkm.address,
+          addressLocality: "Desa Pringgodani",
+          addressRegion: "Kecamatan Bantur, Kabupaten Malang",
+          addressCountry: "ID",
+        },
+        ...(umkm.latitude && umkm.longitude
+          ? {
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: umkm.latitude,
+                longitude: umkm.longitude,
+              },
+            }
+          : {}),
+        url: `https://lokalpringgodani.my.id/umkm/${umkm.slug}`,
+      }
+    : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <UmkmDetailPage slug={slug} />
+    </>
+  );
 }
+

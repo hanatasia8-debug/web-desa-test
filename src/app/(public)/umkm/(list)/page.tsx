@@ -2,9 +2,28 @@ import type { Metadata } from "next";
 import { UmkmListPage } from "@/views/umkm-list/umkm-list-page";
 
 export const metadata: Metadata = {
-  title: "Katalog UMKM & Produk Desa",
+  title: "Direktori UMKM Pringgodani — Usaha & Produk Lokal Desa Pringgodani",
   description:
-    "Temukan produk lokal unggulan, kerajinan kreatif, dan aneka kuliner khas buatan warga Desa Pringgodani. Dukung ekonomi warga!",
+    "Direktori lengkap sentra usaha, produk olahan kuliner, kerajinan lokal, dan hasil bumi unggulan para pelaku UMKM Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang.",
+  keywords: [
+    "umkm pringgodani",
+    "umkm lokal pringgodani",
+    "desa pringgodani",
+    "produk umkm pringgodani",
+    "katalog umkm pringgodani",
+    "hasil bumi desa pringgodani",
+    "kerajinan pringgodani",
+    "kuliner pringgodani bantur",
+  ],
+  alternates: {
+    canonical: "/umkm",
+  },
+  openGraph: {
+    title: "Direktori UMKM Pringgodani — Usaha & Produk Lokal Desa Pringgodani",
+    description:
+      "Jelajahi profil UMKM, katalog produk kreatif, dan hasil bumi unggulan Desa Pringgodani.",
+    url: "/umkm",
+  },
 };
 
 export default function Page({

@@ -4,9 +4,26 @@ import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { ProfilPage } from "@/views/profil/profil-page";
 
 export const metadata: Metadata = {
-  title: "Profil Desa Pringgodani",
+  title: "Profil Desa Pringgodani — Struktur Pemerintahan & Potensi Desa",
   description:
-    "Informasi profil Desa Pringgodani: sambutan kepala desa, statistik, sejarah, visi misi, dan struktur pemerintahan.",
+    "Profil lengkap Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang: visi misi, sambutan kepala desa, statistik kependudukan, sejarah, dan potensi ekonomi lokal.",
+  keywords: [
+    "desa pringgodani",
+    "profil desa pringgodani",
+    "pringgodani bantur malang",
+    "pemerintah desa pringgodani",
+    "kepala desa pringgodani",
+    "potensi desa pringgodani",
+  ],
+  alternates: {
+    canonical: "/profil",
+  },
+  openGraph: {
+    title: "Profil Desa Pringgodani — Kecamatan Bantur, Kabupaten Malang",
+    description:
+      "Profil lengkap Desa Pringgodani: visi misi, struktur pemerintahan, dan potensi ekonomi masyarakat.",
+    url: "/profil",
+  },
 };
 
 export const revalidate = 300;

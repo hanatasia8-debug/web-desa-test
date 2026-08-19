@@ -1,21 +1,136 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { DynamicFavicon } from "@/shared/ui/dynamic-favicon";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lokalpringgodani.my.id";
+
+export const viewport: Viewport = {
+  themeColor: "#2F5233",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Lokal Pringgodani — Produk, UMKM & Hasil Bumi Desa",
-    template: "%s — Lokal Pringgodani",
+    default: "Lokal Pringgodani — Direktori Resmi UMKM & Hasil Bumi Desa Pringgodani",
+    template: "%s | Lokal Pringgodani",
   },
   description:
-    "Katalog resmi produk olahan, sentra kerajinan, dan hasil bumi pertanian Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang.",
-  applicationName: "Portal Desa Pringgodani",
+    "Portal resmi direktori UMKM Desa Pringgodani, katalog produk unggulan, hasil bumi pertanian, dan sentra kerajinan warga Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang, Jawa Timur.",
+  applicationName: "Lokal Pringgodani",
   generator: "Next.js",
+  keywords: [
+    "umkm pringgodani",
+    "pringgodani",
+    "desa pringgodani",
+    "umkm lokal pringgodani",
+    "lokal pringgodani",
+    "produk umkm pringgodani",
+    "hasil bumi pringgodani",
+    "desa pringgodani bantur malang",
+    "potensi desa pringgodani",
+    "katalog umkm desa pringgodani",
+    "kerajinan pringgodani",
+    "kuliner pringgodani",
+    "oleh oleh pringgodani",
+    "wisata desa pringgodani",
+    "bantur kabupaten malang",
+  ],
+  authors: [{ name: "Pemerintah Desa Pringgodani", url: SITE_URL }],
+  creator: "Pemerintah Desa Pringgodani",
+  publisher: "Pemerintah Desa Pringgodani & Komunitas UMKM",
+  category: "E-Commerce & Direktori Usaha Lokal",
+  alternates: {
+    canonical: "/",
+  },
+  verification: {
+    google: "googlea9c207ee32eba86b",
+    other: {
+      "google-site-verification": ["googlea9c207ee32eba86b", "googlea9c207ee32eba86b.html"],
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: SITE_URL,
+    siteName: "Lokal Pringgodani",
+    title: "Lokal Pringgodani — Direktori Resmi UMKM & Hasil Bumi Desa Pringgodani",
+    description:
+      "Temukan aneka produk olahan, sentra kerajinan kreatif, dan hasil bumi unggulan dari para pelaku UMKM Desa Pringgodani, Kec. Bantur, Kab. Malang.",
+    images: [
+      {
+        url: "/images/hero-desktop.webp",
+        width: 1200,
+        height: 630,
+        alt: "Lokal Pringgodani - Sentra UMKM & Produk Desa Pringgodani",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lokal Pringgodani — UMKM & Produk Desa Pringgodani",
+    description:
+      "Direktori resmi UMKM, produk kreatif, dan hasil bumi Desa Pringgodani, Bantur, Malang.",
+    images: ["/images/hero-desktop.webp"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
+};
+
+const jsonLdWebSite = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Lokal Pringgodani",
+      description:
+        "Portal resmi direktori UMKM Desa Pringgodani, katalog produk unggulan, dan hasil bumi Desa Pringgodani, Bantur, Malang.",
+      inLanguage: "id-ID",
+      publisher: {
+        "@id": `${SITE_URL}/#organization`,
+      },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_URL}/umkm?cari={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "GovernmentOrganization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Pemerintah Desa Pringgodani",
+      url: SITE_URL,
+      logo: `${SITE_URL}/images/logo.png`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Desa Pringgodani",
+        addressRegion: "Kecamatan Bantur, Kabupaten Malang",
+        addressCountry: "ID",
+      },
+      areaServed: "Desa Pringgodani, Bantur, Malang",
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -25,6 +140,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className="h-full antialiased">
+      <head>
+        <meta name="google-site-verification" content="googlea9c207ee32eba86b" />
+        <meta name="google-site-verification" content="googlea9c207ee32eba86b.html" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+        />
+      </head>
       <body className="font-body-base flex min-h-full flex-col">
         <DynamicFavicon />
         {children}
@@ -32,3 +155,4 @@ export default function RootLayout({
     </html>
   );
 }
+
