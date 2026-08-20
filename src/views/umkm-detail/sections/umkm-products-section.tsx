@@ -97,6 +97,7 @@ export function UmkmProductsSection({
                       href={waMessage}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Pesan ${name} via WhatsApp`}
                       className="bg-[#25D366] hover:bg-[#20BD5A] text-white inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-xs transition-all duration-200 hover:shadow-md active:scale-95"
                     >
                       <Icon name="chat" className="text-sm" />
