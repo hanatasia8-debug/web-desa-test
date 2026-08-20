@@ -102,6 +102,8 @@ export const metadata: Metadata = {
   },
 };
 
+const OFFICIAL_VILLAGE_URL = "https://pringgodani-malangkab.desa.id";
+
 const jsonLdWebSite = {
   "@context": "https://schema.org",
   "@graph": [
@@ -116,6 +118,11 @@ const jsonLdWebSite = {
       publisher: {
         "@id": `${SITE_URL}/#organization`,
       },
+      isRelatedTo: {
+        "@type": "WebSite",
+        name: "Website Resmi Pemerintah Desa Pringgodani",
+        url: OFFICIAL_VILLAGE_URL,
+      },
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -129,15 +136,29 @@ const jsonLdWebSite = {
       "@type": "GovernmentOrganization",
       "@id": `${SITE_URL}/#organization`,
       name: "Pemerintah Desa Pringgodani",
-      url: SITE_URL,
+      alternateName: [
+        "Pemdes Pringgodani",
+        "Desa Pringgodani Bantur",
+        "Pemerintah Desa Pringgodani Kabupaten Malang",
+      ],
+      url: OFFICIAL_VILLAGE_URL,
+      sameAs: [
+        OFFICIAL_VILLAGE_URL,
+        "https://facebook.com/desapringgodani",
+        "https://instagram.com/desapringgodani",
+        "https://youtube.com/@desapringgodani",
+        "https://tiktok.com/@desapringgodani",
+      ],
       logo: `${SITE_URL}/images/logo.png`,
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Desa Pringgodani",
-        addressRegion: "Kecamatan Bantur, Kabupaten Malang",
+        streetAddress: "Jl. Raya Desa Pringgodani No. 1",
+        addressLocality: "Desa Pringgodani, Kecamatan Bantur",
+        addressRegion: "Kabupaten Malang, Jawa Timur",
+        postalCode: "65174",
         addressCountry: "ID",
       },
-      areaServed: "Desa Pringgodani, Bantur, Malang",
+      areaServed: "Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang",
     },
   ],
 };

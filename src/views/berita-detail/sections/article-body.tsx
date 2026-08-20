@@ -128,6 +128,32 @@ export function ArticleBody({ news }: { news: NewsDetailDto }) {
           )}
         </section>
       )}
+      {/* Rujukan Informasi & Portal Resmi Pemerintah Desa (SEO In-Content Citation) */}
+      <section className="mt-10 rounded-2xl border border-outline-variant/30 bg-surface-container-low/60 p-5 sm:p-6 text-xs sm:text-sm text-on-surface-variant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
+            <Icon name="verified" className="text-base" />
+          </div>
+          <div>
+            <p className="font-semibold text-on-surface">
+              Sumber Resmi Pemerintah Desa Pringgodani
+            </p>
+            <p className="text-xs text-on-surface-variant/80 mt-0.5">
+              Kabar, regulasi kebijakan, dan layanan administrasi kependudukan resmi.
+            </p>
+          </div>
+        </div>
+        <a
+          href="https://pringgodani-malangkab.desa.id"
+          target="_blank"
+          rel="noopener"
+          className="inline-flex items-center gap-1.5 font-bold text-primary hover:underline shrink-0"
+          title="Website Resmi Pemerintah Desa Pringgodani"
+        >
+          <span>pringgodani-malangkab.desa.id</span>
+          <Icon name="arrow_outward" className="text-xs" />
+        </a>
+      </section>
     </>
   );
 }

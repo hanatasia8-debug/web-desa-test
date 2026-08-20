@@ -154,6 +154,19 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Link ke Website Resmi Desa (Desktop) */}
+            <a
+              href="https://pringgodani-malangkab.desa.id"
+              target="_blank"
+              rel="noopener"
+              className="border-outline-variant/40 bg-surface-container-low text-primary hover:bg-primary hover:text-on-primary font-label-sm text-label-sm hidden lg:inline-flex items-center gap-1.5 rounded-full border px-4 py-2 shadow-2xs transition-all active:scale-95"
+              title="Website Resmi Pemerintah Desa Pringgodani"
+            >
+              <Icon name="account_balance" className="text-base" />
+              <span>Portal Desa</span>
+              <Icon name="arrow_outward" className="text-xs opacity-75" />
+            </a>
+
             {/* Ajukan Konten dropdown (desktop) */}
             <div className="relative hidden md:block">
               <button
@@ -276,6 +289,27 @@ export function Navbar() {
                     <span>{opt.label}</span>
                   </Link>
                 ))}
+              </div>
+
+              {/* Mobile Official Village Portal Link */}
+              <div className="border-outline-variant/20 space-y-2 border-t pt-3">
+                <span className="text-on-surface-variant/70 block px-2 text-[11px] font-bold tracking-wider uppercase">
+                  Pemerintahan Resmi
+                </span>
+                <a
+                  href="https://pringgodani-malangkab.desa.id"
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => setMobileOpen(false)}
+                  className="bg-surface-container-low border-outline-variant/30 text-primary font-label-sm flex items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs font-bold shadow-2xs transition-all hover:bg-primary/10"
+                  title="Website Resmi Pemerintah Desa Pringgodani"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon name="account_balance" className="text-base text-primary" />
+                    <span>Website Resmi Desa</span>
+                  </div>
+                  <Icon name="arrow_outward" className="text-xs text-primary/70" />
+                </a>
               </div>
             </div>
           </div>

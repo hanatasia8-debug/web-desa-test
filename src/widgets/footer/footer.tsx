@@ -108,8 +108,8 @@ export function Footer() {
         isMapPage && "hidden md:block",
       )}
     >
-      <div className="max-w-container-max gap-gutter px-gutter py-section-padding mx-auto grid grid-cols-1 md:grid-cols-2">
-        {/* Kolom Kiri: Kontak Kami */}
+      <div className="max-w-container-max gap-8 px-gutter py-section-padding mx-auto grid grid-cols-1 md:grid-cols-3">
+        {/* Kolom 1: Kontak Kami */}
         <div>
           <h4 className="font-headline-md text-headline-md text-primary mb-6">
             Kontak Kami
@@ -130,8 +130,29 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Kolom Kanan: Media Sosial Kami */}
-        <div className="mt-8 flex flex-col justify-center md:mt-0 md:items-end">
+        {/* Kolom 2: Portal Resmi Pemerintah Desa (SEO Backlink & Crawl Gateway) */}
+        <div>
+          <h4 className="font-headline-md text-headline-md text-primary mb-4">
+            Pemerintah Desa Pringgodani
+          </h4>
+          <p className="text-on-surface-variant font-body-base mb-4 text-sm leading-relaxed">
+            Website resmi Pemerintah Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang. Melayani administrasi kependudukan, permohonan surat keterangan, transparansi anggaran APBDes, dan regulasi desa.
+          </p>
+          <a
+            href="https://pringgodani-malangkab.desa.id"
+            target="_blank"
+            rel="noopener"
+            className="group inline-flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-xs font-bold text-primary transition-all hover:bg-primary hover:text-on-primary shadow-xs"
+            title="Website Resmi Pemerintah Desa Pringgodani"
+          >
+            <Icon name="account_balance" className="text-base" />
+            <span>Kunjungi Website Resmi Desa</span>
+            <Icon name="arrow_outward" className="text-sm transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
+        </div>
+
+        {/* Kolom 3: Media Sosial Kami */}
+        <div className="flex flex-col justify-start md:items-end">
           <h4 className="font-headline-md text-headline-md text-primary mb-4 md:text-right">
             Media Sosial Kami
           </h4>
@@ -197,7 +218,17 @@ export function Footer() {
             © {new Date().getFullYear()} Pemerintah Desa Pringgodani. Seluruh
             Hak Cipta Dilindungi.
           </p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <a
+              href="https://pringgodani-malangkab.desa.id"
+              target="_blank"
+              rel="noopener"
+              className="font-label-sm text-primary hover:underline flex items-center gap-1 font-semibold"
+              title="Website Resmi Pemerintah Desa Pringgodani"
+            >
+              <span>Website Resmi Desa: pringgodani-malangkab.desa.id</span>
+              <Icon name="arrow_outward" className="text-xs" />
+            </a>
             <a
               className="font-label-sm text-on-surface-variant hover:text-primary underline"
               href="#"

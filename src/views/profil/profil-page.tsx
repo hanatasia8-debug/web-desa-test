@@ -173,6 +173,47 @@ export function ProfilPage({
                   </>
                 )}
               </div>
+
+              {/* Pusat Layanan & Website Resmi Pemerintahan Desa (Contextual SEO Backlink) */}
+              <div className="rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/[0.06] via-surface-container-lowest to-surface-container-low p-6 sm:p-8 shadow-sm space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary text-on-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-xs">
+                      <Icon name="account_balance" className="text-xl" />
+                    </div>
+                    <div>
+                      <h3 className="font-headline-md text-base sm:text-lg font-bold text-primary">
+                        Portal Resmi Pemerintah Desa Pringgodani
+                      </h3>
+                      <p className="text-xs text-on-surface-variant">
+                        Kecamatan Bantur, Kabupaten Malang, Provinsi Jawa Timur
+                      </p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    Domain Resmi .desa.id
+                  </span>
+                </div>
+
+                <p className="text-on-surface-variant text-sm leading-relaxed">
+                  Untuk permohonan surat keterangan, pengurusan administrasi kependudukan (KTP, Kartu Keluarga, Akta), transparansi anggaran APBDes, serta layanan birokrasi pemerintahan desa secara online, warga dan masyarakat luas dapat mengakses website induk:
+                </p>
+
+                <div className="pt-2">
+                  <a
+                    href="https://pringgodani-malangkab.desa.id"
+                    target="_blank"
+                    rel="noopener"
+                    className="group inline-flex items-center gap-3 rounded-2xl bg-primary px-5 py-3.5 text-sm font-bold text-on-primary shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-95"
+                    title="Website Resmi Pemerintah Desa Pringgodani, Kecamatan Bantur, Kabupaten Malang"
+                  >
+                    <Icon name="public" className="text-xl transition-transform group-hover:rotate-12" />
+                    <span>Kunjungi Website Resmi: pringgodani-malangkab.desa.id</span>
+                    <Icon name="arrow_outward" className="text-lg transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
