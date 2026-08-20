@@ -12,6 +12,9 @@ import {
 } from "@/entities/admin/api/admin-settings.service";
 import { cn } from "@/shared/utils/cn";
 
+import { useRef } from "react";
+import { triggerKknMemorial } from "@/features/kkn-memorial/model/use-kkn-easter-egg";
+
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/profil", label: "Profil" },
@@ -37,6 +40,26 @@ export function Navbar() {
   const [ajukanOpen, setAjukanOpen] = useState(false);
   const [brandName, setBrandName] = useState("Lokal Pringgodani");
   const [logoUrl, setLogoUrl] = useState<string>("/images/logo.png");
+  const [logoClicks, setLogoClicks] = useState(0);
+  const logoTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    setLogoClicks((prev) => {
+      const next = prev + 1;
+      if (next >= 5) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerKknMemorial();
+        return 0;
+      }
+      return next;
+    });
+
+    if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
+    logoTimerRef.current = setTimeout(() => {
+      setLogoClicks(0);
+    }, 2500);
+  };
 
   const applySettings = (s?: { website_name?: string; logo_url?: string } | null) => {
     if (
@@ -80,6 +103,7 @@ export function Navbar() {
 
     return () => {
       unsubscribe();
+      if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
     };
   }, []);
 
@@ -88,19 +112,27 @@ export function Navbar() {
       <header className="border-outline-variant/30 glass-effect bg-surface/90 fixed top-0 z-50 w-full border-b shadow-sm">
         <nav className="max-w-container-max px-gutter mx-auto flex items-center justify-between py-3 md:py-4">
           {/* Brand Logo & Name */}
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <div className="border-outline-variant/30 bg-surface-container-lowest relative h-9 w-9 overflow-hidden rounded-xl border shadow-xs md:h-10 md:w-10">
+          <div className="flex shrink-0 items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              title={brandName}
+              className={cn(
+                "border-outline-variant/30 bg-surface-container-lowest relative h-9 w-9 overflow-hidden rounded-xl border shadow-xs md:h-10 md:w-10 transition-transform active:scale-90",
+                logoClicks >= 3 && "animate-pulse scale-95 ring-2 ring-primary/40",
+              )}
+            >
               <FallbackImage
                 src={logoUrl || "/images/logo.png"}
                 alt={brandName}
                 className="h-full w-full object-contain p-0.5"
                 fallbackIcon="storefront"
               />
-            </div>
-            <span className="font-headline-md md:text-headline-md text-primary text-lg font-bold tracking-tight">
+            </button>
+            <Link href="/" className="font-headline-md md:text-headline-md text-primary text-lg font-bold tracking-tight">
               {brandName}
-            </span>
-          </Link>
+            </Link>
+          </div>
 
           {/* Desktop Links */}
           <div className="hidden items-center gap-8 md:flex">

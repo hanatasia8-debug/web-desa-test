@@ -1,6 +1,7 @@
 import { Navbar } from "@/widgets/navbar/navbar";
 import { Footer } from "@/widgets/footer/footer";
 import { ScrollRevealProvider } from "@/shared/ui/scroll-reveal-provider";
+import { KknMemorialProvider } from "@/features/kkn-memorial/ui/kkn-memorial-provider";
 
 /**
  * Every public route renders live CMS content through the mandatory
@@ -25,9 +26,11 @@ export default function PublicLayout({
   return (
     <>
       <ScrollRevealProvider />
+      <KknMemorialProvider />
       <Navbar />
       <main className="min-h-screen">{children}</main>
       <Footer />
     </>
   );
 }
+
