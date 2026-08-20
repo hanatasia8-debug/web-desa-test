@@ -47,6 +47,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     groupName: "Sistem & Tampilan",
     items: [
+      { label: "Google Indexing", href: "/admin/indexing", icon: "travel_explore" },
       { label: "Pengaturan Website", href: "/admin/settings", icon: "settings" },
     ],
   },
@@ -74,6 +75,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   // Close mobile drawer on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileDrawerOpen(false);
   }, [pathname]);
 
