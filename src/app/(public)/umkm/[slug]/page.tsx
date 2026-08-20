@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { UmkmDetailPage } from "@/views/umkm-detail/umkm-detail-page";
 import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
+import {
+  buildOpenGraphImage,
+  toAbsoluteUrl,
+} from "@/shared/utils/og-image.helper";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,6 +26,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? umkm.description.substring(0, 160)
     : `Profil usaha, lokasi, kontak WhatsApp, dan produk unggulan dari ${umkm.name} di Desa Pringgodani, Bantur, Malang.`;
 
+  // Hierarchical image discovery to ensure crawler always gets the authentic cover
+  const coverImage =
+    umkm.coverUrl ||
+    umkm.logo ||
+    (umkm.gallery && umkm.gallery[0]) ||
+    (umkm.galleries && umkm.galleries[0]) ||
+    "/images/og-image.png";
+
+  const absoluteCoverUrl = toAbsoluteUrl(coverImage);
+  const ogImages = buildOpenGraphImage(coverImage, umkm.name);
+
   return {
     title,
     description,
@@ -38,21 +53,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `/umkm/${slug}`,
     },
     openGraph: {
+      type: "website",
+      locale: "id_ID",
+      siteName: "Lokal Pringgodani",
+      url: `/umkm/${slug}`,
       title,
       description,
-      url: `/umkm/${slug}`,
-      images: [
-        {
-          url: umkm.coverUrl || "/images/og-image.png",
-          alt: umkm.name,
-        },
-      ],
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [umkm.coverUrl || "/images/og-image.png"],
+      images: [absoluteCoverUrl],
     },
   };
 }

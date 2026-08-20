@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { DesaService } from "@/entities/desa/api/desa.service";
-import { UmkmService } from "@/entities/umkm/api/umkm.service";
 import { ProfilPage } from "@/views/profil/profil-page";
+
+import { buildOpenGraphImage } from "@/shared/utils/og-image.helper";
 
 export const metadata: Metadata = {
   title: "Profil Desa Pringgodani — Struktur Pemerintahan & Potensi Desa",
@@ -19,28 +20,30 @@ export const metadata: Metadata = {
     canonical: "/profil",
   },
   openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Lokal Pringgodani",
     title: "Profil Desa Pringgodani — Kecamatan Bantur, Kabupaten Malang",
     description:
       "Profil lengkap Desa Pringgodani: visi misi, struktur pemerintahan, dan potensi ekonomi masyarakat.",
     url: "/profil",
+    images: buildOpenGraphImage(
+      "/images/og-image.png",
+      "Profil Desa Pringgodani",
+    ),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Profil Desa Pringgodani — Kecamatan Bantur, Kabupaten Malang",
+    description:
+      "Profil lengkap Desa Pringgodani: visi misi, struktur pemerintahan, dan potensi ekonomi masyarakat.",
   },
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [{ profile, stats }, categoriesResult] = await Promise.all([
-    DesaService.getProfileWithStats(),
-    UmkmService.getCategories().catch((err) => {
-      // "Sektor Ekonomi Dominan" must not take the whole profile page down.
-      console.error("Gagal memuat kategori UMKM untuk halaman profil:", err);
-      return { items: [] };
-    }),
-  ]);
-
-  const topUmkmCategories = [...categoriesResult.items]
-    .sort((a, b) => b.umkmCount - a.umkmCount)
-    .slice(0, 3);
+  const { profile, stats } = await DesaService.getProfileWithStats();
 
   return (
     <ProfilPage

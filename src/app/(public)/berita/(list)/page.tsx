@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { BeritaListPage } from "@/views/berita-list/berita-list-page";
 import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
+import { buildOpenGraphImage } from "@/shared/utils/og-image.helper";
+
 export const metadata: Metadata = {
   title: "Warta & Berita Desa Pringgodani — Kabar Terkini UMKM & Pembangunan",
   description:
@@ -18,10 +20,23 @@ export const metadata: Metadata = {
     canonical: "/berita",
   },
   openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Lokal Pringgodani",
     title: "Warta & Berita Desa Pringgodani — Kabar Terkini UMKM & Pembangunan",
     description:
       "Informasi resmi seputar UMKM, program desa, dan kabar terkini warga Desa Pringgodani.",
     url: "/berita",
+    images: buildOpenGraphImage(
+      "/images/og-image.png",
+      "Warta & Berita Desa Pringgodani",
+    ),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Warta & Berita Desa Pringgodani — Kabar Terkini UMKM & Pembangunan",
+    description:
+      "Informasi resmi seputar UMKM, program desa, dan kabar terkini warga Desa Pringgodani.",
   },
 };
 

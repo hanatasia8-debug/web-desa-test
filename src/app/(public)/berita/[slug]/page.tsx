@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { BeritaService } from "@/entities/berita/api/berita.service";
 import { BeritaDetailPage } from "@/views/berita-detail/berita-detail-page";
 import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
+import {
+  buildOpenGraphImage,
+  toAbsoluteUrl,
+} from "@/shared/utils/og-image.helper";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,6 +26,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? news.summary.substring(0, 160)
     : `Warta resmi, kegiatan UMKM, dan informasi pembangunan Desa Pringgodani, Bantur, Malang: ${news.title}`;
 
+  // Hierarchical image discovery to ensure crawler gets the authentic news cover
+  const coverImage =
+    news.coverUrl ||
+    news.coverImage ||
+    (news.galleryImages && news.galleryImages[0]?.imageUrl) ||
+    news.contentSections?.find((s) => s.imageUrl || s.sectionImage)?.imageUrl ||
+    news.contentSections?.find((s) => s.imageUrl || s.sectionImage)?.sectionImage ||
+    "/images/og-image.png";
+
+  const absoluteCoverUrl = toAbsoluteUrl(coverImage);
+  const ogImages = buildOpenGraphImage(coverImage, news.title);
+
   return {
     title,
     description,
@@ -38,21 +54,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `/berita/${slug}`,
     },
     openGraph: {
+      type: "article",
+      locale: "id_ID",
+      siteName: "Lokal Pringgodani",
+      url: `/berita/${slug}`,
       title,
       description,
-      url: `/berita/${slug}`,
-      images: [
-        {
-          url: news.coverUrl || "/images/og-image.png",
-          alt: news.title,
-        },
-      ],
+      publishedTime: news.publishedAt || undefined,
+      authors: [news.authorName || "Humas Desa Pringgodani"],
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [news.coverUrl || "/images/og-image.png"],
+      images: [absoluteCoverUrl],
     },
   };
 }

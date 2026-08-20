@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { ProdukDetailPage } from "@/views/produk-detail/produk-detail-page";
 import { ProdukService } from "@/entities/produk/api/produk.service";
 import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
+import {
+  buildOpenGraphImage,
+  toAbsoluteUrl,
+} from "@/shared/utils/og-image.helper";
 
 export async function generateMetadata({
   params,
@@ -22,7 +26,13 @@ export async function generateMetadata({
     product.description ||
     `Beli ${product.name} langsung dari produsen lokal ${product.umkm?.name || "UMKM Desa Pringgodani"}, Kecamatan Bantur, Kabupaten Malang.`;
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lokalpringgodani.my.id";
+  const coverImage =
+    product.imageUrl ||
+    product.umkm?.coverUrl ||
+    "/images/og-image.png";
+
+  const absoluteCoverUrl = toAbsoluteUrl(coverImage);
+  const ogImages = buildOpenGraphImage(coverImage, product.name);
 
   return {
     title,
@@ -41,21 +51,19 @@ export async function generateMetadata({
       canonical: `/produk/${id}`,
     },
     openGraph: {
+      type: "website",
+      locale: "id_ID",
+      siteName: "Lokal Pringgodani",
+      url: `/produk/${id}`,
       title,
       description,
-      url: `/produk/${id}`,
-      images: [
-        {
-          url: product.imageUrl || `${SITE_URL}/images/og-image.png`,
-          alt: product.name,
-        },
-      ],
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [product.imageUrl || `${SITE_URL}/images/og-image.png`],
+      images: [absoluteCoverUrl],
     },
   };
 }

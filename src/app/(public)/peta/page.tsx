@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { FasilitasService } from "@/entities/fasilitas/api/fasilitas.service";
 import { PetaPage } from "@/views/peta/peta-page";
 
+import { buildOpenGraphImage } from "@/shared/utils/og-image.helper";
+
 export const metadata: Metadata = {
   title: "Peta Interaktif UMKM & Potensi Desa Pringgodani — Navigasi Lokasi Usaha",
   description:
@@ -18,10 +20,23 @@ export const metadata: Metadata = {
     canonical: "/peta",
   },
   openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Lokal Pringgodani",
     title: "Peta Interaktif UMKM & Potensi Desa Pringgodani",
     description:
       "Jelajahi peta persebaran UMKM, sentra kerajinan, dan produk olahan warga Desa Pringgodani secara visual dan akurat.",
     url: "/peta",
+    images: buildOpenGraphImage(
+      "/images/og-image.png",
+      "Peta Interaktif UMKM Desa Pringgodani",
+    ),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Peta Interaktif UMKM & Potensi Desa Pringgodani",
+    description:
+      "Jelajahi peta persebaran UMKM, sentra kerajinan, dan produk olahan warga Desa Pringgodani secara visual dan akurat.",
   },
 };
 

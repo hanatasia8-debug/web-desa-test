@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { UmkmListPage } from "@/views/umkm-list/umkm-list-page";
 
+import { buildOpenGraphImage } from "@/shared/utils/og-image.helper";
+
 export const metadata: Metadata = {
   title: "Direktori UMKM Pringgodani — Usaha & Produk Lokal Desa Pringgodani",
   description:
@@ -19,10 +21,23 @@ export const metadata: Metadata = {
     canonical: "/umkm",
   },
   openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Lokal Pringgodani",
     title: "Direktori UMKM Pringgodani — Usaha & Produk Lokal Desa Pringgodani",
     description:
       "Jelajahi profil UMKM, katalog produk kreatif, dan hasil bumi unggulan Desa Pringgodani.",
     url: "/umkm",
+    images: buildOpenGraphImage(
+      "/images/og-image.png",
+      "Direktori UMKM Desa Pringgodani",
+    ),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Direktori UMKM Pringgodani — Usaha & Produk Lokal Desa Pringgodani",
+    description:
+      "Jelajahi profil UMKM, katalog produk kreatif, dan hasil bumi unggulan Desa Pringgodani.",
   },
 };
 

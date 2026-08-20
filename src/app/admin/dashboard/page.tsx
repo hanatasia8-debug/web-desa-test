@@ -7,6 +7,7 @@ import { AdminSubmissionsService } from "@/entities/admin/api/admin-submissions.
 import { AdminNewsService } from "@/entities/admin/api/admin-news.service";
 import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
 import { AdminMapsService } from "@/entities/admin/api/admin-maps.service";
+import { AdminIndexingCard } from "@/features/admin-indexing/ui/admin-indexing-card";
 
 export default function AdminDashboardPage() {
   const [pendingCount, setPendingCount] = useState(0);
@@ -154,6 +155,9 @@ export default function AdminDashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* Pusat Web Indexing (Google Indexing API v3) */}
+      <AdminIndexingCard />
 
       {/* Akses Cepat Modul Admin */}
       <div className="border-outline-variant/30 bg-surface-container-lowest rounded-3xl border p-8 shadow-sm">

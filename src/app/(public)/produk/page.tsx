@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ProdukListPage } from "@/views/produk-list/produk-list-page";
 import { safeJsonLdStringify } from "@/shared/utils/safe-json-ld";
 
+import { buildOpenGraphImage } from "@/shared/utils/og-image.helper";
+
 export const metadata: Metadata = {
   title: "Katalog Produk UMKM Pringgodani — Produk Olahan & Hasil Bumi Desa",
   description:
@@ -20,10 +22,23 @@ export const metadata: Metadata = {
     canonical: "/produk",
   },
   openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "Lokal Pringgodani",
     title: "Katalog Produk UMKM Pringgodani — Produk Olahan & Hasil Bumi Desa",
     description:
       "Jelajahi dan beli langsung produk UMKM berkualitas dari warga Desa Pringgodani via WhatsApp.",
     url: "/produk",
+    images: buildOpenGraphImage(
+      "/images/og-image.png",
+      "Katalog Produk UMKM Desa Pringgodani",
+    ),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Katalog Produk UMKM Pringgodani — Produk Olahan & Hasil Bumi Desa",
+    description:
+      "Jelajahi dan beli langsung produk UMKM berkualitas dari warga Desa Pringgodani via WhatsApp.",
   },
 };
 
