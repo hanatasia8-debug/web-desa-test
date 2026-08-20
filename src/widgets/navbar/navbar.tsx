@@ -44,17 +44,18 @@ export function Navbar() {
   const logoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogoClick = (e: React.MouseEvent) => {
-    setLogoClicks((prev) => {
-      const next = prev + 1;
-      if (next >= 5) {
-        e.preventDefault();
-        e.stopPropagation();
-        triggerKknMemorial();
-        return 0;
-      }
-      return next;
-    });
+    e.preventDefault();
+    e.stopPropagation();
 
+    const nextCount = logoClicks + 1;
+    if (nextCount >= 5) {
+      setLogoClicks(0);
+      if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
+      triggerKknMemorial();
+      return;
+    }
+
+    setLogoClicks(nextCount);
     if (logoTimerRef.current) clearTimeout(logoTimerRef.current);
     logoTimerRef.current = setTimeout(() => {
       setLogoClicks(0);

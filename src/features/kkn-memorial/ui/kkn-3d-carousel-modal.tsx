@@ -85,20 +85,19 @@ export function Kkn3dCarouselModal({ isOpen, onClose }: Kkn3dCarouselModalProps)
   const centerItem = getCardAtOffset(0);
   const rightItem = getCardAtOffset(1);
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-[#001E16]/70 backdrop-blur-md"
-        />
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-[#001E16]/70 backdrop-blur-md"
+          />
 
         {/* Modal Window */}
         <motion.div
@@ -249,7 +248,8 @@ export function Kkn3dCarouselModal({ isOpen, onClose }: Kkn3dCarouselModalProps)
             </button>
           </div>
         </motion.div>
-      </div>
+        </div>
+      )}
     </AnimatePresence>
   );
 }

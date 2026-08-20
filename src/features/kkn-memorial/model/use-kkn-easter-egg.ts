@@ -6,54 +6,38 @@ const EVENT_NAME = "kkn-open-memorial";
 
 export function triggerKknMemorial() {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    // queueMicrotask ensures event dispatch is safely queued outside any active React 19 render cycle
+    queueMicrotask(() => {
+      window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    });
   }
 }
 
 export function useKknEasterEgg() {
   const [isOpen, setIsOpen] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
-  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
   const keySequenceRef = useRef<string[]>([]);
   const keyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const open = useCallback(() => {
     setIsOpen(true);
-    setClickCount(0);
   }, []);
 
   const close = useCallback(() => {
     setIsOpen(false);
   }, []);
 
-  // Multi-click handler for logo
-  const handleLogoClick = useCallback(() => {
-    setClickCount((prev) => {
-      const next = prev + 1;
-      if (next >= 5) {
-        open();
-        return 0;
-      }
-      return next;
-    });
-
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-    }
-    clickTimerRef.current = setTimeout(() => {
-      setClickCount(0);
-    }, 2500);
-  }, [open]);
-
   useEffect(() => {
     // 1. Custom event listener
-    const handleCustomEvent = () => open();
+    const handleCustomEvent = () => {
+      setIsOpen(true);
+    };
+
     window.addEventListener(EVENT_NAME, handleCustomEvent);
 
     // 2. Keyboard listener ("kkn" or "Shift+K")
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is currently typing in an input/textarea
-      const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement | null;
       if (
         target &&
         (target.tagName === "INPUT" ||
@@ -66,7 +50,7 @@ export function useKknEasterEgg() {
       // Check Shift+K
       if (e.shiftKey && (e.key === "K" || e.key === "k")) {
         e.preventDefault();
-        open();
+        setIsOpen(true);
         return;
       }
 
@@ -85,7 +69,7 @@ export function useKknEasterEgg() {
         const sequenceStr = keySequenceRef.current.join("");
         if (sequenceStr.endsWith("kkn")) {
           keySequenceRef.current = [];
-          open();
+          setIsOpen(true);
         }
       }
     };
@@ -95,16 +79,13 @@ export function useKknEasterEgg() {
     return () => {
       window.removeEventListener(EVENT_NAME, handleCustomEvent);
       window.removeEventListener("keydown", handleKeyDown);
-      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
       if (keyTimerRef.current) clearTimeout(keyTimerRef.current);
     };
-  }, [open]);
+  }, []);
 
   return {
     isOpen,
     open,
     close,
-    clickCount,
-    handleLogoClick,
   };
 }
