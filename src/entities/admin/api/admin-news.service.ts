@@ -1,6 +1,10 @@
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
-import type { AdminNewsItem, NewsStatus } from "../model/admin.types";
+import type {
+  AdminNewsItem,
+  NewsStatus,
+  AdminCategoryItem,
+} from "../model/admin.types";
 
 export const AdminNewsService = {
   async getAllNews(): Promise<{ items: AdminNewsItem[]; total: number }> {
@@ -69,6 +73,42 @@ export const AdminNewsService = {
     } catch (err) {
       console.error(`Gagal menghapus berita ${id}:`, err);
       return { success: false };
+    }
+  },
+
+  async getCategories(): Promise<AdminCategoryItem[]> {
+    try {
+      const { data } = await apiClient.get<
+        ApiSuccessBody<{ items: AdminCategoryItem[] }>
+      >("/admin/news/categories");
+      if (data?.data?.items) return data.data.items;
+    } catch (err) {
+      console.warn("Gagal memuat kategori berita admin, fallback ke public:", err);
+      try {
+        const { data } = await apiClient.get<
+          ApiSuccessBody<{ items: AdminCategoryItem[] }>
+        >("/public/news/categories?all=true");
+        if (data?.data?.items) return data.data.items;
+      } catch (fallbackErr) {
+        console.error("Gagal memuat kategori berita:", fallbackErr);
+      }
+    }
+    return [];
+  },
+
+  async createCategory(payload: {
+    name: string;
+    description?: string;
+  }): Promise<AdminCategoryItem | null> {
+    try {
+      const { data } = await apiClient.post<ApiSuccessBody<AdminCategoryItem>>(
+        "/admin/news/categories",
+        payload,
+      );
+      return data?.data ?? null;
+    } catch (err) {
+      console.error("Gagal membuat kategori berita:", err);
+      return null;
     }
   },
 };

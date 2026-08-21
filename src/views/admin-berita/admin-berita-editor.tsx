@@ -55,6 +55,7 @@ export function AdminBeritaEditor({
   const [title, setTitle] = useState("");
   const [categories, setCategories] = useState<NewsCategoryLocal[]>([]);
   const [newsCategoryId, setNewsCategoryId] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [status, setStatus] = useState<NewsStatus>("PUBLISHED");
   const [blocks, setBlocks] = useState<ContentBlockInput[]>([
@@ -99,18 +100,17 @@ export function AdminBeritaEditor({
   };
 
   useEffect(() => {
-    apiClient
-      .get("/public/news/categories")
-      .then(({ data }) => {
-        if (data?.data?.items) {
-          setCategories(data.data.items);
-          if (!newsId && data.data.items.length > 0) {
-            setNewsCategoryId(String(data.data.items[0].id));
+    AdminNewsService.getCategories()
+      .then((items) => {
+        if (items && items.length > 0) {
+          setCategories(items);
+          if (!newsId && !newsCategoryId) {
+            setNewsCategoryId(String(items[0].id));
           }
         }
       })
       .catch((err) => console.error("Gagal memuat kategori berita:", err));
-  }, [newsId]);
+  }, [newsId, newsCategoryId]);
 
   useEffect(() => {
     if (newsId) {
@@ -153,6 +153,7 @@ export function AdminBeritaEditor({
           setTimeout(() => {
             if (parsed.title) setTitle(parsed.title);
             if (parsed.newsCategoryId) setNewsCategoryId(parsed.newsCategoryId);
+            if (parsed.newCategoryName) setNewCategoryName(parsed.newCategoryName);
             if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
             if (parsed.status) setStatus(parsed.status);
             if (parsed.blocks) setBlocks(parsed.blocks);
@@ -167,13 +168,13 @@ export function AdminBeritaEditor({
   useEffect(() => {
     if (typeof window !== "undefined" && !newsId) {
       try {
-        const draft = { title, newsCategoryId, coverUrl, status, blocks };
+        const draft = { title, newsCategoryId, newCategoryName, coverUrl, status, blocks };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       } catch (e) {
         console.error("Gagal menyimpan draf berita admin:", e);
       }
     }
-  }, [title, newsCategoryId, coverUrl, status, blocks, newsId]);
+  }, [title, newsCategoryId, newCategoryName, coverUrl, status, blocks, newsId]);
 
   const addBlock = () => {
     setBlocks([...blocks, { subHeading: "", content: "", imageUrl: "" }]);
@@ -243,9 +244,17 @@ export function AdminBeritaEditor({
         })),
       });
 
+      if (newsCategoryId === "other" && !newCategoryName.trim()) {
+        alert("Harap masukkan nama kategori berita baru.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
         title,
         newsCategoryId: String(newsCategoryId),
+        newCategoryName:
+          newsCategoryId === "other" ? newCategoryName.trim() : undefined,
         newsTypeId: "STANDARD",
         excerpt: autoExcerpt,
         coverUrl: finalCoverUrl,
@@ -377,12 +386,32 @@ export function AdminBeritaEditor({
                 onChange={(e) => setNewsCategoryId(e.target.value)}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
               >
+                {categories.length === 0 && (
+                  <option value="">Memuat kategori...</option>
+                )}
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
+                <option value="other">+ Tambah Kategori Baru</option>
               </select>
+
+              {newsCategoryId === "other" && (
+                <div className="mt-2.5 space-y-1">
+                  <input
+                    type="text"
+                    required
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Ketik nama kategori baru..."
+                    className="bg-surface border-primary text-on-surface focus:ring-primary/20 w-full rounded-xl border p-3 text-xs font-bold outline-none focus:ring-2"
+                  />
+                  <p className="text-on-surface-variant text-[11px]">
+                    * Kategori baru akan otomatis ditambahkan ke sistem
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -545,8 +574,10 @@ export function AdminBeritaEditor({
 
               <div>
                 <span className="bg-secondary-container text-on-secondary-container rounded-full px-3 py-1 text-xs font-bold">
-                  {categories.find((c) => String(c.id) === newsCategoryId)
-                    ?.name || "Kategori Berita"}
+                  {newsCategoryId === "other"
+                    ? newCategoryName || "Kategori Baru"
+                    : categories.find((c) => String(c.id) === newsCategoryId)
+                        ?.name || "Kategori Berita"}
                 </span>
                 <h1 className="font-headline-lg text-primary mt-3 text-2xl leading-tight font-bold">
                   {title || "Judul Berita Belum Diisi"}

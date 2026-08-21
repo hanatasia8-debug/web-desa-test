@@ -1,6 +1,10 @@
 import { apiClient } from "@/shared/api/axios-instance";
 import type { ApiSuccessBody } from "@/shared/api/response";
-import type { AdminUmkmItem, UmkmStatus } from "../model/admin.types";
+import type {
+  AdminUmkmItem,
+  UmkmStatus,
+  AdminCategoryItem,
+} from "../model/admin.types";
 
 export const AdminUmkmService = {
   async getAllUmkm(
@@ -71,6 +75,42 @@ export const AdminUmkmService = {
     } catch (err) {
       console.error(`Gagal memperbarui UMKM ${id}:`, err);
       return { success: false };
+    }
+  },
+
+  async getCategories(): Promise<AdminCategoryItem[]> {
+    try {
+      const { data } = await apiClient.get<
+        ApiSuccessBody<{ items: AdminCategoryItem[] }>
+      >("/admin/umkm/categories");
+      if (data?.data?.items) return data.data.items;
+    } catch (err) {
+      console.warn("Gagal memuat kategori UMKM admin, fallback ke public:", err);
+      try {
+        const { data } = await apiClient.get<
+          ApiSuccessBody<{ items: AdminCategoryItem[] }>
+        >("/public/umkm/categories?all=true");
+        if (data?.data?.items) return data.data.items;
+      } catch (fallbackErr) {
+        console.error("Gagal memuat kategori UMKM:", fallbackErr);
+      }
+    }
+    return [];
+  },
+
+  async createCategory(payload: {
+    name: string;
+    description?: string;
+  }): Promise<AdminCategoryItem | null> {
+    try {
+      const { data } = await apiClient.post<ApiSuccessBody<AdminCategoryItem>>(
+        "/admin/umkm/categories",
+        payload,
+      );
+      return data?.data ?? null;
+    } catch (err) {
+      console.error("Gagal membuat kategori UMKM:", err);
+      return null;
     }
   },
 };

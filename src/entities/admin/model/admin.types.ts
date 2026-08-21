@@ -68,7 +68,9 @@ export interface AdminUmkmItem {
   name: string;
   slug: string;
   ownerName: string;
+  umkmCategoryId?: string;
   categoryName: string;
+  categorySlug?: string;
   status: UmkmStatus;
   rejectionReason?: string | null;
   phone: string;
@@ -114,6 +116,16 @@ export interface AdminMapCategory {
   slug: string;
   icon: string;
   color: string;
+  count?: number;
+}
+
+export interface AdminCategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  newsCount?: number;
+  umkmCount?: number;
   count?: number;
 }
 

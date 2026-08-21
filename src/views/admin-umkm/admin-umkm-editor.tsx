@@ -6,7 +6,10 @@ import Link from "next/link";
 import { Icon } from "@/shared/ui/icon";
 import { FallbackImage } from "@/shared/ui/fallback-image";
 import { AdminUmkmService } from "@/entities/admin/api/admin-umkm.service";
-import type { UmkmStatus } from "@/entities/admin/model/admin.types";
+import type {
+  UmkmStatus,
+  AdminCategoryItem,
+} from "@/entities/admin/model/admin.types";
 import type { ApiSuccessBody } from "@/shared/api/response";
 import { apiClient } from "@/shared/api/axios-instance";
 import { extractCoordinatesFromUrl } from "@/shared/utils/google-maps";
@@ -32,7 +35,10 @@ export function AdminUmkmEditor({
   const router = useRouter();
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
-  const [categoryName, setCategoryName] = useState("Kuliner");
+  const [categories, setCategories] = useState<AdminCategoryItem[]>([]);
+  const [umkmCategoryId, setUmkmCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [mapsUrl, setMapsUrl] = useState("");
@@ -88,6 +94,21 @@ export function AdminUmkmEditor({
     }
   };
 
+  // Fetch all UMKM categories on mount
+  useEffect(() => {
+    AdminUmkmService.getCategories()
+      .then((items) => {
+        if (items && items.length > 0) {
+          setCategories(items);
+          if (isNew && !umkmCategoryId) {
+            setUmkmCategoryId(String(items[0].id));
+            setCategoryName(items[0].name);
+          }
+        }
+      })
+      .catch((err) => console.error("Gagal memuat kategori UMKM:", err));
+  }, [isNew, umkmCategoryId]);
+
   // Restore draft when creating new
   useEffect(() => {
     if (typeof window !== "undefined" && isNew) {
@@ -98,7 +119,10 @@ export function AdminUmkmEditor({
           setTimeout(() => {
             if (parsed.name) setName(parsed.name);
             if (parsed.ownerName) setOwnerName(parsed.ownerName);
+            if (parsed.umkmCategoryId) setUmkmCategoryId(parsed.umkmCategoryId);
             if (parsed.categoryName) setCategoryName(parsed.categoryName);
+            if (parsed.newCategoryName)
+              setNewCategoryName(parsed.newCategoryName);
             if (parsed.phone) setPhone(parsed.phone);
             if (parsed.address) setAddress(parsed.address);
             if (parsed.mapsUrl) setMapsUrl(parsed.mapsUrl);
@@ -122,49 +146,49 @@ export function AdminUmkmEditor({
   // Load existing data when editing
   useEffect(() => {
     if (umkmId && !isNew) {
-      AdminUmkmService.getUmkmById(umkmId)
-        .then((data) => {
-          if (data) {
-            setTimeout(() => {
-              setName(data.name || "");
-              setOwnerName(data.ownerName || "");
-              setCategoryName(data.categoryName || "Kuliner");
-              setPhone(data.phone || "");
-              setAddress(data.address || "");
-              setMapsUrl(data.mapsUrl || "");
-              setDescription(data.description || "");
-              setCoverUrl(data.coverUrl || "");
-              setStatus(data.status || "APPROVED");
-              setSince(data.since || undefined);
-              setOpenDay(data.openDay || "Senin - Sabtu");
-              setStartTime(data.startTime || "08:00");
-              setEndTime(data.endTime || "17:00");
-              setLatitude(Number(data.latitude) || -8.2811);
-              setLongitude(Number(data.longitude) || 112.5664);
+      AdminUmkmService.getUmkmById(umkmId).then((data) => {
+        if (data) {
+          setTimeout(() => {
+            setName(data.name || "");
+            setOwnerName(data.ownerName || "");
+            const catId = data.umkmCategoryId
+              ? String(data.umkmCategoryId)
+              : "";
+            setUmkmCategoryId(catId);
+            setCategoryName(data.categoryName || "");
+            setPhone(data.phone || "");
+            setAddress(data.address || "");
+            setMapsUrl(data.mapsUrl || "");
+            setDescription(data.description || "");
+            setCoverUrl(data.coverUrl || "");
+            setStatus(data.status || "APPROVED");
+            setSince(data.since || undefined);
+            setOpenDay(data.openDay || "Senin - Sabtu");
+            setStartTime(data.startTime || "08:00");
+            setEndTime(data.endTime || "17:00");
+            setLatitude(Number(data.latitude) || -8.2811);
+            setLongitude(Number(data.longitude) || 112.5664);
 
-              if (data.galleries && Array.isArray(data.galleries)) {
-                setGalleries(
-                  data.galleries.map((g) =>
-                    typeof g === "string" ? g : g.imageUrl,
-                  ),
-                );
-              }
-              if (data.products && Array.isArray(data.products)) {
-                setProducts(
-                  data.products.map((p) => ({
-                    name: p.name || "",
-                    price: p.price || 0,
-                    description: p.description || "",
-                    imageUrl: p.imageUrl || "",
-                  })),
-                );
-              }
-            }, 0);
-          }
-        })
-        .catch((err) => {
-          console.error(`Gagal memuat data UMKM ${umkmId}:`, err);
-        });
+            if (data.galleries && Array.isArray(data.galleries)) {
+              setGalleries(
+                data.galleries.map((g) =>
+                  typeof g === "string" ? g : g.imageUrl,
+                ),
+              );
+            }
+            if (data.products && Array.isArray(data.products)) {
+              setProducts(
+                data.products.map((p) => ({
+                  name: p.name || "",
+                  price: p.price || 0,
+                  description: p.description || "",
+                  imageUrl: p.imageUrl || "",
+                })),
+              );
+            }
+          }, 0);
+        }
+      });
     }
   }, [umkmId, isNew]);
 
@@ -175,7 +199,9 @@ export function AdminUmkmEditor({
         const draft = {
           name,
           ownerName,
+          umkmCategoryId,
           categoryName,
+          newCategoryName,
           phone,
           address,
           mapsUrl,
@@ -200,7 +226,9 @@ export function AdminUmkmEditor({
   }, [
     name,
     ownerName,
+    umkmCategoryId,
     categoryName,
+    newCategoryName,
     phone,
     address,
     mapsUrl,
@@ -416,12 +444,35 @@ export function AdminUmkmEditor({
         }
       }
 
+      if (umkmCategoryId === "other" && !newCategoryName.trim()) {
+        setErrors((prev) => ({
+          ...prev,
+          newCategoryName: "Nama kategori baru wajib diisi",
+        }));
+        setIsSubmitting(false);
+        return;
+      }
+
       setUploadProgressText("Menyimpan profil UMKM ke database...");
+
+      const activeCategoryName =
+        umkmCategoryId === "other"
+          ? newCategoryName.trim()
+          : categories.find((c) => String(c.id) === String(umkmCategoryId))
+              ?.name ||
+            categoryName ||
+            "UMKM";
 
       const payload = {
         name,
         ownerName,
-        categoryName,
+        umkmCategoryId:
+          umkmCategoryId && umkmCategoryId !== "other"
+            ? String(umkmCategoryId)
+            : undefined,
+        categoryName: activeCategoryName,
+        newCategoryName:
+          umkmCategoryId === "other" ? newCategoryName.trim() : undefined,
         phone,
         address,
         mapsUrl: mapsUrl?.trim() || null,
@@ -618,19 +669,58 @@ export function AdminUmkmEditor({
                 Kategori Usaha
               </label>
               <select
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+                value={umkmCategoryId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setUmkmCategoryId(val);
+                  if (val !== "other") {
+                    const matched = categories.find(
+                      (c) => String(c.id) === val,
+                    );
+                    if (matched) setCategoryName(matched.name);
+                  }
+                  clearError("umkmCategoryId");
+                }}
                 className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm font-semibold outline-none"
               >
-                <option value="Kuliner">Kuliner</option>
-                <option value="Kerajinan & Souvenir">
-                  Kerajinan & Souvenir
-                </option>
-                <option value="Pertanian & Peternakan">
-                  Pertanian & Peternakan
-                </option>
-                <option value="Jasa & Perdagangan">Jasa & Perdagangan</option>
+                {categories.length === 0 && (
+                  <option value="">Memuat kategori...</option>
+                )}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+                <option value="other">+ Tambah Kategori Baru</option>
               </select>
+
+              {umkmCategoryId === "other" && (
+                <div className="mt-2.5 space-y-1">
+                  <input
+                    type="text"
+                    required
+                    value={newCategoryName}
+                    onChange={(e) => {
+                      setNewCategoryName(e.target.value);
+                      clearError("newCategoryName");
+                    }}
+                    placeholder="Ketik nama kategori baru..."
+                    className={`bg-surface w-full rounded-xl border p-3 text-xs font-bold outline-none focus:ring-2 ${
+                      errors.newCategoryName
+                        ? "border-error focus:ring-error/20"
+                        : "border-primary text-on-surface focus:ring-primary/20"
+                    }`}
+                  />
+                  {errors.newCategoryName && (
+                    <p className="text-error text-xs font-semibold">
+                      {errors.newCategoryName}
+                    </p>
+                  )}
+                  <p className="text-on-surface-variant text-[11px]">
+                    * Kategori baru akan otomatis ditambahkan ke master kategori
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1102,7 +1192,13 @@ export function AdminUmkmEditor({
 
               <div>
                 <span className="bg-secondary-container text-on-secondary-container rounded-full px-3 py-1 text-xs font-bold">
-                  {categoryName}
+                  {umkmCategoryId === "other"
+                    ? newCategoryName || "Kategori Baru"
+                    : categories.find(
+                        (c) => String(c.id) === String(umkmCategoryId),
+                      )?.name ||
+                      categoryName ||
+                      "Kategori Usaha"}
                 </span>
                 <h1 className="font-headline-lg text-primary mt-3 text-2xl leading-tight font-bold">
                   {name || "Nama UMKM Belum Diisi"}
