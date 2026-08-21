@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Icon } from "@/shared/ui/icon";
 import { AdminMapsService } from "@/entities/admin/api/admin-maps.service";
 import type {
@@ -32,6 +32,8 @@ export function AdminPetaPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedLocation, setSelectedLocation] =
     useState<MapLocationDto | null>(null);
+
+  const modalMapRef = useRef<google.maps.Map | null>(null);
 
   const loadData = () => {
     setIsLoading(true);
@@ -77,9 +79,64 @@ export function AdminPetaPage() {
     setEditingCategoryName(loc.categoryName || "UMKM");
     setAddress(loc.address || "");
     setGoogleMapsUrl(loc.googleMapsUrl || loc.mapsUrl || "");
-    setLatitude(loc.latitude || -8.2811);
-    setLongitude(loc.longitude || 112.5664);
+    const lat = loc.latitude || -8.2811;
+    const lng = loc.longitude || 112.5664;
+    setLatitude(lat);
+    setLongitude(lng);
     setIsModalOpen(true);
+    setTimeout(() => {
+      if (modalMapRef.current) {
+        modalMapRef.current.panTo({ lat, lng });
+        modalMapRef.current.setZoom(17);
+      }
+    }, 300);
+  };
+
+  const centerToPin = () => {
+    if (modalMapRef.current) {
+      modalMapRef.current.panTo({ lat: latitude, lng: longitude });
+      modalMapRef.current.setZoom(18);
+    }
+  };
+
+  const resetToVillageCenter = () => {
+    const defaultLat = -8.2811;
+    const defaultLng = 112.5664;
+    setLatitude(defaultLat);
+    setLongitude(defaultLng);
+    if (modalMapRef.current) {
+      modalMapRef.current.panTo({ lat: defaultLat, lng: defaultLng });
+      modalMapRef.current.setZoom(16);
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLatitude(lat);
+        setLongitude(lng);
+        if (modalMapRef.current) {
+          modalMapRef.current.panTo({ lat, lng });
+          modalMapRef.current.setZoom(18);
+        }
+        showToast("Titik lokasi diperbarui ke koordinat GPS Anda.");
+      },
+      (err) => {
+        alert("Gagal mendeteksi lokasi GPS: " + err.message);
+      },
+      { enableHighAccuracy: true },
+    );
+  };
+
+  const copyCoordinates = () => {
+    navigator.clipboard.writeText(`${latitude}, ${longitude}`);
+    showToast("Koordinat disalin ke clipboard!");
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -330,158 +387,272 @@ export function AdminPetaPage() {
 
       {/* Modal Form Edit Titik Koordinat UMKM */}
       {isModalOpen && (
-        <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="border-outline-variant/30 bg-surface-container-lowest text-on-surface w-full max-w-xl space-y-6 rounded-[2.5rem] border p-8 shadow-2xl">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div>
-                <span className="text-on-surface-variant text-[11px] font-bold uppercase">
-                  {editingCategoryName}
-                </span>
-                <h3 className="font-headline-md text-primary text-xl font-bold">
-                  Sunting Koordinat: {editingName}
-                </h3>
+        <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-6 backdrop-blur-sm">
+          <div className="border-outline-variant/30 bg-surface-container-lowest text-on-surface flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2.5rem] border shadow-2xl">
+            {/* Modal Header */}
+            <div className="bg-surface flex items-center justify-between border-b px-6 py-4 sm:px-8">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-2xl">
+                  <Icon name="location_on" className="text-2xl" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-secondary-container text-on-secondary-container rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      {editingCategoryName}
+                    </span>
+                    <span className="text-on-surface-variant text-xs font-semibold">
+                      Peta Lokasi Desa Pringgodani
+                    </span>
+                  </div>
+                  <h3 className="font-headline-md text-primary text-lg font-bold sm:text-xl">
+                    Sunting Koordinat: {editingName}
+                  </h3>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-on-surface-variant hover:text-on-surface"
+                className="text-on-surface-variant hover:bg-surface-container hover:text-on-surface flex h-10 w-10 items-center justify-center rounded-full transition"
+                title="Tutup"
               >
-                <Icon name="close" className="text-xl" />
+                <Icon name="close" className="text-2xl" />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Link / Tautan Google Maps
-                </label>
-                <input
-                  type="url"
-                  value={googleMapsUrl}
-                  onChange={(e) => {
-                    const url = e.target.value;
-                    setGoogleMapsUrl(url);
-                    const { lat, lng } = extractCoordinatesFromUrl(url);
-                    if (lat !== 0 && lng !== 0) {
-                      setLatitude(lat);
-                      setLongitude(lng);
-                    }
-                  }}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-xs outline-none"
-                  placeholder="Tempelkan link share Google Maps (cth: https://maps.app.goo.gl/...)"
-                />
-                <p className="text-on-surface-variant mt-1.5 flex items-center gap-1 text-[11px]">
-                  <Icon name="info" className="text-primary text-sm shrink-0" />
-                  <span>
-                    Koordinat otomatis terdeteksi saat link Google Maps ditempelkan, atau Anda dapat mengeklik posisi di peta bawah.
-                  </span>
-                </p>
-              </div>
+            {/* Modal Body: 2 Columns */}
+            <form onSubmit={handleSave} className="flex flex-1 flex-col overflow-hidden">
+              <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto p-6 lg:grid-cols-12 sm:p-8">
+                {/* Left Side: Large Map Canvas */}
+                <div className="flex flex-col space-y-3 lg:col-span-7">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold">
+                      <Icon name="touch_app" className="text-sm" />
+                      Klik pada peta untuk memindahkan pin lokasi
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={centerToPin}
+                        className="bg-surface border-outline-variant hover:bg-surface-container text-on-surface flex items-center gap-1 rounded-xl border px-2.5 py-1 text-xs font-semibold shadow-xs transition"
+                        title="Pusatkan peta ke pin saat ini"
+                      >
+                        <Icon name="my_location" className="text-primary text-sm" />
+                        <span>Pusatkan</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetToVillageCenter}
+                        className="bg-surface border-outline-variant hover:bg-surface-container text-on-surface flex items-center gap-1 rounded-xl border px-2.5 py-1 text-xs font-semibold shadow-xs transition"
+                        title="Reset ke pusat Desa Pringgodani"
+                      >
+                        <Icon name="home" className="text-primary text-sm" />
+                        <span>Pusat Desa</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleGetCurrentLocation}
+                        className="bg-surface border-outline-variant hover:bg-surface-container text-on-surface flex items-center gap-1 rounded-xl border px-2.5 py-1 text-xs font-semibold shadow-xs transition"
+                        title="Gunakan posisi GPS perangkat Anda saat ini"
+                      >
+                        <Icon name="gps_fixed" className="text-primary text-sm" />
+                        <span>GPS Saya</span>
+                      </button>
+                    </div>
+                  </div>
 
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Pin Point Lokasi di Peta
-                </label>
-                <div className="border-outline-variant/30 mb-2 h-48 w-full overflow-hidden rounded-2xl border">
-                  <GoogleMapCanvas
-                    locations={[
-                      {
-                        id: "temp-pin",
-                        mapCategoryId: "cat-umkm",
-                        name: editingName || "Lokasi UMKM",
-                        shortDescription: address || "Desa Pringgodani",
-                        latitude,
-                        longitude,
-                        address: address || null,
-                        imageUrl: null,
-                        category: {
-                          id: "cat-umkm",
-                          name: editingCategoryName || "UMKM",
-                          slug: "umkm",
-                          icon: "store",
-                          color: "#16a34a",
+                  {/* Interactive Map */}
+                  <div className="border-outline-variant/30 bg-surface-container relative h-[380px] w-full flex-1 overflow-hidden rounded-2xl border shadow-inner sm:h-[440px] lg:min-h-[460px]">
+                    <GoogleMapCanvas
+                      locations={[
+                        {
+                          id: "temp-pin",
+                          mapCategoryId: "cat-umkm",
+                          name: editingName || "Lokasi Usaha",
+                          shortDescription: address || "Desa Pringgodani",
+                          latitude,
+                          longitude,
+                          address: address || null,
+                          imageUrl: null,
+                          category: {
+                            id: "cat-umkm",
+                            name: editingCategoryName || "UMKM",
+                            slug: "umkm",
+                            icon: "store",
+                            color: "#16a34a",
+                          },
                         },
-                      },
-                    ]}
-                    selectedLocation={null}
-                    onSelectLocation={() => {}}
-                    onMapClick={(lat: number, lng: number) => {
-                      setLatitude(lat);
-                      setLongitude(lng);
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-on-surface-variant text-[11px] font-bold">
-                      Latitude
-                    </span>
-                    <input
-                      type="number"
-                      step="any"
-                      required
-                      value={latitude}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setLatitude(val);
+                      ]}
+                      selectedLocation={null}
+                      onSelectLocation={() => {}}
+                      onMapLoaded={(map) => {
+                        modalMapRef.current = map;
+                        map.panTo({ lat: latitude, lng: longitude });
+                        map.setZoom(17);
                       }}
-                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 font-mono text-xs outline-none"
+                      onMapClick={(lat: number, lng: number) => {
+                        setLatitude(lat);
+                        setLongitude(lng);
+                      }}
                     />
                   </div>
-                  <div>
-                    <span className="text-on-surface-variant text-[11px] font-bold">
-                      Longitude
-                    </span>
-                    <input
-                      type="number"
-                      step="any"
-                      required
-                      value={longitude}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setLongitude(val);
-                      }}
-                      className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-2 font-mono text-xs outline-none"
-                    />
+
+                  {/* Live Coordinate Status Bar */}
+                  <div className="bg-surface border-outline-variant/40 flex items-center justify-between rounded-xl border px-3.5 py-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500"></span>
+                      <span className="text-on-surface-variant font-medium">
+                        Titik Koordinat Terpilih:
+                      </span>
+                      <span className="text-on-surface font-mono font-bold">
+                        {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={copyCoordinates}
+                      className="text-primary hover:text-primary/80 flex items-center gap-1 font-semibold"
+                      title="Salin koordinat"
+                    >
+                      <Icon name="content_copy" className="text-sm" />
+                      <span>Salin</span>
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
-                  Alamat Lengkap Toko / Usaha
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 text-sm outline-none"
-                  placeholder="Jl. Raya Desa Pringgodani..."
-                />
-              </div>
+                {/* Right Side: Form Controls */}
+                <div className="flex flex-col justify-between space-y-4 lg:col-span-5">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-label-sm text-on-surface-variant mb-1.5 block text-xs font-bold uppercase">
+                        Link / Tautan Google Maps
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={googleMapsUrl}
+                          onChange={(e) => {
+                            const url = e.target.value;
+                            setGoogleMapsUrl(url);
+                            const { lat, lng } = extractCoordinatesFromUrl(url);
+                            if (lat !== 0 && lng !== 0) {
+                              setLatitude(lat);
+                              setLongitude(lng);
+                              if (modalMapRef.current) {
+                                modalMapRef.current.panTo({ lat, lng });
+                                modalMapRef.current.setZoom(18);
+                              }
+                            }
+                          }}
+                          className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3.5 pr-10 text-xs outline-none"
+                          placeholder="https://maps.app.goo.gl/... atau https://google.com/maps?q=..."
+                        />
+                        <Icon
+                          name="link"
+                          className="text-on-surface-variant absolute top-3.5 right-3 text-lg"
+                        />
+                      </div>
+                      <p className="text-on-surface-variant mt-1.5 text-[11px] leading-relaxed">
+                        💡 Tempel link share dari Google Maps untuk otomatis mengisi koordinat dan mengarahkan peta ke lokasi toko.
+                      </p>
+                    </div>
 
-              <div className="flex justify-end gap-3 border-t pt-4">
-                <button
-                  type="button"
-                  disabled={isSaving}
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-surface border-outline-variant text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold disabled:opacity-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <>
-                      <Icon name="sync" className="animate-spin text-base" />
-                      <span>Menyimpan...</span>
-                    </>
-                  ) : (
-                    <span>Simpan Koordinat</span>
-                  )}
-                </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
+                          Latitude (Garis Lintang)
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          value={latitude}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setLatitude(val);
+                            if (modalMapRef.current && !isNaN(val)) {
+                              modalMapRef.current.panTo({ lat: val, lng: longitude });
+                            }
+                          }}
+                          className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-3 font-mono text-xs font-bold outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-label-sm text-on-surface-variant mb-1 block text-xs font-bold uppercase">
+                          Longitude (Garis Bujur)
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          value={longitude}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setLongitude(val);
+                            if (modalMapRef.current && !isNaN(val)) {
+                              modalMapRef.current.panTo({ lat: latitude, lng: val });
+                            }
+                          }}
+                          className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-xl border p-3 font-mono text-xs font-bold outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-label-sm text-on-surface-variant mb-1.5 block text-xs font-bold uppercase">
+                        Alamat Lengkap Toko / Usaha
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        className="bg-surface border-outline-variant text-on-surface focus:border-primary w-full rounded-2xl border p-3 text-xs leading-relaxed outline-none"
+                        placeholder="Contoh: RT 03 RW 02 Dusun Krajan, Desa Pringgodani..."
+                      />
+                    </div>
+
+                    {/* Panduan Singkat */}
+                    <div className="bg-surface-container/50 border-outline-variant/30 rounded-2xl border p-4 text-xs">
+                      <div className="text-primary mb-1.5 flex items-center gap-1.5 font-bold">
+                        <Icon name="lightbulb" className="text-base" />
+                        <span>Panduan Menyesuaikan Lokasi</span>
+                      </div>
+                      <ol className="text-on-surface-variant list-inside list-decimal space-y-1 text-[11px] leading-relaxed">
+                        <li>Geser dan perbesar peta di sisi kiri ke titik bangunan toko.</li>
+                        <li>Klik tepat pada atap / lokasi toko untuk menaruh pin.</li>
+                        <li>Pastikan alamat dan titik koordinat sudah sesuai, lalu klik tombol Simpan.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  {/* Modal Footer Actions */}
+                  <div className="flex items-center justify-end gap-3 border-t pt-4">
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => setIsModalOpen(false)}
+                      className="bg-surface border-outline-variant hover:bg-surface-container text-on-surface rounded-2xl border px-5 py-3 text-xs font-bold transition disabled:opacity-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="bg-primary text-on-primary hover:bg-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-xs font-bold shadow-md transition disabled:opacity-50"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Icon name="sync" className="animate-spin text-base" />
+                          <span>Menyimpan...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="save" className="text-base" />
+                          <span>Simpan Koordinat</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </form>
           </div>
