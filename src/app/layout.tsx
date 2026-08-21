@@ -91,7 +91,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", sizes: "48x48 64x64", type: "image/x-icon" },
+      { url: "/images/favicon.png", type: "image/png", sizes: "48x48" },
+      { url: "/images/favicon.png", type: "image/png", sizes: "96x96" },
       { url: "/images/favicon.png", type: "image/png", sizes: "192x192" },
       { url: "/images/favicon.png", type: "image/png", sizes: "512x512" },
     ],
@@ -171,8 +173,12 @@ export default function RootLayout({
   return (
     <html lang="id" className="h-full antialiased">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48 64x64" type="image/x-icon" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/images/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
         <link rel="image_src" href={`${SITE_URL}/images/og-image.png`} />
         <meta property="og:image" content={`${SITE_URL}/images/og-image.png`} />
