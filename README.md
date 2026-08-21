@@ -1,8 +1,17 @@
-# Website Resmi Desa Pringgodani
+# Website Resmi Desa Pringgodani (Frontend)
 
-Status: **Tahap 4 — Halaman Publik**. Selesai: langkah 1/6 (**Home**), 2/6
-(**Berita**), 3/6 (**UMKM**). Lihat `01-architecture-plan.md` (di luar repo ini)
-untuk dokumen master perencanaan.
+---
+
+## 📚 [DOKUMENTASI TEKNIS FRONTEND]
+Panduan arsitektur dan teknis lengkap frontend tersedia di folder [`docs/`](./docs/):
+* 🏛️ [**01. Arsitektur Frontend & FSD**](./docs/01-frontend-architecture.md) — Pola Feature-Sliced Design, Layer Rules, & Directory Map.
+* 🔄 [**02. Data Fetching & Dual-Mode**](./docs/02-data-fetching-and-dual-mode.md) — Integrasi Live REST API vs Server-Side Mock Fallback.
+* 📝 [**03. Manajemen Form, Draft, & Uploads**](./docs/03-forms-draft-and-uploads.md) — Validasi Zod, Auto-Save LocalStorage, & Kompresi Gambar.
+* 🗺️ [**04. Sistem Peta Interaktif & Editor Geospasial**](./docs/04-interactive-map-system.md) — Google Maps SDK Canvas, Pin Markers, & Modal Editor 2-Kolom.
+* 💻 [**05. Setup Lokal, .env.local, & Testing**](./docs/05-local-setup-and-testing.md) — Panduan Dev Server & Unit Testing Vitest.
+* 🚀 [**06. Panduan Deployment & Optimasi Produksi**](./docs/06-deployment-and-production.md) — Vercel Deploy, API Rewrites Proxy, SEO & Web Vitals.
+
+---
 
 > ## ⚠️ Repo ini sekarang PURE FRONTEND (4 Agustus 2026)
 >
